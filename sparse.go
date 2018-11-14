@@ -143,7 +143,7 @@ const (
 // cs_amd - p = amd(A+A') if symmetric is true, or amd(A'A) otherwise
 // order 0:natural, 1:Chol, 2:LU, 3:QR
 func cs_amd(order Order, A *cs) *cs {
-	var C []cs
+	var C *cs
 	var A2 []cs
 	// var AT []cs
 	var Cp []noarch.PtrdiffT
@@ -176,7 +176,7 @@ func cs_amd(order Order, A *cs) *cs {
 	var k3 noarch.PtrdiffT
 	var jlast noarch.PtrdiffT
 	var ln noarch.PtrdiffT
-	var dense noarch.PtrdiffT
+	// var dense noarch.PtrdiffT
 	var nzmax noarch.PtrdiffT
 	var mindeg noarch.PtrdiffT
 	var nvi noarch.PtrdiffT
@@ -217,22 +217,18 @@ func cs_amd(order Order, A *cs) *cs {
 		n = A.n
 	)
 	// find dense threshold
-	dense = noarch.PtrdiffT(func() float64 {
-		if float64(16) > 10*math.Sqrt(float64(noarch.PtrdiffT(n))) {
-			return float64((16))
-		}
-		return (10 * math.Sqrt(float64(noarch.PtrdiffT(n))))
-	}())
-	dense = noarch.PtrdiffT(func() int32 {
-		if n-noarch.PtrdiffT(2/8) < dense {
-			return (int32(n - noarch.PtrdiffT(2/8)))
-		}
-		return int32(noarch.PtrdiffT((dense)))
-	}() / 8)
-	if order == noarch.PtrdiffT(1/8) && n == m {
+	dense := 16
+	if val := int(10.0 * math.Sqrt(float64(n))); dense < val {
+		dense = val
+	}
+	if n-2 < dense {
+		dense = n - 2
+	}
+
+	if order == 1 && n == m {
 		// C = A+A'
 		C = cs_add(A, AT, 0, 0)
-	} else if order == noarch.PtrdiffT(2/8) {
+	} else if order == 2 {
 		// drop dense columns from AT
 		ATp = AT[0].p
 		ATi = AT[0].i
