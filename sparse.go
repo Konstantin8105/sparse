@@ -50,6 +50,8 @@ type csd struct { // struct cs_dmperm_results
 	cc [5]int // coarse column decomposition
 }
 
+// TODO(KI) : remove comments like "transpiled function from ..."
+
 // cs_add - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_add.c:3
 // C = alpha*A + beta*B
 func cs_add(A *cs, B *cs, alpha float64, beta float64) *cs {
