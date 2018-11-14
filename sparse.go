@@ -144,7 +144,7 @@ const (
 // order 0:natural, 1:Chol, 2:LU, 3:QR
 func cs_amd(order Order, A *cs) *cs {
 	var C *cs
-	var A2 []cs
+	var A2 *cs
 	// var AT []cs
 	var Cp []noarch.PtrdiffT
 	var Ci []noarch.PtrdiffT
@@ -251,14 +251,13 @@ func cs_amd(order Order, A *cs) *cs {
 		// finalize AT
 		ATp[m] = p2
 		// A2 = AT'
-		A2 = cs_transpose(AT, 0)
+		A2 = cs_transpose(AT, false)
 		// C=A'*A with no dense rows
-		C = func() []cs {
-			if A2 != nil {
-				return cs_multiply(AT, A2)
-			}
-			return nil
-		}()
+		if A2 != nil {
+			C = cs_multiply(AT, A2)
+		} else {
+			C = nil
+		}
 		cs_spfree(A2)
 	} else {
 		// C=A'*A
@@ -2769,7 +2768,7 @@ func cs_maxtrans(A []cs, seed noarch.PtrdiffT) []noarch.PtrdiffT {
 
 // cs_multiply - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_multiply.c:3
 // C = A*B
-func cs_multiply(A []cs, B []cs) []cs {
+func cs_multiply(A *cs, B *cs) *cs {
 	var p noarch.PtrdiffT
 	var j noarch.PtrdiffT
 	var nz noarch.PtrdiffT
