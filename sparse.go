@@ -145,7 +145,7 @@ const (
 func cs_amd(order Order, A *cs) *cs {
 	var C []cs
 	var A2 []cs
-	var AT []cs
+	// var AT []cs
 	var Cp []noarch.PtrdiffT
 	var Ci []noarch.PtrdiffT
 	var last []noarch.PtrdiffT
@@ -198,22 +198,24 @@ func cs_amd(order Order, A *cs) *cs {
 	var pk2 noarch.PtrdiffT
 	var pn noarch.PtrdiffT
 	var q noarch.PtrdiffT
-	var n noarch.PtrdiffT
-	var m noarch.PtrdiffT
+	// var n noarch.PtrdiffT
+	// var m noarch.PtrdiffT
 	var t noarch.PtrdiffT
 	var h noarch.PtrdiffT
-	if !(A != nil && noarch.PtrdiffT(A[0].nz) == noarch.PtrdiffT(int32(-1)/8)) || order <= 0 || order > noarch.PtrdiffT(3/8) {
+	if !(A != nil && A.nz == -1) || order <= 0 || order > 3 {
 		// --- Construct matrix C -----------------------------------------------
 		// check
 		return nil
 	}
 	// compute A'
-	AT = cs_transpose(A, 0)
+	AT := cs_transpose(A, false)
 	if AT == nil {
 		return nil
 	}
-	m = noarch.PtrdiffT(A[0].m)
-	n = noarch.PtrdiffT(A[0].n)
+	var (
+		m = A.m
+		n = A.n
+	)
 	// find dense threshold
 	dense = noarch.PtrdiffT(func() float64 {
 		if float64(16) > 10*math.Sqrt(float64(noarch.PtrdiffT(n))) {
@@ -4132,7 +4134,7 @@ func cs_tdfs(j, k int, head []noarch.PtrdiffT, next []noarch.PtrdiffT, post []no
 
 // cs_transpose - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_transpose.c:3
 // C = A'
-func cs_transpose(A []cs, values noarch.PtrdiffT) []cs {
+func cs_transpose(A *cs, values bool) *cs {
 	var p noarch.PtrdiffT
 	var q noarch.PtrdiffT
 	var j noarch.PtrdiffT
