@@ -129,8 +129,11 @@ func cs_wclear(mark, lemax int, w []int, n int) int {
 
 // cs_diag - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_amd.c:15
 // keep off-diagonal entries; drop diagonal entries
-func cs_diag(i noarch.PtrdiffT, j noarch.PtrdiffT, aij float64, other interface{}) noarch.PtrdiffT {
-	return noarch.PtrdiffT((i != j))
+func cs_diag(i, j int, aij float64, other interface{}) bool {
+
+	// TODO (KI) : remove arguments aij, other
+
+	return (i != j)
 }
 
 // cs_amd - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_amd.c:18
