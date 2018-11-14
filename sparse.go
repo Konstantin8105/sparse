@@ -114,18 +114,17 @@ func cs_add(A *cs, B *cs, alpha float64, beta float64) *cs {
 
 // cs_wclear - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_amd.c:3
 // clear w
-func cs_wclear(mark noarch.PtrdiffT, lemax noarch.PtrdiffT, w []noarch.PtrdiffT, n noarch.PtrdiffT) noarch.PtrdiffT {
-	var k noarch.PtrdiffT
-	if mark < noarch.PtrdiffT(2/8) || mark+lemax < noarch.PtrdiffT(0/8) {
-		for k = 0; k < n; k++ {
-			if w[k] != noarch.PtrdiffT(0/8) {
+func cs_wclear(mark, lemax int, w []int, n int) int {
+	if mark < 2 || mark+lemax < 0 {
+		for k := 0; k < n; k++ {
+			if w[k] != 0 {
 				w[k] = 1
 			}
 		}
 		mark = 2
 	}
 	// at this point, w [0..n-1] < mark holds
-	return noarch.PtrdiffT((mark))
+	return mark
 }
 
 // cs_diag - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_amd.c:15
@@ -4378,7 +4377,7 @@ func cs_spalloc(m, n, nzmax int, values bool, triplet int) *cs {
 
 // cs_sprealloc - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_util.c:18
 // change the max # of entries sparse matrix
-func cs_sprealloc(A []cs, nzmax noarch.PtrdiffT) noarch.PtrdiffT {
+func cs_sprealloc(A *cs, nzmax int) int {
 	var ok noarch.PtrdiffT
 	var oki noarch.PtrdiffT
 	var okj noarch.PtrdiffT = 1
