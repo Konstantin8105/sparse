@@ -4420,7 +4420,7 @@ func cs_sprealloc(A []cs, nzmax noarch.PtrdiffT) noarch.PtrdiffT {
 
 // cs_spfree - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_util.c:33
 // free a sparse matrix
-func cs_spfree(A []cs) []cs {
+func cs_spfree(A *cs) *cs {
 	if A == nil {
 		// do nothing if A already NULL
 		return nil
