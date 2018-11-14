@@ -146,7 +146,7 @@ func cs_amd(order Order, A *cs) *cs {
 	var C *cs
 	var A2 *cs
 	// var AT []cs
-	var Cp []noarch.PtrdiffT
+	// var Cp []int
 	var Ci []noarch.PtrdiffT
 	var last []noarch.PtrdiffT
 	var W []noarch.PtrdiffT
@@ -185,7 +185,7 @@ func cs_amd(order Order, A *cs) *cs {
 	var mark noarch.PtrdiffT
 	var wnvi noarch.PtrdiffT
 	var ok noarch.PtrdiffT
-	var cnz noarch.PtrdiffT
+	// var cnz noarch.PtrdiffT
 	var nel noarch.PtrdiffT
 	var p int
 	var p1 noarch.PtrdiffT
@@ -258,19 +258,19 @@ func cs_amd(order Order, A *cs) *cs {
 		} else {
 			C = nil
 		}
-		cs_spfree(A2)
+		cs_spfree(A2) // TODO (KI) : remove
 	} else {
 		// C=A'*A
 		C = cs_multiply(AT, A)
 	}
-	cs_spfree(AT)
+	cs_spfree(AT) // TODO (KI) : remove
 	if C == nil {
 		return nil
 	}
 	// drop diagonal entries
 	cs_fkeep(C, cs_diag, nil)
-	Cp = C[0].p
-	cnz = Cp[n]
+	Cp := C.p
+	cnz := Cp[n]
 	// allocate result
 	P = cs_malloc(n+noarch.PtrdiffT(1/8), uint(0)).([]noarch.PtrdiffT)
 	// get workspace
@@ -1960,7 +1960,7 @@ func cs_etree(A []cs, ata noarch.PtrdiffT) []noarch.PtrdiffT {
 
 // cs_fkeep - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_fkeep.c:3
 // drop entries for which fkeep(A(i,j)) is false; return nz if OK, else -1
-func cs_fkeep(A []cs, fkeep func(noarch.PtrdiffT, noarch.PtrdiffT, float64, interface{}) noarch.PtrdiffT, other interface{}) noarch.PtrdiffT {
+func cs_fkeep(A *cs, fkeep func(int, int, float64, interface{}) bool, other interface{}) noarch.PtrdiffT {
 	var j noarch.PtrdiffT
 	var p noarch.PtrdiffT
 	var nz noarch.PtrdiffT
