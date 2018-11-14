@@ -52,8 +52,7 @@ type csd struct { // struct cs_dmperm_results
 
 // TODO(KI) : remove comments like "transpiled function from ..."
 
-// cs_add - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_add.c:3
-// C = alpha*A + beta*B
+// cs_add - C = alpha*A + beta*B
 func cs_add(A *cs, B *cs, alpha float64, beta float64) *cs {
 	var x []float64
 	if !(A != nil && A.nz == -1) || !(B != nil && B.nz == -1) {
@@ -110,8 +109,7 @@ func cs_add(A *cs, B *cs, alpha float64, beta float64) *cs {
 	return cs_done(C, w, x, true)
 }
 
-// cs_wclear - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_amd.c:3
-// clear w
+// cs_wclear - clear w
 func cs_wclear(mark, lemax int, w []int, n int) int {
 	if mark < 2 || mark+lemax < 0 {
 		for k := 0; k < n; k++ {
