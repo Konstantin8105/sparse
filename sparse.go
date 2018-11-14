@@ -4549,8 +4549,7 @@ func cs_ddone(D []csd, C []cs, w interface{}, ok noarch.PtrdiffT) []csd {
 	}())
 }
 
-// cs_utsolve - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_utsolve.c:3
-// solve U'x=b where x and b are dense.  x=b on input, solution on output.
+// cs_utsolve - solve U'x=b where x and b are dense.  x=b on input, solution on output.
 func cs_utsolve(U *cs, x []float64) bool {
 	if !(U != nil && U.nz == -1) || x == nil {
 		// check inputs
