@@ -78,7 +78,6 @@ func cs_add(A *cs, B *cs, alpha float64, beta float64) *cs {
 		bnz = Bp[n]
 	)
 	// get workspace
-	// Warning (*ast.UnaryExprOrTypeTraitExpr):  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_add.c:12 :Cannot determine sizeof : |ptrdiff_t|. err = error in array size
 	w = cs_calloc(noarch.PtrdiffT(m), uint(0)).([]noarch.PtrdiffT)
 	values = noarch.PtrdiffT(A[0].x != nil && Bx != nil)
 	// get workspace
@@ -281,10 +280,8 @@ func cs_amd(order noarch.PtrdiffT, A []cs) []noarch.PtrdiffT {
 	Cp = C[0].p
 	cnz = Cp[n]
 	// allocate result
-	// Warning (*ast.UnaryExprOrTypeTraitExpr):  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_amd.c:62 :Cannot determine sizeof : |ptrdiff_t|. err = error in array size
 	P = cs_malloc(n+noarch.PtrdiffT(1/8), uint(0)).([]noarch.PtrdiffT)
 	// get workspace
-	// Warning (*ast.UnaryExprOrTypeTraitExpr):  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_amd.c:63 :Cannot determine sizeof : |ptrdiff_t|. err = error in array size
 	W = cs_malloc(noarch.PtrdiffT(8*int32(n+noarch.PtrdiffT(1/8))/8), uint(0)).([]noarch.PtrdiffT)
 	// add elbow room to C
 	t = cnz + cnz/noarch.PtrdiffT(5/8) + noarch.PtrdiffT(2*int32(n)/8)
@@ -888,7 +885,6 @@ func cs_chol(A []cs, S []css) []csn {
 	// allocate result
 	N = cs_calloc(1, uint(32)).([]csn)
 	// get csi workspace
-	// Warning (*ast.UnaryExprOrTypeTraitExpr):  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_chol.c:12 :Cannot determine sizeof : |ptrdiff_t|. err = error in array size
 	c = cs_malloc(noarch.PtrdiffT(2*int32(n)/8), uint(0)).([]noarch.PtrdiffT)
 	// get double workspace
 	x = cs_malloc(noarch.PtrdiffT(n), uint(8)).([]float64)
@@ -1061,7 +1057,6 @@ func cs_compress(T []cs) []cs {
 	// allocate result
 	C = cs_spalloc(noarch.PtrdiffT(m), noarch.PtrdiffT(n), noarch.PtrdiffT(nz), noarch.PtrdiffT(Tx != nil), 0)
 	// get workspace
-	// Warning (*ast.UnaryExprOrTypeTraitExpr):  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_compress.c:11 :Cannot determine sizeof : |ptrdiff_t|. err = error in array size
 	w = cs_calloc(noarch.PtrdiffT(n), uint(0)).([]noarch.PtrdiffT)
 	if C == nil || w == nil {
 		// out of memory
@@ -1173,10 +1168,8 @@ func cs_counts(A []cs, parent []noarch.PtrdiffT, post []noarch.PtrdiffT, ata noa
 	}()) / 8)
 	colcount = cs_malloc(noarch.PtrdiffT(n), uint(0)).([]noarch.PtrdiffT)
 	// allocate result
-	// Warning (*ast.UnaryExprOrTypeTraitExpr):  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_counts.c:25 :Cannot determine sizeof : |ptrdiff_t|. err = error in array size
 	delta = colcount
 	// get workspace
-	// Warning (*ast.UnaryExprOrTypeTraitExpr):  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_counts.c:26 :Cannot determine sizeof : |ptrdiff_t|. err = error in array size
 	w = cs_malloc(noarch.PtrdiffT(s), uint(0)).([]noarch.PtrdiffT)
 	// AT = A'
 	AT = cs_transpose(A, 0)
@@ -1750,7 +1743,6 @@ func cs_dupl(A []cs) noarch.PtrdiffT {
 	Ai = A[0].i
 	Ax = A[0].x
 	// get workspace
-	// Warning (*ast.UnaryExprOrTypeTraitExpr):  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_dupl.c:9 :Cannot determine sizeof : |ptrdiff_t|. err = error in array size
 	w = cs_malloc(noarch.PtrdiffT(m), uint(0)).([]noarch.PtrdiffT)
 	if w == nil {
 		// out of memory
@@ -1925,10 +1917,8 @@ func cs_etree(A []cs, ata noarch.PtrdiffT) []noarch.PtrdiffT {
 	Ap = A[0].p
 	Ai = A[0].i
 	// allocate result
-	// Warning (*ast.UnaryExprOrTypeTraitExpr):  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_etree.c:8 :Cannot determine sizeof : |ptrdiff_t|. err = error in array size
 	parent = cs_malloc(noarch.PtrdiffT(n), uint(0)).([]noarch.PtrdiffT)
 	// get workspace
-	// Warning (*ast.UnaryExprOrTypeTraitExpr):  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_etree.c:9 :Cannot determine sizeof : |ptrdiff_t|. err = error in array size
 	w = cs_malloc(n+noarch.PtrdiffT(func() int32 {
 		if bool(noarch.PtrdiffT(ata)) {
 			return int32(noarch.PtrdiffT(m))
@@ -2297,7 +2287,6 @@ func cs_lu(A []cs, S []css, tol float64) []csn {
 	// get double workspace
 	x = cs_malloc(noarch.PtrdiffT(n), uint(8)).([]float64)
 	// get csi workspace
-	// Warning (*ast.UnaryExprOrTypeTraitExpr):  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_lu.c:13 :Cannot determine sizeof : |ptrdiff_t|. err = error in array size
 	xi = cs_malloc(noarch.PtrdiffT(2*int32(n)/8), uint(0)).([]noarch.PtrdiffT)
 	// allocate result
 	N = cs_calloc(1, uint(32)).([]csn)
@@ -2312,7 +2301,6 @@ func cs_lu(A []cs, S []css, tol float64) []csn {
 	N[0].U = U
 	pinv = cs_malloc(noarch.PtrdiffT(n), uint(0)).([]noarch.PtrdiffT)
 	// allocate result pinv
-	// Warning (*ast.UnaryExprOrTypeTraitExpr):  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_lu.c:18 :Cannot determine sizeof : |ptrdiff_t|. err = error in array size
 	N[0].pinv = pinv
 	if L == nil || U == nil || pinv == nil {
 		return (cs_ndone(N, nil, xi, x, 0))
@@ -2650,7 +2638,6 @@ func cs_maxtrans(A []cs, seed noarch.PtrdiffT) []noarch.PtrdiffT {
 	Ai = A[0].i
 	jimatch = cs_calloc(m+n, uint(0)).([]noarch.PtrdiffT)
 	// allocate result
-	// Warning (*ast.UnaryExprOrTypeTraitExpr):  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_maxtrans.c:51 :Cannot determine sizeof : |ptrdiff_t|. err = error in array size
 	w = jimatch
 	if jimatch == nil {
 		return nil
@@ -2725,7 +2712,6 @@ func cs_maxtrans(A []cs, seed noarch.PtrdiffT) []noarch.PtrdiffT {
 		return (*(*[1000000000]noarch.PtrdiffT)(unsafe.Pointer(uintptr(unsafe.Pointer(&jimatch[0])) + (uintptr)(int(m))*unsafe.Sizeof(jimatch[0]))))[:]
 	}()
 	// get workspace
-	// Warning (*ast.UnaryExprOrTypeTraitExpr):  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_maxtrans.c:77 :Cannot determine sizeof : |ptrdiff_t|. err = error in array size
 	w = cs_malloc(noarch.PtrdiffT(5*int32(n)/8), uint(0)).([]noarch.PtrdiffT)
 	if w == nil {
 		return (cs_idone(jimatch, func() []cs {
@@ -2825,7 +2811,6 @@ func cs_multiply(A []cs, B []cs) []cs {
 	Bx = B[0].x
 	bnz = Bp[n]
 	// get workspace
-	// Warning (*ast.UnaryExprOrTypeTraitExpr):  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_multiply.c:12 :Cannot determine sizeof : |ptrdiff_t|. err = error in array size
 	w = cs_calloc(noarch.PtrdiffT(m), uint(0)).([]noarch.PtrdiffT)
 	values = noarch.PtrdiffT(A[0].x != nil && Bx != nil)
 	// get workspace
@@ -2984,7 +2969,6 @@ func cs_pinv(p []noarch.PtrdiffT, n noarch.PtrdiffT) []noarch.PtrdiffT {
 		return nil
 	}
 	// allocate result
-	// Warning (*ast.UnaryExprOrTypeTraitExpr):  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_pinv.c:7 :Cannot determine sizeof : |ptrdiff_t|. err = error in array size
 	pinv = cs_malloc(noarch.PtrdiffT(n), uint(0)).([]noarch.PtrdiffT)
 	if pinv == nil {
 		// out of memory
@@ -3015,10 +2999,8 @@ func cs_post(parent []noarch.PtrdiffT, n noarch.PtrdiffT) []noarch.PtrdiffT {
 		return nil
 	}
 	// allocate result
-	// Warning (*ast.UnaryExprOrTypeTraitExpr):  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_post.c:7 :Cannot determine sizeof : |ptrdiff_t|. err = error in array size
 	post = cs_malloc(noarch.PtrdiffT(n), uint(0)).([]noarch.PtrdiffT)
 	// get workspace
-	// Warning (*ast.UnaryExprOrTypeTraitExpr):  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_post.c:8 :Cannot determine sizeof : |ptrdiff_t|. err = error in array size
 	w = cs_malloc(noarch.PtrdiffT(3*int32(n)/8), uint(0)).([]noarch.PtrdiffT)
 	if w == nil || post == nil {
 		return (cs_idone(post, nil, w, 0))
@@ -3184,7 +3166,6 @@ func cs_qr(A []cs, S []css) []csn {
 	rnz = noarch.PtrdiffT(S[0].unz)
 	leftmost = S[0].leftmost
 	// get csi workspace
-	// Warning (*ast.UnaryExprOrTypeTraitExpr):  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_qr.c:14 :Cannot determine sizeof : |ptrdiff_t|. err = error in array size
 	w = cs_malloc(m2+n, uint(0)).([]noarch.PtrdiffT)
 	// get double workspace
 	x = cs_malloc(noarch.PtrdiffT(m2), uint(8)).([]float64)
@@ -3436,7 +3417,6 @@ func cs_randperm(n noarch.PtrdiffT, seed noarch.PtrdiffT) []noarch.PtrdiffT {
 		return nil
 	}
 	// allocate result
-	// Warning (*ast.UnaryExprOrTypeTraitExpr):  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_randperm.c:9 :Cannot determine sizeof : |ptrdiff_t|. err = error in array size
 	p = cs_malloc(noarch.PtrdiffT(n), uint(0)).([]noarch.PtrdiffT)
 	if p == nil {
 		// out of memory
@@ -3569,7 +3549,6 @@ func cs_scc(A []cs) []csd {
 	// AT = A'
 	AT = cs_transpose(A, 0)
 	// get workspace
-	// Warning (*ast.UnaryExprOrTypeTraitExpr):  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_scc.c:12 :Cannot determine sizeof : |ptrdiff_t|. err = error in array size
 	xi = cs_malloc(noarch.PtrdiffT((2*int32(n)+1)/8), uint(0)).([]noarch.PtrdiffT)
 	if D == nil || AT == nil || xi == nil {
 		return (cs_ddone(D, AT, xi, 0))
@@ -3662,7 +3641,6 @@ func cs_schol(order noarch.PtrdiffT, A []cs) []css {
 	}
 	n = noarch.PtrdiffT(A[0].n)
 	// allocate result S
-	// Warning (*ast.UnaryExprOrTypeTraitExpr):  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_schol.c:10 :Cannot determine sizeof : |css|. err = Cannot canculate `struct` sizeof for `string`. Cannot determine sizeof : |ptrdiff_t|. err = error in array size
 	S = cs_calloc(1, uint(0)).([]css)
 	if S == nil {
 		// out of memory
@@ -3687,7 +3665,6 @@ func cs_schol(order noarch.PtrdiffT, A []cs) []css {
 	cs_free(post)
 	cs_spfree(C)
 	// allocate result S->cp
-	// Warning (*ast.UnaryExprOrTypeTraitExpr):  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_schol.c:22 :Cannot determine sizeof : |ptrdiff_t|. err = error in array size
 	S[0].cp = cs_malloc(n+noarch.PtrdiffT(1/8), uint(0)).([]noarch.PtrdiffT)
 	S[0].lnz = cs_cumsum(S[0].cp, c, noarch.PtrdiffT(n))
 	// find column pointers for L
@@ -3806,14 +3783,11 @@ func cs_vcount(A []cs, S []css) noarch.PtrdiffT {
 	var parent []noarch.PtrdiffT = S[0].parent
 	pinv = cs_malloc(m+n, uint(0)).([]noarch.PtrdiffT)
 	// allocate pinv,
-	// Warning (*ast.UnaryExprOrTypeTraitExpr):  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_sqr.c:7 :Cannot determine sizeof : |ptrdiff_t|. err = error in array size
 	S[0].pinv = pinv
 	leftmost = cs_malloc(noarch.PtrdiffT(m), uint(0)).([]noarch.PtrdiffT)
 	// and leftmost
-	// Warning (*ast.UnaryExprOrTypeTraitExpr):  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_sqr.c:8 :Cannot determine sizeof : |ptrdiff_t|. err = error in array size
 	S[0].leftmost = leftmost
 	// get workspace
-	// Warning (*ast.UnaryExprOrTypeTraitExpr):  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_sqr.c:9 :Cannot determine sizeof : |ptrdiff_t|. err = error in array size
 	w = cs_malloc(m+noarch.PtrdiffT(3*int32(n)/8), uint(0)).([]noarch.PtrdiffT)
 	if pinv == nil || w == nil || leftmost == nil {
 		// pinv and leftmost freed later
@@ -3944,7 +3918,6 @@ func cs_sqr(order noarch.PtrdiffT, A []cs, qr noarch.PtrdiffT) []css {
 	}
 	n = noarch.PtrdiffT(A[0].n)
 	// allocate result S
-	// Warning (*ast.UnaryExprOrTypeTraitExpr):  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_sqr.c:66 :Cannot determine sizeof : |css|. err = Cannot canculate `struct` sizeof for `string`. Cannot determine sizeof : |ptrdiff_t|. err = error in array size
 	S = cs_calloc(1, uint(0)).([]css)
 	if S == nil {
 		// out of memory
@@ -4024,7 +3997,6 @@ func cs_symperm(A []cs, pinv []noarch.PtrdiffT, values noarch.PtrdiffT) []cs {
 	// alloc result
 	C = cs_spalloc(noarch.PtrdiffT(n), noarch.PtrdiffT(n), noarch.PtrdiffT(Ap[n]), noarch.PtrdiffT(bool(values) && Ax != nil), 0)
 	// get workspace
-	// Warning (*ast.UnaryExprOrTypeTraitExpr):  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_symperm.c:11 :Cannot determine sizeof : |ptrdiff_t|. err = error in array size
 	w = cs_calloc(noarch.PtrdiffT(n), uint(0)).([]noarch.PtrdiffT)
 	if C == nil || w == nil {
 		// out of memory
@@ -4187,7 +4159,6 @@ func cs_transpose(A []cs, values noarch.PtrdiffT) []cs {
 	// allocate result
 	C = cs_spalloc(noarch.PtrdiffT(n), noarch.PtrdiffT(m), noarch.PtrdiffT(Ap[n]), noarch.PtrdiffT(bool(values) && Ax != nil), 0)
 	// get workspace
-	// Warning (*ast.UnaryExprOrTypeTraitExpr):  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_transpose.c:11 :Cannot determine sizeof : |ptrdiff_t|. err = error in array size
 	w = cs_calloc(noarch.PtrdiffT(m), uint(0)).([]noarch.PtrdiffT)
 	if C == nil || w == nil {
 		// out of memory
@@ -4365,8 +4336,7 @@ func cs_usolve(U []cs, x []float64) noarch.PtrdiffT {
 // cs_spalloc - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_util.c:3
 // allocate a sparse matrix (triplet form or compressed-column form)
 func cs_spalloc(m noarch.PtrdiffT, n noarch.PtrdiffT, nzmax noarch.PtrdiffT, values noarch.PtrdiffT, triplet noarch.PtrdiffT) []cs {
-	var // Warning (*ast.UnaryExprOrTypeTraitExpr):  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_util.c:5 :Cannot determine sizeof : |cs|. err = Cannot canculate `struct` sizeof for `string`. Cannot determine sizeof : |ptrdiff_t|. err = error in array size
-	A []cs = cs_calloc(1, uint(0)).([]cs)
+	var A []cs = cs_calloc(1, uint(0)).([]cs)
 	if A == nil {
 		// allocate the cs struct
 		// out of memory
@@ -4389,14 +4359,12 @@ func cs_spalloc(m noarch.PtrdiffT, n noarch.PtrdiffT, nzmax noarch.PtrdiffT, val
 		}
 		return -1
 	}())
-	// Warning (*ast.UnaryExprOrTypeTraitExpr):  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_util.c:11 :Cannot determine sizeof : |ptrdiff_t|. err = error in array size
 	A[0].p = cs_malloc(noarch.PtrdiffT(func() int32 {
 		if bool(noarch.PtrdiffT(triplet)) {
 			return int32(noarch.PtrdiffT(nzmax))
 		}
 		return int32(n + noarch.PtrdiffT(1/8))
 	}()/8), uint(0)).([]noarch.PtrdiffT)
-	// Warning (*ast.UnaryExprOrTypeTraitExpr):  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_util.c:12 :Cannot determine sizeof : |ptrdiff_t|. err = error in array size
 	A[0].i = cs_malloc(noarch.PtrdiffT(nzmax), uint(0)).([]noarch.PtrdiffT)
 	A[0].x = func() interface{} {
 		if bool(noarch.PtrdiffT(values)) {
@@ -4436,10 +4404,8 @@ func cs_sprealloc(A []cs, nzmax noarch.PtrdiffT) noarch.PtrdiffT {
 		}
 		return int32((1))
 	}() / 8)
-	// Warning (*ast.UnaryExprOrTypeTraitExpr):  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_util.c:24 :Cannot determine sizeof : |ptrdiff_t|. err = error in array size
 	A[0].i = cs_realloc(A[0].i, noarch.PtrdiffT(nzmax), uint(0), (*[100000000]noarch.PtrdiffT)(unsafe.Pointer(&oki))[:]).([]noarch.PtrdiffT)
 	if A != nil && noarch.PtrdiffT(A[0].nz) >= 0 {
-		// Warning (*ast.UnaryExprOrTypeTraitExpr):  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_util.c:25 :Cannot determine sizeof : |ptrdiff_t|. err = error in array size
 		A[0].p = cs_realloc(A[0].p, noarch.PtrdiffT(nzmax), uint(0), (*[100000000]noarch.PtrdiffT)(unsafe.Pointer(&okj))[:]).([]noarch.PtrdiffT)
 	}
 	if A[0].x != nil {
@@ -4501,19 +4467,13 @@ func cs_sfree(S []css) []css {
 // allocate a cs_dmperm or cs_scc result
 func cs_dalloc(m noarch.PtrdiffT, n noarch.PtrdiffT) []csd {
 	var D []csd
-	// Warning (*ast.UnaryExprOrTypeTraitExpr):  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_util.c:69 :Cannot determine sizeof : |csd|. err = Cannot canculate `struct` sizeof for `string`. Cannot determine sizeof : |ptrdiff_t [5]|. err = error in sizeof baseSize for `ptrdiff_t`
-	// Warning (*ast.UnaryExprOrTypeTraitExpr):  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_util.c:69 :Cannot determine sizeof : |csd|. err = Cannot canculate `struct` sizeof for `string`. Cannot determine sizeof : |ptrdiff_t|. err = error in array size
 	D = cs_calloc(1, uint(0)).([]csd)
 	if D == nil {
 		return nil
 	}
-	// Warning (*ast.UnaryExprOrTypeTraitExpr):  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_util.c:71 :Cannot determine sizeof : |ptrdiff_t|. err = error in array size
 	D[0].p = cs_malloc(noarch.PtrdiffT(m), uint(0)).([]noarch.PtrdiffT)
-	// Warning (*ast.UnaryExprOrTypeTraitExpr):  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_util.c:72 :Cannot determine sizeof : |ptrdiff_t|. err = error in array size
 	D[0].r = cs_malloc(m+noarch.PtrdiffT(6/8), uint(0)).([]noarch.PtrdiffT)
-	// Warning (*ast.UnaryExprOrTypeTraitExpr):  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_util.c:73 :Cannot determine sizeof : |ptrdiff_t|. err = error in array size
 	D[0].q = cs_malloc(noarch.PtrdiffT(n), uint(0)).([]noarch.PtrdiffT)
-	// Warning (*ast.UnaryExprOrTypeTraitExpr):  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_util.c:74 :Cannot determine sizeof : |ptrdiff_t|. err = error in array size
 	D[0].s = cs_malloc(n+noarch.PtrdiffT(6/8), uint(0)).([]noarch.PtrdiffT)
 	return (func() []csd {
 		if D[0].p == nil || D[0].r == nil || D[0].q == nil || D[0].s == nil {
