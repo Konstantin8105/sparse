@@ -55,9 +55,6 @@ type csd struct { // struct cs_dmperm_results
 // cs_add - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_add.c:3
 // C = alpha*A + beta*B
 func cs_add(A *cs, B *cs, alpha float64, beta float64) *cs {
-	var p int
-	var j int
-	var nz int
 	var x []float64
 	if !(A != nil && A.nz == -1) || !(B != nil && B.nz == -1) {
 		// check inputs
@@ -91,7 +88,8 @@ func cs_add(A *cs, B *cs, alpha float64, beta float64) *cs {
 		Ci = C.i
 		Cx = C.x
 	)
-	for j = 0; j < n; j++ {
+	var nz int
+	for j := 0; j < n; j++ {
 		// column j of C starts here
 		Cp[j] = nz
 		// alpha*A(:,j)
@@ -99,7 +97,7 @@ func cs_add(A *cs, B *cs, alpha float64, beta float64) *cs {
 		// beta*B(:,j)
 		nz = cs_scatter(B, j, beta, w, x, j+1, C, nz)
 		if values {
-			for p = Cp[j]; p < nz; p++ {
+			for p := Cp[j]; p < nz; p++ {
 				Cx[p] = x[Ci[p]]
 			}
 		}
@@ -136,7 +134,7 @@ func cs_diag(i, j int, aij float64, other interface{}) bool {
 	return (i != j)
 }
 
-var Order int
+type Order int
 
 const (
 	Natural Order = iota
