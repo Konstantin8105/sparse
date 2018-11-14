@@ -123,8 +123,7 @@ func cs_wclear(mark, lemax int, w []int, n int) int {
 	return mark
 }
 
-// cs_diag - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_amd.c:15
-// keep off-diagonal entries; drop diagonal entries
+// cs_diag - keep off-diagonal entries; drop diagonal entries
 func cs_diag(i, j int, aij float64, other interface{}) bool {
 
 	// TODO (KI) : remove arguments aij, other
@@ -141,10 +140,9 @@ const (
 	QR
 )
 
-// cs_amd - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_amd.c:18
-// p = amd(A+A') if symmetric is true, or amd(A'A) otherwise
+// cs_amd - p = amd(A+A') if symmetric is true, or amd(A'A) otherwise
 // order 0:natural, 1:Chol, 2:LU, 3:QR
-func cs_amd(order Order, A *cs) []noarch.PtrdiffT {
+func cs_amd(order Order, A *cs) *cs {
 	var C []cs
 	var A2 []cs
 	var AT []cs
@@ -842,17 +840,15 @@ func cs_amd(order Order, A *cs) []noarch.PtrdiffT {
 			}
 		}
 	}
-	{
-		// postorder the assembly tree
-		k = 0
-		i = 0
-		for i = 0; i <= n; i++ {
-			if Cp[i] == noarch.PtrdiffT(int32(-1)/8) {
-				k = cs_tdfs(noarch.PtrdiffT(i), noarch.PtrdiffT(k), head, next, P, w)
-			}
+
+	// postorder the assembly tree
+	for i, k := 0, 0; i <= n; i++ {
+		if Cp[i] == noarch.PtrdiffT(int32(-1)/8) {
+			k = cs_tdfs(i, k, head, next, P, w)
 		}
 	}
-	return (cs_idone(P, C, W, 1))
+
+	return cs_idone(P, C, W, true)
 }
 
 // cs_chol - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_chol.c:3
@@ -4095,7 +4091,7 @@ func cs_symperm(A []cs, pinv []noarch.PtrdiffT, values noarch.PtrdiffT) []cs {
 
 // cs_tdfs - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_tdfs.c:3
 // depth-first search and postorder of a tree rooted at node j
-func cs_tdfs(j noarch.PtrdiffT, k noarch.PtrdiffT, head []noarch.PtrdiffT, next []noarch.PtrdiffT, post []noarch.PtrdiffT, stack []noarch.PtrdiffT) noarch.PtrdiffT {
+func cs_tdfs(j, k int, head []noarch.PtrdiffT, next []noarch.PtrdiffT, post []noarch.PtrdiffT, stack []noarch.PtrdiffT) noarch.PtrdiffT {
 	var i noarch.PtrdiffT
 	var p noarch.PtrdiffT
 	var top noarch.PtrdiffT
@@ -4517,18 +4513,16 @@ func cs_done(C *cs, w *int, x []float64, ok bool) *cs {
 
 // cs_idone - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_util.c:98
 // free workspace and return csi array result
-func cs_idone(p []noarch.PtrdiffT, C []cs, w interface{}, ok noarch.PtrdiffT) []noarch.PtrdiffT {
-	// free temporary matrix
-	cs_spfree(C)
-	// free workspace
-	cs_free(w)
+func cs_idone(p *cs, C []cs, w interface{}, ok bool) *cs {
+	//
+	// TODO (KI) : remove C, w
+	//
+
 	// return result, or free it
-	return (func() []noarch.PtrdiffT {
-		if bool(noarch.PtrdiffT(ok)) {
-			return p
-		}
-		return cs_free(p).([]noarch.PtrdiffT)
-	}())
+	if ok {
+		return p
+	}
+	return nil
 }
 
 // cs_ndone - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_util.c:106
