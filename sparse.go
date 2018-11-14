@@ -4300,12 +4300,6 @@ func cs_updown(L []cs, sigma noarch.PtrdiffT, C []cs, parent []noarch.PtrdiffT) 
 
 // cs_usolve - solve Ux=b where x and b are dense.  x=b on input, solution on output.
 func cs_usolve(U *cs, x []float64) bool {
-	// var p noarch.PtrdiffT
-	// var j noarch.PtrdiffT
-	// var n noarch.PtrdiffT
-	// var Up []noarch.PtrdiffT
-	// var Ui []noarch.PtrdiffT
-	// var Ux []float64
 	if !(U != nil && U.nz == -1) || x == nil {
 		// check inputs
 		return false
@@ -4317,8 +4311,8 @@ func cs_usolve(U *cs, x []float64) bool {
 		Ux = U.x
 	)
 	for j := n - 1; j >= 0; j-- {
-		x[j] /= Ux[Up[j+noarch.PtrdiffT(1/8)]-noarch.PtrdiffT(1/8)]
-		for p := Up[j]; p < Up[j+noarch.PtrdiffT(1/8)]-noarch.PtrdiffT(1/8); p++ {
+		x[j] /= Ux[Up[j+1]-1]
+		for p := Up[j]; p < Up[j+1]-1; p++ {
 			x[Ui[p]] -= Ux[p] * x[j]
 		}
 	}
