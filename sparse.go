@@ -159,8 +159,8 @@ func cs_amd(order Order, A *cs) *cs {
 	var degree []noarch.PtrdiffT
 	var w []noarch.PtrdiffT
 	var hhead []noarch.PtrdiffT
-	var ATp []noarch.PtrdiffT
-	var ATi []noarch.PtrdiffT
+	var ATp []int
+	var ATi []int
 	var d noarch.PtrdiffT
 	var dk noarch.PtrdiffT
 	var dext noarch.PtrdiffT
@@ -169,7 +169,7 @@ func cs_amd(order Order, A *cs) *cs {
 	var elenk noarch.PtrdiffT
 	var eln noarch.PtrdiffT
 	var i noarch.PtrdiffT
-	var j noarch.PtrdiffT
+	var j int
 	var k noarch.PtrdiffT
 	var k1 noarch.PtrdiffT
 	var k2 noarch.PtrdiffT
@@ -187,9 +187,9 @@ func cs_amd(order Order, A *cs) *cs {
 	var ok noarch.PtrdiffT
 	var cnz noarch.PtrdiffT
 	var nel noarch.PtrdiffT
-	var p noarch.PtrdiffT
+	var p int
 	var p1 noarch.PtrdiffT
-	var p2 noarch.PtrdiffT
+	var p2 int
 	var p3 noarch.PtrdiffT
 	var p4 noarch.PtrdiffT
 	var pj noarch.PtrdiffT
@@ -230,30 +230,24 @@ func cs_amd(order Order, A *cs) *cs {
 		C = cs_add(A, AT, 0, 0)
 	} else if order == 2 {
 		// drop dense columns from AT
-		ATp = AT[0].p
-		ATi = AT[0].i
-		{
-			p2 = 0
-			j = 0
-			for j = 0; j < m; j++ {
-				// column j of AT starts here
-				p = ATp[j]
-				// new column j starts here
-				ATp[j] = p2
-				if ATp[j+noarch.PtrdiffT(1/8)]-p > dense {
-					// skip dense col j
-					continue
-				}
-				for ; p < ATp[j+noarch.PtrdiffT(1/8)]; p++ {
-					ATi[func() noarch.PtrdiffT {
-						defer func() {
-							p2++
-						}()
-						return p2
-					}()] = ATi[p]
-				}
+		ATp = AT.p
+		ATi = AT.i
+
+		for p2, j = 0, 0; j < m; j++ {
+			// column j of AT starts here
+			p = ATp[j]
+			// new column j starts here
+			ATp[j] = p2
+			if ATp[j+1]-p > dense {
+				// skip dense col j
+				continue
+			}
+			for ; p < ATp[j+1]; p++ {
+				ATi[p2] = ATi[p]
+				p2++
 			}
 		}
+
 		// finalize AT
 		ATp[m] = p2
 		// A2 = AT'
