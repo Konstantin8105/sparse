@@ -161,7 +161,7 @@ func cs_amd(order Order, A *cs) *cs {
 	// var hhead []noarch.PtrdiffT
 	var ATp []int
 	var ATi []int
-	var d noarch.PtrdiffT
+	// var d noarch.PtrdiffT
 	var dk noarch.PtrdiffT
 	var dext noarch.PtrdiffT
 	var lemax noarch.PtrdiffT
@@ -182,11 +182,11 @@ func cs_amd(order Order, A *cs) *cs {
 	var nvi noarch.PtrdiffT
 	var nvj noarch.PtrdiffT
 	var nvk noarch.PtrdiffT
-	var mark noarch.PtrdiffT
+	// var mark noarch.PtrdiffT
 	var wnvi noarch.PtrdiffT
 	var ok noarch.PtrdiffT
 	// var cnz noarch.PtrdiffT
-	var nel noarch.PtrdiffT
+	var nel int // noarch.PtrdiffT
 	var p int
 	var p1 noarch.PtrdiffT
 	var p2 int
@@ -272,7 +272,7 @@ func cs_amd(order Order, A *cs) *cs {
 	Cp := C.p
 	cnz := Cp[n]
 	// allocate result
-	P := make([]uint8, n+1)
+	P := make([]int, n+1)
 	// get workspace
 	var W [8][]int
 	for i := 0; i < 8; i++ {
@@ -305,13 +305,23 @@ func cs_amd(order Order, A *cs) *cs {
 	len[n] = 0
 	nzmax := C.nzmax
 	Ci := C.i
+
+	// type graph struct { // TODO (KI) : I think struct is look like that
+	// 	head   int
+	// 	last   int
+	// 	hhead  int
+	// 	nv     int
+	// 	elen   int
+	// 	degree int
+	// }
+
 	for i := 0; i <= n; i++ {
 		// degree list i is empty
-		head[i] = noarch.PtrdiffT(-1)
-		last[i] = noarch.PtrdiffT(-1)
-		next[i] = noarch.PtrdiffT(-1)
+		head[i] = -1
+		last[i] = -1
+		next[i] = -1
 		// hash list i is empty
-		hhead[i] = noarch.PtrdiffT(-1)
+		hhead[i] = -1
 		// node i is just one node
 		nv[i] = 1
 		// node i is alive
@@ -322,54 +332,54 @@ func cs_amd(order Order, A *cs) *cs {
 		degree[i] = len[i]
 	}
 	// clear w
-	mark = cs_wclear(0, 0, w, noarch.PtrdiffT(n))
+	mark := cs_wclear(0, 0, w, n)
 	// n is a dead element
-	elen[n] = noarch.PtrdiffT(-2)
+	elen[n] = -2
 	// n is a root of assembly tree
-	Cp[n] = noarch.PtrdiffT(-1)
+	Cp[n] = -1
 	// n is a dead element
 	w[n] = 0
-	{
-		// --- Initialize degree lists ------------------------------------------
-		for i = 0; i < n; i++ {
-			d = degree[i]
-			if d == noarch.PtrdiffT(0/8) {
-				// node i is empty
-				// element i is dead
-				elen[i] = noarch.PtrdiffT(-2)
-				nel++
-				// i is a root of assembly tree
-				Cp[i] = noarch.PtrdiffT(-1)
-				w[i] = 0
-			} else if d > dense {
-				// node i is dense
-				// absorb i into element n
-				nv[i] = 0
-				// node i is dead
-				elen[i] = noarch.PtrdiffT(-1)
-				nel++
-				Cp[i] = -noarch.PtrdiffT((n)) - noarch.PtrdiffT(2/8)
-				nv[n]++
-			} else {
-				if head[d] != noarch.PtrdiffT(int32(-1)/8) {
-					last[head[d]] = i
-				}
-				// put node i in degree list d
-				next[i] = head[d]
-				head[d] = i
+
+	// --- Initialize degree lists ------------------------------------------
+	for i := 0; i < n; i++ {
+		d := degree[i]
+		if d == 0 {
+			// node i is empty
+			// element i is dead
+			elen[i] = -2
+			nel++
+			// i is a root of assembly tree
+			Cp[i] = -1
+			w[i] = 0
+		} else if d > dense {
+			// node i is dense
+			// absorb i into element n
+			nv[i] = 0
+			// node i is dead
+			elen[i] = -1
+			nel++
+			Cp[i] = -n - 2
+			nv[n]++
+		} else {
+			if head[d] != -1 {
+				last[head[d]] = i
 			}
+			// put node i in degree list d
+			next[i] = head[d]
+			head[d] = i
 		}
 	}
+
+	// while (selecting pivots) do
 	for nel < n {
-		{
-			// while (selecting pivots) do
-			// --- Select node of minimum approximate degree --------------------
-			for k = noarch.PtrdiffT(-1); mindeg < n && (func() noarch.PtrdiffT {
-				k = head[mindeg]
-				return k
-			}()) == noarch.PtrdiffT(int32(-1)/8); mindeg++ {
-			}
+
+		// --- Select node of minimum approximate degree --------------------
+		for k = -1; mindeg < n && (func() noarch.PtrdiffT {
+			k = head[mindeg]
+			return k
+		}()) == -1; mindeg++ {
 		}
+
 		if next[k] != noarch.PtrdiffT(int32(-1)/8) {
 			last[next[k]] = noarch.PtrdiffT(-1)
 		}
