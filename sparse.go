@@ -4371,8 +4371,7 @@ func cs_spalloc(m, n, nzmax int, values bool, triplet int) *cs {
 	}())
 }
 
-// cs_sprealloc - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_util.c:18
-// change the max # of entries sparse matrix
+// cs_sprealloc - change the max # of entries sparse matrix
 func cs_sprealloc(A *cs, nzmax int) bool {
 	var ok noarch.PtrdiffT
 	var oki noarch.PtrdiffT
