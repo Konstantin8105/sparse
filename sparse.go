@@ -136,10 +136,19 @@ func cs_diag(i, j int, aij float64, other interface{}) bool {
 	return (i != j)
 }
 
+var Order int
+
+const (
+	Natural Order = iota
+	Chol
+	LU
+	QR
+)
+
 // cs_amd - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_amd.c:18
 // p = amd(A+A') if symmetric is true, or amd(A'A) otherwise
 // order 0:natural, 1:Chol, 2:LU, 3:QR
-func cs_amd(order noarch.PtrdiffT, A []cs) []noarch.PtrdiffT {
+func cs_amd(order Order, A *cs) []noarch.PtrdiffT {
 	var C []cs
 	var A2 []cs
 	var AT []cs
