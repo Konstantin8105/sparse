@@ -4473,19 +4473,10 @@ func cs_dalloc(m noarch.PtrdiffT, n noarch.PtrdiffT) []csd {
 	}())
 }
 
-// cs_dfree - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_util.c:79
-// free a cs_dmperm or cs_scc result
-func cs_dfree(D []csd) []csd {
-	if D == nil {
-		// do nothing if D already NULL
-		return nil
-	}
-	cs_free(D[0].p)
-	cs_free(D[0].q)
-	cs_free(D[0].r)
-	cs_free(D[0].s)
+// cs_dfree - free a cs_dmperm or cs_scc result
+func cs_dfree(D *csd) *csd {
 	// free the csd struct and return NULL
-	return (cs_free(D).([]csd))
+	return nil
 }
 
 // cs_done - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_util.c:90
