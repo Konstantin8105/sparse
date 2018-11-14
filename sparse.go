@@ -149,11 +149,11 @@ func cs_amd(order Order, A *cs) *cs {
 	// var Cp []int
 	var Ci []noarch.PtrdiffT
 	var last []noarch.PtrdiffT
-	var W []noarch.PtrdiffT
+	// var W []noarch.PtrdiffT
 	var len []noarch.PtrdiffT
 	var nv []noarch.PtrdiffT
 	var next []noarch.PtrdiffT
-	var P []noarch.PtrdiffT
+	// var P []noarch.PtrdiffT
 	var head []noarch.PtrdiffT
 	var elen []noarch.PtrdiffT
 	var degree []noarch.PtrdiffT
@@ -200,7 +200,7 @@ func cs_amd(order Order, A *cs) *cs {
 	var q noarch.PtrdiffT
 	// var n noarch.PtrdiffT
 	// var m noarch.PtrdiffT
-	var t noarch.PtrdiffT
+	// var t noarch.PtrdiffT
 	var h noarch.PtrdiffT
 	if !(A != nil && A.nz == -1) || order <= 0 || order > 3 {
 		// --- Construct matrix C -----------------------------------------------
@@ -272,13 +272,13 @@ func cs_amd(order Order, A *cs) *cs {
 	Cp := C.p
 	cnz := Cp[n]
 	// allocate result
-	P = cs_malloc(n+noarch.PtrdiffT(1/8), uint(0)).([]noarch.PtrdiffT)
+	P := make([]byte, n+1) // cs_malloc(n+noarch.PtrdiffT(1/8), uint(0)).([]noarch.PtrdiffT)
 	// get workspace
-	W = cs_malloc(noarch.PtrdiffT(8*int32(n+noarch.PtrdiffT(1/8))/8), uint(0)).([]noarch.PtrdiffT)
+	W := make([]byte, 8*(n+1)) // cs_malloc(noarch.PtrdiffT(8*int32(n+noarch.PtrdiffT(1/8))/8), uint(0)).([]noarch.PtrdiffT)
 	// add elbow room to C
-	t = cnz + cnz/noarch.PtrdiffT(5/8) + noarch.PtrdiffT(2*int32(n)/8)
+	t := cnz + cnz/5 + 2*n/8
 	if P == nil || W == nil || bool(noarch.NotNoarch.PtrdiffT(cs_sprealloc(C, noarch.PtrdiffT(t)))) {
-		return (cs_idone(P, C, W, 0))
+		return cs_idone(P, C, W, false)
 	}
 	len = W
 	nv = (*(*[1000000000]noarch.PtrdiffT)(unsafe.Pointer(uintptr(unsafe.Pointer(&W[0])) + (uintptr)(int(n+noarch.PtrdiffT(1/8)))*unsafe.Sizeof(W[0]))))[:]
@@ -4504,7 +4504,7 @@ func cs_done(C *cs, w *int, x []float64, ok bool) *cs {
 
 // cs_idone - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_util.c:98
 // free workspace and return csi array result
-func cs_idone(p *cs, C []cs, w interface{}, ok bool) *cs {
+func cs_idone(p *cs, C *cs, w interface{}, ok bool) *cs {
 	//
 	// TODO (KI) : remove C, w
 	//
