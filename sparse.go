@@ -1,130 +1,82 @@
-//
-//	Package main - transpiled by c4go
-//
-//	If you have found any issues, please raise an issue at:
-//	https://github.com/Konstantin8105/c4go/
-//
-
-// Warning (*ast.UnaryExprOrTypeTraitExpr):  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_add.c:12 :Cannot determine sizeof : |ptrdiff_t|. err = error in array size
-// Warning (*ast.UnaryExprOrTypeTraitExpr):  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_amd.c:62 :Cannot determine sizeof : |ptrdiff_t|. err = error in array size
-// Warning (*ast.UnaryExprOrTypeTraitExpr):  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_amd.c:63 :Cannot determine sizeof : |ptrdiff_t|. err = error in array size
-// Warning (*ast.UnaryExprOrTypeTraitExpr):  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_chol.c:12 :Cannot determine sizeof : |ptrdiff_t|. err = error in array size
-// Warning (*ast.UnaryExprOrTypeTraitExpr):  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_compress.c:11 :Cannot determine sizeof : |ptrdiff_t|. err = error in array size
-// Warning (*ast.UnaryExprOrTypeTraitExpr):  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_counts.c:25 :Cannot determine sizeof : |ptrdiff_t|. err = error in array size
-// Warning (*ast.UnaryExprOrTypeTraitExpr):  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_counts.c:26 :Cannot determine sizeof : |ptrdiff_t|. err = error in array size
-// Warning (*ast.UnaryExprOrTypeTraitExpr):  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_dupl.c:9 :Cannot determine sizeof : |ptrdiff_t|. err = error in array size
-// Warning (*ast.UnaryExprOrTypeTraitExpr):  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_etree.c:8 :Cannot determine sizeof : |ptrdiff_t|. err = error in array size
-// Warning (*ast.UnaryExprOrTypeTraitExpr):  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_etree.c:9 :Cannot determine sizeof : |ptrdiff_t|. err = error in array size
-// Warning (*ast.UnaryExprOrTypeTraitExpr):  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_lu.c:13 :Cannot determine sizeof : |ptrdiff_t|. err = error in array size
-// Warning (*ast.UnaryExprOrTypeTraitExpr):  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_lu.c:18 :Cannot determine sizeof : |ptrdiff_t|. err = error in array size
-// Warning (*ast.UnaryExprOrTypeTraitExpr):  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_maxtrans.c:51 :Cannot determine sizeof : |ptrdiff_t|. err = error in array size
-// Warning (*ast.UnaryExprOrTypeTraitExpr):  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_maxtrans.c:77 :Cannot determine sizeof : |ptrdiff_t|. err = error in array size
-// Warning (*ast.UnaryExprOrTypeTraitExpr):  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_multiply.c:12 :Cannot determine sizeof : |ptrdiff_t|. err = error in array size
-// Warning (*ast.UnaryExprOrTypeTraitExpr):  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_pinv.c:7 :Cannot determine sizeof : |ptrdiff_t|. err = error in array size
-// Warning (*ast.UnaryExprOrTypeTraitExpr):  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_post.c:7 :Cannot determine sizeof : |ptrdiff_t|. err = error in array size
-// Warning (*ast.UnaryExprOrTypeTraitExpr):  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_post.c:8 :Cannot determine sizeof : |ptrdiff_t|. err = error in array size
-// Warning (*ast.UnaryExprOrTypeTraitExpr):  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_qr.c:14 :Cannot determine sizeof : |ptrdiff_t|. err = error in array size
-// Warning (*ast.UnaryExprOrTypeTraitExpr):  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_randperm.c:9 :Cannot determine sizeof : |ptrdiff_t|. err = error in array size
-// Warning (*ast.UnaryExprOrTypeTraitExpr):  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_scc.c:12 :Cannot determine sizeof : |ptrdiff_t|. err = error in array size
-// Warning (*ast.UnaryExprOrTypeTraitExpr):  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_schol.c:10 :Cannot determine sizeof : |css|. err = Cannot canculate `struct` sizeof for `string`. Cannot determine sizeof : |ptrdiff_t|. err = error in array size
-// Warning (*ast.UnaryExprOrTypeTraitExpr):  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_schol.c:22 :Cannot determine sizeof : |ptrdiff_t|. err = error in array size
-// Warning (*ast.UnaryExprOrTypeTraitExpr):  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_sqr.c:7 :Cannot determine sizeof : |ptrdiff_t|. err = error in array size
-// Warning (*ast.UnaryExprOrTypeTraitExpr):  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_sqr.c:8 :Cannot determine sizeof : |ptrdiff_t|. err = error in array size
-// Warning (*ast.UnaryExprOrTypeTraitExpr):  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_sqr.c:9 :Cannot determine sizeof : |ptrdiff_t|. err = error in array size
-// Warning (*ast.UnaryExprOrTypeTraitExpr):  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_sqr.c:66 :Cannot determine sizeof : |css|. err = Cannot canculate `struct` sizeof for `string`. Cannot determine sizeof : |ptrdiff_t|. err = error in array size
-// Warning (*ast.UnaryExprOrTypeTraitExpr):  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_symperm.c:11 :Cannot determine sizeof : |ptrdiff_t|. err = error in array size
-// Warning (*ast.UnaryExprOrTypeTraitExpr):  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_transpose.c:11 :Cannot determine sizeof : |ptrdiff_t|. err = error in array size
-// Warning (*ast.UnaryExprOrTypeTraitExpr):  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_util.c:5 :Cannot determine sizeof : |cs|. err = Cannot canculate `struct` sizeof for `string`. Cannot determine sizeof : |ptrdiff_t|. err = error in array size
-// Warning (*ast.UnaryExprOrTypeTraitExpr):  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_util.c:11 :Cannot determine sizeof : |ptrdiff_t|. err = error in array size
-// Warning (*ast.UnaryExprOrTypeTraitExpr):  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_util.c:12 :Cannot determine sizeof : |ptrdiff_t|. err = error in array size
-// Warning (*ast.UnaryExprOrTypeTraitExpr):  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_util.c:24 :Cannot determine sizeof : |ptrdiff_t|. err = error in array size
-// Warning (*ast.UnaryExprOrTypeTraitExpr):  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_util.c:25 :Cannot determine sizeof : |ptrdiff_t|. err = error in array size
-// Warning (*ast.UnaryExprOrTypeTraitExpr):  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_util.c:69 :Cannot determine sizeof : |csd|. err = Cannot canculate `struct` sizeof for `string`. Cannot determine sizeof : |ptrdiff_t [5]|. err = error in sizeof baseSize for `ptrdiff_t`
-// Warning (*ast.UnaryExprOrTypeTraitExpr):  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_util.c:69 :Cannot determine sizeof : |csd|. err = Cannot canculate `struct` sizeof for `string`. Cannot determine sizeof : |ptrdiff_t|. err = error in array size
-// Warning (*ast.UnaryExprOrTypeTraitExpr):  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_util.c:71 :Cannot determine sizeof : |ptrdiff_t|. err = error in array size
-// Warning (*ast.UnaryExprOrTypeTraitExpr):  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_util.c:72 :Cannot determine sizeof : |ptrdiff_t|. err = error in array size
-// Warning (*ast.UnaryExprOrTypeTraitExpr):  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_util.c:73 :Cannot determine sizeof : |ptrdiff_t|. err = error in array size
-// Warning (*ast.UnaryExprOrTypeTraitExpr):  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_util.c:74 :Cannot determine sizeof : |ptrdiff_t|. err = error in array size
-
 package main
 
-import "math/rand"
-import "fmt"
-import "unsafe"
-import "math"
-import "github.com/Konstantin8105/c4go/noarch"
+import (
+	"fmt"
+	"github.com/Konstantin8105/c4go/noarch"
+	"math"
+	"math/rand"
+	"unsafe"
+)
 
-type cs_sparse struct {
-	nzmax noarch.PtrdiffT
-	m     noarch.PtrdiffT
-	n     noarch.PtrdiffT
-	p     []noarch.PtrdiffT
-	i     []noarch.PtrdiffT
-	x     []float64
-	nz    noarch.PtrdiffT
+// matrix in compressed-column or triplet form
+type cs struct { // struct cs_sparse
+	nzmax int      // maximum number of entries
+	m     int      // number of rows
+	n     int      // number of columns
+	p     []int    // column pointers (size n+1) or col indices (size nzmax)
+	i     *int     // row indices, size nzmax
+	x     *float64 // numerical values, size nzmax
+	nz    int      // # of entries in triplet matrix, -1 for compressed-col
 }
-type cs = cs_sparse
-type cs_symbolic struct {
-	pinv     []noarch.PtrdiffT
-	q        []noarch.PtrdiffT
-	parent   []noarch.PtrdiffT
-	cp       []noarch.PtrdiffT
-	leftmost []noarch.PtrdiffT
-	m2       noarch.PtrdiffT
-	lnz      float64
-	unz      float64
+
+// symbolic Cholesky, LU, or QR analysis
+type css struct { // struct cs_symbolic
+	pinv     *int    // inverse row perm. for QR, fill red. perm for Chol
+	q        *int    // fill-reducing column permutation for LU and QR
+	parent   *int    // elimination tree for Cholesky and QR
+	cp       *int    // column pointers for Cholesky, row counts for QR
+	leftmost *int    // TODO
+	m2       int     // # of rows for QR, after adding fictitious rows
+	lnz      float64 // # entries in L for LU or Cholesky; in V for QR
+	unz      float64 // # entries in U for LU; in R for QR
 }
-type css = cs_symbolic
-type cs_numeric struct {
-	L    []cs
-	U    []cs
-	pinv []noarch.PtrdiffT
-	B    []float64
+
+// numeric Cholesky, LU, or QR factorization
+type csn struct { // struct cs_numeric
+	L    *cs      // L for LU and Cholesky, V for QR
+	U    *cs      // U for LU, R for QR, not used for Cholesky
+	pinv *int     // partial pivoting for LU
+	B    *float64 // beta [0..n-1] for QR
 }
-type csn = cs_numeric
-type cs_dmperm_results struct {
-	p  []noarch.PtrdiffT
-	q  []noarch.PtrdiffT
-	r  []noarch.PtrdiffT
-	s  []noarch.PtrdiffT
-	nb noarch.PtrdiffT
-	rr [5]noarch.PtrdiffT
-	cc [5]noarch.PtrdiffT
+
+// cs_dmperm or cs_scc output
+type csd struct { // struct cs_dmperm_results
+	p  *int   // size m, row permutation
+	q  *int   // size n, column permutation
+	r  *int   // size nb+1, block k is rows R[k] to R[k+1]-1 in A(P,Q)
+	s  *int   // size nb+1, block k is cols S[k] to S[k+1]-1 in A(P,Q)
+	nb int    // # of blocks in fine dmperm decomposition
+	rr [5]int // coarse row decomposition
+	cc [5]int // coarse column decomposition
 }
-type csd = cs_dmperm_results
 
 // cs_add - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_add.c:3
 // C = alpha*A + beta*B
-func cs_add(A []cs, B []cs, alpha float64, beta float64) []cs {
-	var p noarch.PtrdiffT
-	var j noarch.PtrdiffT
-	var nz noarch.PtrdiffT
-	var anz noarch.PtrdiffT
-	var Cp []noarch.PtrdiffT
-	var Ci []noarch.PtrdiffT
-	var Bp []noarch.PtrdiffT
-	var m noarch.PtrdiffT
-	var n noarch.PtrdiffT
-	var bnz noarch.PtrdiffT
-	var w []noarch.PtrdiffT
-	var values noarch.PtrdiffT
-	var x []float64
-	var Bx []float64
-	var Cx []float64
-	var C []cs
-	if !(A != nil && noarch.PtrdiffT(A[0].nz) == noarch.PtrdiffT(int32(-1)/8)) || !(B != nil && noarch.PtrdiffT(B[0].nz) == noarch.PtrdiffT(int32(-1)/8)) {
+func cs_add(A *cs, B *cs, alpha float64, beta float64) *cs {
+	var p int
+	var j int
+	var nz int
+	var Cp *int
+	var Ci *int
+	var w *int
+	var values int
+	var Cx *float64
+	var C *cs
+	if !(A != nil && A.nz == -1) || !(B != nil && B.nz == -1) {
 		// check inputs
 		return nil
 	}
-	if noarch.PtrdiffT(A[0].m) != noarch.PtrdiffT(B[0].m) || noarch.PtrdiffT(A[0].n) != noarch.PtrdiffT(B[0].n) {
+	if (A.m != B.m) || (A.n != B.n) {
 		return nil
 	}
-	m = noarch.PtrdiffT(A[0].m)
-	anz = A[0].p[noarch.PtrdiffT(A[0].n)]
-	n = noarch.PtrdiffT(B[0].n)
-	Bp = B[0].p
-	Bx = B[0].x
-	bnz = Bp[n]
+	var (
+		m   = A.m
+		anz = A.p[A.n]
+		n   = B.n
+		Bp  = B.p
+		Bx  = B.x
+		bnz = Bp[n]
+	)
 	// get workspace
 	// Warning (*ast.UnaryExprOrTypeTraitExpr):  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_add.c:12 :Cannot determine sizeof : |ptrdiff_t|. err = error in array size
 	w = cs_calloc(noarch.PtrdiffT(m), uint(0)).([]noarch.PtrdiffT)
