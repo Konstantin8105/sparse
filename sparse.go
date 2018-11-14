@@ -4551,26 +4551,25 @@ func cs_ddone(D []csd, C []cs, w interface{}, ok noarch.PtrdiffT) []csd {
 
 // cs_utsolve - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_utsolve.c:3
 // solve U'x=b where x and b are dense.  x=b on input, solution on output.
-func cs_utsolve(U []cs, x []float64) noarch.PtrdiffT {
-	var p noarch.PtrdiffT
-	var j noarch.PtrdiffT
-	var n noarch.PtrdiffT
-	var Up []noarch.PtrdiffT
-	var Ui []noarch.PtrdiffT
-	var Ux []float64
-	if !(U != nil && noarch.PtrdiffT(U[0].nz) == noarch.PtrdiffT(int32(-1)/8)) || x == nil {
+func cs_utsolve(U *cs, x []float64) bool {
+	if !(U != nil && U.nz == -1) || x == nil {
 		// check inputs
-		return noarch.PtrdiffT((0))
+		return false
 	}
-	n = noarch.PtrdiffT(U[0].n)
-	Up = U[0].p
-	Ui = U[0].i
-	Ux = U[0].x
-	for j = 0; j < n; j++ {
-		for p = Up[j]; p < Up[j+noarch.PtrdiffT(1/8)]-noarch.PtrdiffT(1/8); p++ {
+	var (
+		n  = U.n
+		Up = U.p
+		Ui = U.i
+		Ux = U.x
+	)
+	for j := 0; j < n; j++ {
+		for p := Up[j]; p < Up[j+1]-1; p++ {
 			x[j] -= Ux[p] * x[Ui[p]]
 		}
-		x[j] /= Ux[Up[j+noarch.PtrdiffT(1/8)]-noarch.PtrdiffT(1/8)]
+		x[j] /= Ux[Up[j+1]-1]
 	}
-	return noarch.PtrdiffT((1))
+	//
+	// TODO (KI) : probably variable `x` is return var
+	//
+	return true
 }
