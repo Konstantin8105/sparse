@@ -10,13 +10,13 @@ import (
 
 // matrix in compressed-column or triplet form
 type cs struct { // struct cs_sparse
-	nzmax int      // maximum number of entries
-	m     int      // number of rows
-	n     int      // number of columns
-	p     []int    // column pointers (size n+1) or col indices (size nzmax)
-	i     *int     // row indices, size nzmax
-	x     *float64 // numerical values, size nzmax
-	nz    int      // # of entries in triplet matrix, -1 for compressed-col
+	nzmax int       // maximum number of entries
+	m     int       // number of rows
+	n     int       // number of columns
+	p     []int     // column pointers (size n+1) or col indices (size nzmax)
+	i     []int     // row indices, size nzmax
+	x     []float64 // numerical values, size nzmax
+	nz    int       // # of entries in triplet matrix, -1 for compressed-col
 }
 
 // symbolic Cholesky, LU, or QR analysis
@@ -56,12 +56,7 @@ func cs_add(A *cs, B *cs, alpha float64, beta float64) *cs {
 	var p int
 	var j int
 	var nz int
-	var Cp *int
-	var Ci *int
-	var w *int
-	var values int
-	var Cx *float64
-	var C *cs
+	var x []float64
 	if !(A != nil && A.nz == -1) || !(B != nil && B.nz == -1) {
 		// check inputs
 		return nil
@@ -76,33 +71,32 @@ func cs_add(A *cs, B *cs, alpha float64, beta float64) *cs {
 		Bp  = B.p
 		Bx  = B.x
 		bnz = Bp[n]
+		// get workspace
+		w = new(int)
 	)
+	values := (A.x != nil && Bx != nil)
 	// get workspace
-	w = cs_calloc(noarch.PtrdiffT(m), uint(0)).([]noarch.PtrdiffT)
-	values = noarch.PtrdiffT(A[0].x != nil && Bx != nil)
-	// get workspace
-	x = func() interface{} {
-		if bool(noarch.PtrdiffT(values)) {
-			return cs_malloc(noarch.PtrdiffT(m), uint(8))
-		}
-		return nil
-	}().([]float64)
-	// allocate result
-	C = cs_spalloc(noarch.PtrdiffT(m), noarch.PtrdiffT(n), anz+bnz, noarch.PtrdiffT(values), 0)
-	if C == nil || w == nil || bool(values) && x == nil {
-		return (cs_done(C, w, x, 0))
+	if values {
+		x = make([]float64, m)
 	}
-	Cp = C[0].p
-	Ci = C[0].i
-	Cx = C[0].x
+	// allocate result
+	C := cs_spalloc(m, n, anz+bnz, values, 0)
+	if C == nil || w == nil || values && x == nil {
+		return cs_done(C, w, x, false)
+	}
+	var (
+		Cp = C.p
+		Ci = C.i
+		Cx = C.x
+	)
 	for j = 0; j < n; j++ {
 		// column j of C starts here
 		Cp[j] = nz
 		// alpha*A(:,j)
-		nz = cs_scatter(A, noarch.PtrdiffT(j), alpha, w, x, j+noarch.PtrdiffT(1/8), C, noarch.PtrdiffT(nz))
+		nz = cs_scatter(A, j, alpha, w, x, j+1, C, nz)
 		// beta*B(:,j)
-		nz = cs_scatter(B, noarch.PtrdiffT(j), beta, w, x, j+noarch.PtrdiffT(1/8), C, noarch.PtrdiffT(nz))
-		if bool(noarch.PtrdiffT(values)) {
+		nz = cs_scatter(B, j, beta, w, x, j+1, C, nz)
+		if values {
 			for p = Cp[j]; p < nz; p++ {
 				Cx[p] = x[Ci[p]]
 			}
@@ -113,7 +107,7 @@ func cs_add(A *cs, B *cs, alpha float64, beta float64) *cs {
 	// remove extra space from C
 	cs_sprealloc(C, 0)
 	// success; free workspace, return C
-	return (cs_done(C, w, x, 1))
+	return cs_done(C, w, x, true)
 }
 
 // cs_wclear - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_amd.c:3
@@ -3478,7 +3472,7 @@ func cs_reach(G []cs, B []cs, k noarch.PtrdiffT, xi []noarch.PtrdiffT, pinv []no
 
 // cs_scatter - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_scatter.c:3
 // x = x + beta * A(:,j), where x is a dense vector and A(:,j) is sparse
-func cs_scatter(A []cs, j noarch.PtrdiffT, beta float64, w []noarch.PtrdiffT, x []float64, mark noarch.PtrdiffT, C []cs, nz noarch.PtrdiffT) noarch.PtrdiffT {
+func cs_scatter(A *cs, j int, beta float64, w *int, x []float64, mark int, C *cs, nz int) int {
 	var i noarch.PtrdiffT
 	var p noarch.PtrdiffT
 	var Ap []noarch.PtrdiffT
@@ -4335,16 +4329,16 @@ func cs_usolve(U []cs, x []float64) noarch.PtrdiffT {
 
 // cs_spalloc - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_util.c:3
 // allocate a sparse matrix (triplet form or compressed-column form)
-func cs_spalloc(m noarch.PtrdiffT, n noarch.PtrdiffT, nzmax noarch.PtrdiffT, values noarch.PtrdiffT, triplet noarch.PtrdiffT) []cs {
-	var A []cs = cs_calloc(1, uint(0)).([]cs)
+func cs_spalloc(m, n, nzmax int, values bool, triplet int) *cs {
+	A := new(cs)
 	if A == nil {
 		// allocate the cs struct
 		// out of memory
 		return nil
 	}
 	// define dimensions and nzmax
-	A[0].m = m
-	A[0].n = n
+	A.m = m
+	A.n = n
 	nzmax = noarch.PtrdiffT(func() int32 {
 		if nzmax > noarch.PtrdiffT(int32(1)/8) {
 			return int32(noarch.PtrdiffT((nzmax)))
@@ -4500,17 +4494,16 @@ func cs_dfree(D []csd) []csd {
 
 // cs_done - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_util.c:90
 // free workspace and return a sparse matrix result
-func cs_done(C []cs, w interface{}, x interface{}, ok noarch.PtrdiffT) []cs {
-	// free workspace
-	cs_free(w)
-	cs_free(x)
+func cs_done(C *cs, w *int, x []float64, ok bool) *cs {
+	//
+	// TODO(KI): remove w,x
+	//
+
 	// return result if OK, else free it
-	return (func() []cs {
-		if bool(noarch.PtrdiffT(ok)) {
-			return C
-		}
-		return cs_spfree(C)
-	}())
+	if ok {
+		return C
+	}
+	return nil
 }
 
 // cs_idone - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_util.c:98
