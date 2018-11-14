@@ -147,18 +147,18 @@ func cs_amd(order Order, A *cs) *cs {
 	var A2 *cs
 	// var AT []cs
 	// var Cp []int
-	var Ci []noarch.PtrdiffT
-	var last []noarch.PtrdiffT
+	// var Ci []noarch.PtrdiffT
+	// var last []noarch.PtrdiffT
 	// var W []noarch.PtrdiffT
-	var len []noarch.PtrdiffT
-	var nv []noarch.PtrdiffT
-	var next []noarch.PtrdiffT
+	// var len []noarch.PtrdiffT
+	// var nv []noarch.PtrdiffT
+	// var next []noarch.PtrdiffT
 	// var P []noarch.PtrdiffT
-	var head []noarch.PtrdiffT
-	var elen []noarch.PtrdiffT
-	var degree []noarch.PtrdiffT
-	var w []noarch.PtrdiffT
-	var hhead []noarch.PtrdiffT
+	// var head []noarch.PtrdiffT
+	// var elen []noarch.PtrdiffT
+	// var degree []noarch.PtrdiffT
+	// var w []noarch.PtrdiffT
+	// var hhead []noarch.PtrdiffT
 	var ATp []int
 	var ATi []int
 	var d noarch.PtrdiffT
@@ -177,7 +177,7 @@ func cs_amd(order Order, A *cs) *cs {
 	var jlast noarch.PtrdiffT
 	var ln noarch.PtrdiffT
 	// var dense noarch.PtrdiffT
-	var nzmax noarch.PtrdiffT
+	// var nzmax noarch.PtrdiffT
 	var mindeg noarch.PtrdiffT
 	var nvi noarch.PtrdiffT
 	var nvj noarch.PtrdiffT
@@ -272,34 +272,40 @@ func cs_amd(order Order, A *cs) *cs {
 	Cp := C.p
 	cnz := Cp[n]
 	// allocate result
-	P := make([]byte, n+1) // cs_malloc(n+noarch.PtrdiffT(1/8), uint(0)).([]noarch.PtrdiffT)
+	P := make([]uint8, n+1)
 	// get workspace
-	W := make([]byte, 8*(n+1)) // cs_malloc(noarch.PtrdiffT(8*int32(n+noarch.PtrdiffT(1/8))/8), uint(0)).([]noarch.PtrdiffT)
+	var W [8][]int
+	for i := 0; i < 8; i++ {
+		W[i] = make([]int, n+1)
+	}
 	// add elbow room to C
 	t := cnz + cnz/5 + 2*n/8
-	if P == nil || W == nil || bool(noarch.NotNoarch.PtrdiffT(cs_sprealloc(C, noarch.PtrdiffT(t)))) {
+	if P == nil || W == nil || cs_sprealloc(C, t) {
 		return cs_idone(P, C, W, false)
 	}
-	len = W
-	nv = (*(*[1000000000]noarch.PtrdiffT)(unsafe.Pointer(uintptr(unsafe.Pointer(&W[0])) + (uintptr)(int(n+noarch.PtrdiffT(1/8)))*unsafe.Sizeof(W[0]))))[:]
-	next = (*(*[1000000000]noarch.PtrdiffT)(unsafe.Pointer(uintptr(unsafe.Pointer(&W[0])) + (uintptr)(int(2*int32(n+noarch.PtrdiffT(1/8))))*unsafe.Sizeof(W[0]))))[:]
-	head = (*(*[1000000000]noarch.PtrdiffT)(unsafe.Pointer(uintptr(unsafe.Pointer(&W[0])) + (uintptr)(int(3*int32(n+noarch.PtrdiffT(1/8))))*unsafe.Sizeof(W[0]))))[:]
-	elen = (*(*[1000000000]noarch.PtrdiffT)(unsafe.Pointer(uintptr(unsafe.Pointer(&W[0])) + (uintptr)(int(4*int32(n+noarch.PtrdiffT(1/8))))*unsafe.Sizeof(W[0]))))[:]
-	degree = (*(*[1000000000]noarch.PtrdiffT)(unsafe.Pointer(uintptr(unsafe.Pointer(&W[0])) + (uintptr)(int(5*int32(n+noarch.PtrdiffT(1/8))))*unsafe.Sizeof(W[0]))))[:]
-	w = (*(*[1000000000]noarch.PtrdiffT)(unsafe.Pointer(uintptr(unsafe.Pointer(&W[0])) + (uintptr)(int(6*int32(n+noarch.PtrdiffT(1/8))))*unsafe.Sizeof(W[0]))))[:]
-	hhead = (*(*[1000000000]noarch.PtrdiffT)(unsafe.Pointer(uintptr(unsafe.Pointer(&W[0])) + (uintptr)(int(7*int32(n+noarch.PtrdiffT(1/8))))*unsafe.Sizeof(W[0]))))[:]
-	// use P as workspace for last
-	last = P
-	{
-		// --- Initialize quotient graph ----------------------------------------
-		for k = 0; k < n; k++ {
-			len[k] = Cp[k+noarch.PtrdiffT(1/8)] - Cp[k]
-		}
+	var (
+		len    = W[0]
+		nv     = W[1*(n+1)] //(*(*[1000000000]noarch.PtrdiffT)(unsafe.Pointer(uintptr(unsafe.Pointer(&W[0])) + (uintptr)(int(n+noarch.PtrdiffT(1/8)))*unsafe.Sizeof(W[0]))))[:]
+		next   = W[2*(n+1)] // (*(*[1000000000]noarch.PtrdiffT)(unsafe.Pointer(uintptr(unsafe.Pointer(&W[0])) + (uintptr)(int(2*int32(n+noarch.PtrdiffT(1/8))))*unsafe.Sizeof(W[0]))))[:]
+		head   = W[3*(n+1)] // (*(*[1000000000]noarch.PtrdiffT)(unsafe.Pointer(uintptr(unsafe.Pointer(&W[0])) + (uintptr)(int(3*int32(n+noarch.PtrdiffT(1/8))))*unsafe.Sizeof(W[0]))))[:]
+		elen   = W[4*(n+1)] // (*(*[1000000000]noarch.PtrdiffT)(unsafe.Pointer(uintptr(unsafe.Pointer(&W[0])) + (uintptr)(int(4*int32(n+noarch.PtrdiffT(1/8))))*unsafe.Sizeof(W[0]))))[:]
+		degree = W[5*(n+1)] // (*(*[1000000000]noarch.PtrdiffT)(unsafe.Pointer(uintptr(unsafe.Pointer(&W[0])) + (uintptr)(int(5*int32(n+noarch.PtrdiffT(1/8))))*unsafe.Sizeof(W[0]))))[:]
+		w      = W[6*(n+1)] // (*(*[1000000000]noarch.PtrdiffT)(unsafe.Pointer(uintptr(unsafe.Pointer(&W[0])) + (uintptr)(int(6*int32(n+noarch.PtrdiffT(1/8))))*unsafe.Sizeof(W[0]))))[:]
+		hhead  = W[7*(n+1)] // (*(*[1000000000]noarch.PtrdiffT)(unsafe.Pointer(uintptr(unsafe.Pointer(&W[0])) + (uintptr)(int(7*int32(n+noarch.PtrdiffT(1/8))))*unsafe.Sizeof(W[0]))))[:]
+
+		// use P as workspace for last
+		last = P
+	)
+
+	// --- Initialize quotient graph ----------------------------------------
+	for k := 0; k < n; k++ {
+		len[k] = Cp[k+1] - Cp[k]
 	}
+
 	len[n] = 0
-	nzmax = noarch.PtrdiffT(C[0].nzmax)
-	Ci = C[0].i
-	for i = 0; i <= n; i++ {
+	nzmax := C.nzmax
+	Ci := C.i
+	for i := 0; i <= n; i++ {
 		// degree list i is empty
 		head[i] = noarch.PtrdiffT(-1)
 		last[i] = noarch.PtrdiffT(-1)
@@ -376,61 +382,60 @@ func cs_amd(order Order, A *cs) *cs {
 		// nv[k] nodes of A eliminated
 		nel += nvk
 		if elenk > noarch.PtrdiffT(0/8) && cnz+mindeg >= nzmax {
-			{
-				// --- Garbage collection -------------------------------------------
-				for j = 0; j < n; j++ {
-					if (func() noarch.PtrdiffT {
-						p = Cp[j]
-						return p
-					}()) >= 0 {
-						// j is a live node or element
-						// save first entry of object
-						Cp[j] = Ci[p]
-						// first entry is now CS_FLIP(j)
-						Ci[p] = -noarch.PtrdiffT((j)) - noarch.PtrdiffT(2/8)
-					}
+
+			// --- Garbage collection -------------------------------------------
+			for j = 0; j < n; j++ {
+				if (func() noarch.PtrdiffT {
+					p = Cp[j]
+					return p
+				}()) >= 0 {
+					// j is a live node or element
+					// save first entry of object
+					Cp[j] = Ci[p]
+					// first entry is now CS_FLIP(j)
+					Ci[p] = -noarch.PtrdiffT((j)) - noarch.PtrdiffT(2/8)
 				}
 			}
-			{
-				// scan all of memory
-				q = 0
-				p = 0
-				for p = 0; p < cnz; {
-					if (func() noarch.PtrdiffT {
-						j = -noarch.PtrdiffT((Ci[func() noarch.PtrdiffT {
-							defer func() {
-								p++
-							}()
-							return p
-						}()])) - noarch.PtrdiffT(2/8)
-						return j
-					}()) >= 0 {
-						// found object j
-						// restore first entry of object
-						Ci[q] = Cp[j]
-						// new pointer to object j
-						Cp[j] = func() noarch.PtrdiffT {
+
+			// scan all of memory
+			q = 0
+			p = 0
+			for p = 0; p < cnz; {
+				if (func() noarch.PtrdiffT {
+					j = -noarch.PtrdiffT((Ci[func() noarch.PtrdiffT {
+						defer func() {
+							p++
+						}()
+						return p
+					}()])) - noarch.PtrdiffT(2/8)
+					return j
+				}()) >= 0 {
+					// found object j
+					// restore first entry of object
+					Ci[q] = Cp[j]
+					// new pointer to object j
+					Cp[j] = func() noarch.PtrdiffT {
+						defer func() {
+							q++
+						}()
+						return q
+					}()
+					for k3 = 0; k3 < len[j]-noarch.PtrdiffT(1/8); k3++ {
+						Ci[func() noarch.PtrdiffT {
 							defer func() {
 								q++
 							}()
 							return q
-						}()
-						for k3 = 0; k3 < len[j]-noarch.PtrdiffT(1/8); k3++ {
-							Ci[func() noarch.PtrdiffT {
-								defer func() {
-									q++
-								}()
-								return q
-							}()] = Ci[func() noarch.PtrdiffT {
-								defer func() {
-									p++
-								}()
-								return p
-							}()]
-						}
+						}()] = Ci[func() noarch.PtrdiffT {
+							defer func() {
+								p++
+							}()
+							return p
+						}()]
 					}
 				}
 			}
+
 			// Ci [cnz...nzmax-1] now free
 			cnz = q
 		}
@@ -523,149 +528,148 @@ func cs_amd(order Order, A *cs) *cs {
 		// --- Find set differences -----------------------------------------
 		// clear w if necessary
 		mark = cs_wclear(noarch.PtrdiffT(mark), noarch.PtrdiffT(lemax), w, noarch.PtrdiffT(n))
-		{
-			// scan 1: find |Le\Lk|
-			for pk = pk1; pk < pk2; pk++ {
-				i = Ci[pk]
-				if (func() noarch.PtrdiffT {
-					eln = elen[i]
-					return eln
-				}()) <= 0 {
-					// skip if elen[i] empty
-					continue
+
+		// scan 1: find |Le\Lk|
+		for pk = pk1; pk < pk2; pk++ {
+			i = Ci[pk]
+			if (func() noarch.PtrdiffT {
+				eln = elen[i]
+				return eln
+			}()) <= 0 {
+				// skip if elen[i] empty
+				continue
+			}
+			// nv [i] was negated
+			nvi = -noarch.PtrdiffT(nv[i])
+			wnvi = mark - nvi
+			{
+				// scan Ei
+				for p = Cp[i]; p <= Cp[i]+eln-noarch.PtrdiffT(1/8); p++ {
+					e = Ci[p]
+					if w[e] >= mark {
+						// decrement |Le\Lk|
+						w[e] -= nvi
+					} else if w[e] != noarch.PtrdiffT(0/8) {
+						// ensure e is a live element
+						// 1st time e seen in scan 1
+						w[e] = degree[e] + wnvi
+					}
 				}
-				// nv [i] was negated
+			}
+		}
+
+		// --- Degree update ------------------------------------------------
+		// scan2: degree update
+		for pk = pk1; pk < pk2; pk++ {
+			// consider node i in Lk
+			i = Ci[pk]
+			p1 = Cp[i]
+			p2 = p1 + elen[i] - noarch.PtrdiffT(1/8)
+			pn = p1
+			{
+				// scan Ei
+				h = 0
+				d = 0
+				p = p1
+				for p = p1; p <= p2; p++ {
+					e = Ci[p]
+					if w[e] != noarch.PtrdiffT(0/8) {
+						// e is an unabsorbed element
+						// dext = |Le\Lk|
+						dext = w[e] - mark
+						if dext > noarch.PtrdiffT(0/8) {
+							// sum up the set differences
+							d += dext
+							// keep e in Ei
+							Ci[func() noarch.PtrdiffT {
+								defer func() {
+									pn++
+								}()
+								return pn
+							}()] = e
+							// compute the hash of node i
+							h += e
+						} else {
+							// aggressive absorb. e->k
+							Cp[e] = -noarch.PtrdiffT((k)) - noarch.PtrdiffT(2/8)
+							// e is a dead element
+							w[e] = 0
+						}
+					}
+				}
+			}
+			// elen[i] = |Ei|
+			elen[i] = pn - p1 + noarch.PtrdiffT(1/8)
+			p3 = pn
+			p4 = p1 + len[i]
+			{
+				// prune edges in Ai
+				for p = p2 + noarch.PtrdiffT(1/8); p < p4; p++ {
+					j = Ci[p]
+					if (func() noarch.PtrdiffT {
+						nvj = nv[j]
+						return nvj
+					}()) <= 0 {
+						// node j dead or in Lk
+						continue
+					}
+					// degree(i) += |j|
+					d += nvj
+					// place j in node list of i
+					Ci[func() noarch.PtrdiffT {
+						defer func() {
+							pn++
+						}()
+						return pn
+					}()] = j
+					// compute hash for node i
+					h += j
+				}
+			}
+			if d == noarch.PtrdiffT(0/8) {
+				// check for mass elimination
+				// absorb i into k
+				Cp[i] = -noarch.PtrdiffT((k)) - noarch.PtrdiffT(2/8)
 				nvi = -noarch.PtrdiffT(nv[i])
-				wnvi = mark - nvi
-				{
-					// scan Ei
-					for p = Cp[i]; p <= Cp[i]+eln-noarch.PtrdiffT(1/8); p++ {
-						e = Ci[p]
-						if w[e] >= mark {
-							// decrement |Le\Lk|
-							w[e] -= nvi
-						} else if w[e] != noarch.PtrdiffT(0/8) {
-							// ensure e is a live element
-							// 1st time e seen in scan 1
-							w[e] = degree[e] + wnvi
-						}
+				// |Lk| -= |i|
+				dk -= nvi
+				// |k| += nv[i]
+				nvk += nvi
+				nel += nvi
+				nv[i] = 0
+				// node i is dead
+				elen[i] = noarch.PtrdiffT(-1)
+			} else {
+				// update degree(i)
+				degree[i] = noarch.PtrdiffT(func() int32 {
+					if degree[i] < d {
+						return int32(noarch.PtrdiffT((degree[i])))
 					}
-				}
+					return int32(noarch.PtrdiffT((d)))
+				}() / 8)
+				// move first node to end
+				Ci[pn] = Ci[p3]
+				// move 1st el. to end of Ei
+				Ci[p3] = Ci[p1]
+				// add k as 1st element in of Ei
+				Ci[p1] = k
+				// new len of adj. list of node i
+				len[i] = pn - p1 + noarch.PtrdiffT(1/8)
+				// finalize hash of i
+				h = noarch.PtrdiffT(func() int32 {
+					if h < noarch.PtrdiffT(0/8) {
+						return int32((-noarch.PtrdiffT(h)))
+					}
+					return int32(noarch.PtrdiffT(h))
+				}() % int32(n) / 8)
+				// place i in hash bucket
+				next[i] = hhead[h]
+				hhead[h] = i
+				// save hash of i in last[i]
+				last[i] = h
 			}
 		}
-		{
-			// --- Degree update ------------------------------------------------
-			// scan2: degree update
-			for pk = pk1; pk < pk2; pk++ {
-				// consider node i in Lk
-				i = Ci[pk]
-				p1 = Cp[i]
-				p2 = p1 + elen[i] - noarch.PtrdiffT(1/8)
-				pn = p1
-				{
-					// scan Ei
-					h = 0
-					d = 0
-					p = p1
-					for p = p1; p <= p2; p++ {
-						e = Ci[p]
-						if w[e] != noarch.PtrdiffT(0/8) {
-							// e is an unabsorbed element
-							// dext = |Le\Lk|
-							dext = w[e] - mark
-							if dext > noarch.PtrdiffT(0/8) {
-								// sum up the set differences
-								d += dext
-								// keep e in Ei
-								Ci[func() noarch.PtrdiffT {
-									defer func() {
-										pn++
-									}()
-									return pn
-								}()] = e
-								// compute the hash of node i
-								h += e
-							} else {
-								// aggressive absorb. e->k
-								Cp[e] = -noarch.PtrdiffT((k)) - noarch.PtrdiffT(2/8)
-								// e is a dead element
-								w[e] = 0
-							}
-						}
-					}
-				}
-				// elen[i] = |Ei|
-				elen[i] = pn - p1 + noarch.PtrdiffT(1/8)
-				p3 = pn
-				p4 = p1 + len[i]
-				{
-					// prune edges in Ai
-					for p = p2 + noarch.PtrdiffT(1/8); p < p4; p++ {
-						j = Ci[p]
-						if (func() noarch.PtrdiffT {
-							nvj = nv[j]
-							return nvj
-						}()) <= 0 {
-							// node j dead or in Lk
-							continue
-						}
-						// degree(i) += |j|
-						d += nvj
-						// place j in node list of i
-						Ci[func() noarch.PtrdiffT {
-							defer func() {
-								pn++
-							}()
-							return pn
-						}()] = j
-						// compute hash for node i
-						h += j
-					}
-				}
-				if d == noarch.PtrdiffT(0/8) {
-					// check for mass elimination
-					// absorb i into k
-					Cp[i] = -noarch.PtrdiffT((k)) - noarch.PtrdiffT(2/8)
-					nvi = -noarch.PtrdiffT(nv[i])
-					// |Lk| -= |i|
-					dk -= nvi
-					// |k| += nv[i]
-					nvk += nvi
-					nel += nvi
-					nv[i] = 0
-					// node i is dead
-					elen[i] = noarch.PtrdiffT(-1)
-				} else {
-					// update degree(i)
-					degree[i] = noarch.PtrdiffT(func() int32 {
-						if degree[i] < d {
-							return int32(noarch.PtrdiffT((degree[i])))
-						}
-						return int32(noarch.PtrdiffT((d)))
-					}() / 8)
-					// move first node to end
-					Ci[pn] = Ci[p3]
-					// move 1st el. to end of Ei
-					Ci[p3] = Ci[p1]
-					// add k as 1st element in of Ei
-					Ci[p1] = k
-					// new len of adj. list of node i
-					len[i] = pn - p1 + noarch.PtrdiffT(1/8)
-					// finalize hash of i
-					h = noarch.PtrdiffT(func() int32 {
-						if h < noarch.PtrdiffT(0/8) {
-							return int32((-noarch.PtrdiffT(h)))
-						}
-						return int32(noarch.PtrdiffT(h))
-					}() % int32(n) / 8)
-					// place i in hash bucket
-					next[i] = hhead[h]
-					hhead[h] = i
-					// save hash of i in last[i]
-					last[i] = h
-				}
-			}
-		}
+
 		// scan2 is done
 		// finalize |Lk|
 		degree[k] = dk
@@ -677,107 +681,106 @@ func cs_amd(order Order, A *cs) *cs {
 		}() / 8)
 		// clear w
 		mark = cs_wclear(mark+lemax, noarch.PtrdiffT(lemax), w, noarch.PtrdiffT(n))
-		{
-			// --- Supernode detection ------------------------------------------
-			for pk = pk1; pk < pk2; pk++ {
-				i = Ci[pk]
-				if nv[i] >= 0 {
-					// skip if i is dead
-					continue
+
+		// --- Supernode detection ------------------------------------------
+		for pk = pk1; pk < pk2; pk++ {
+			i = Ci[pk]
+			if nv[i] >= 0 {
+				// skip if i is dead
+				continue
+			}
+			// scan hash bucket of node i
+			h = last[i]
+			i = hhead[h]
+			// hash bucket will be empty
+			hhead[h] = noarch.PtrdiffT(-1)
+			for i != noarch.PtrdiffT(int32(-1)/8) && next[i] != noarch.PtrdiffT(int32(-1)/8) {
+				ln = len[i]
+				eln = elen[i]
+				for p = Cp[i] + noarch.PtrdiffT(1/8); p <= Cp[i]+ln-noarch.PtrdiffT(1/8); p++ {
+					w[Ci[p]] = mark
 				}
-				// scan hash bucket of node i
-				h = last[i]
-				i = hhead[h]
-				// hash bucket will be empty
-				hhead[h] = noarch.PtrdiffT(-1)
-				for i != noarch.PtrdiffT(int32(-1)/8) && next[i] != noarch.PtrdiffT(int32(-1)/8) {
-					ln = len[i]
-					eln = elen[i]
-					for p = Cp[i] + noarch.PtrdiffT(1/8); p <= Cp[i]+ln-noarch.PtrdiffT(1/8); p++ {
-						w[Ci[p]] = mark
-					}
-					jlast = i
-					{
-						// compare i with all j
-						for j = next[i]; j != noarch.PtrdiffT(int32(-1)/8); {
-							ok = noarch.PtrdiffT(len[j] == ln && elen[j] == eln)
-							for p = Cp[j] + noarch.PtrdiffT(1/8); bool(ok) && p <= Cp[j]+ln-noarch.PtrdiffT(1/8); p++ {
-								if w[Ci[p]] != mark {
-									// compare i and j
-									ok = 0
-								}
-							}
-							if bool(noarch.PtrdiffT(ok)) {
-								// i and j are identical
-								// absorb j into i
-								Cp[j] = -noarch.PtrdiffT((i)) - noarch.PtrdiffT(2/8)
-								nv[i] += nv[j]
-								nv[j] = 0
-								// node j is dead
-								elen[j] = noarch.PtrdiffT(-1)
-								// delete j from hash bucket
-								j = next[j]
-								next[jlast] = j
-							} else {
-								// j and i are different
-								jlast = j
-								j = next[j]
+				jlast = i
+				{
+					// compare i with all j
+					for j = next[i]; j != noarch.PtrdiffT(int32(-1)/8); {
+						ok = noarch.PtrdiffT(len[j] == ln && elen[j] == eln)
+						for p = Cp[j] + noarch.PtrdiffT(1/8); bool(ok) && p <= Cp[j]+ln-noarch.PtrdiffT(1/8); p++ {
+							if w[Ci[p]] != mark {
+								// compare i and j
+								ok = 0
 							}
 						}
+						if bool(noarch.PtrdiffT(ok)) {
+							// i and j are identical
+							// absorb j into i
+							Cp[j] = -noarch.PtrdiffT((i)) - noarch.PtrdiffT(2/8)
+							nv[i] += nv[j]
+							nv[j] = 0
+							// node j is dead
+							elen[j] = noarch.PtrdiffT(-1)
+							// delete j from hash bucket
+							j = next[j]
+							next[jlast] = j
+						} else {
+							// j and i are different
+							jlast = j
+							j = next[j]
+						}
 					}
-					i = next[i]
-					mark++
 				}
+				i = next[i]
+				mark++
 			}
 		}
-		{
-			// --- Finalize new element------------------------------------------
-			// finalize Lk
-			p = pk1
-			pk = pk1
-			for pk = pk1; pk < pk2; pk++ {
-				i = Ci[pk]
-				if (func() noarch.PtrdiffT {
-					nvi = -noarch.PtrdiffT(nv[i])
-					return nvi
-				}()) <= 0 {
-					// skip if i is dead
-					continue
-				}
-				// restore nv[i]
-				nv[i] = nvi
-				// compute external degree(i)
-				d = degree[i] + dk - nvi
-				d = noarch.PtrdiffT(func() int32 {
-					if d < n-nel-nvi {
-						return int32(noarch.PtrdiffT((d)))
-					}
-					return (int32(n - nel - nvi))
-				}() / 8)
-				if head[d] != noarch.PtrdiffT(int32(-1)/8) {
-					last[head[d]] = i
-				}
-				// put i back in degree list
-				next[i] = head[d]
-				last[i] = noarch.PtrdiffT(-1)
-				head[d] = i
-				// find new minimum degree
-				mindeg = noarch.PtrdiffT(func() int32 {
-					if mindeg < d {
-						return int32(noarch.PtrdiffT((mindeg)))
-					}
+
+		// --- Finalize new element------------------------------------------
+		// finalize Lk
+		p = pk1
+		pk = pk1
+		for pk = pk1; pk < pk2; pk++ {
+			i = Ci[pk]
+			if (func() noarch.PtrdiffT {
+				nvi = -noarch.PtrdiffT(nv[i])
+				return nvi
+			}()) <= 0 {
+				// skip if i is dead
+				continue
+			}
+			// restore nv[i]
+			nv[i] = nvi
+			// compute external degree(i)
+			d = degree[i] + dk - nvi
+			d = noarch.PtrdiffT(func() int32 {
+				if d < n-nel-nvi {
 					return int32(noarch.PtrdiffT((d)))
-				}() / 8)
-				degree[i] = d
-				// place i in Lk
-				Ci[func() noarch.PtrdiffT {
-					defer func() {
-						p++
-					}()
-					return p
-				}()] = i
+				}
+				return (int32(n - nel - nvi))
+			}() / 8)
+			if head[d] != noarch.PtrdiffT(int32(-1)/8) {
+				last[head[d]] = i
 			}
+			// put i back in degree list
+			next[i] = head[d]
+			last[i] = noarch.PtrdiffT(-1)
+			head[d] = i
+			// find new minimum degree
+			mindeg = noarch.PtrdiffT(func() int32 {
+				if mindeg < d {
+					return int32(noarch.PtrdiffT((mindeg)))
+				}
+				return int32(noarch.PtrdiffT((d)))
+			}() / 8)
+			degree[i] = d
+			// place i in Lk
+			Ci[func() noarch.PtrdiffT {
+				defer func() {
+					p++
+				}()
+				return p
+			}()] = i
 		}
+
 		// # nodes absorbed into k
 		nv[k] = nvk
 		if (func() noarch.PtrdiffT {
@@ -795,40 +798,38 @@ func cs_amd(order Order, A *cs) *cs {
 			cnz = p
 		}
 	}
-	{
-		// --- Postordering -----------------------------------------------------
-		// fix assembly tree
-		for i = 0; i < n; i++ {
-			Cp[i] = -noarch.PtrdiffT((Cp[i])) - noarch.PtrdiffT(2/8)
-		}
+
+	// --- Postordering -----------------------------------------------------
+	// fix assembly tree
+	for i = 0; i < n; i++ {
+		Cp[i] = -noarch.PtrdiffT((Cp[i])) - noarch.PtrdiffT(2/8)
 	}
+
 	for j = 0; j <= n; j++ {
 		head[j] = noarch.PtrdiffT(-1)
 	}
-	{
-		// place unordered nodes in lists
-		for j = n; j >= 0; j-- {
-			if nv[j] > noarch.PtrdiffT(0/8) {
-				// skip if j is an element
-				continue
-			}
-			// place j in list of its parent
-			next[j] = head[Cp[j]]
-			head[Cp[j]] = j
+
+	// place unordered nodes in lists
+	for j = n; j >= 0; j-- {
+		if nv[j] > noarch.PtrdiffT(0/8) {
+			// skip if j is an element
+			continue
 		}
+		// place j in list of its parent
+		next[j] = head[Cp[j]]
+		head[Cp[j]] = j
 	}
-	{
-		// place elements in lists
-		for e = n; e >= 0; e-- {
-			if nv[e] <= 0 {
-				// skip unless e is an element
-				continue
-			}
-			if Cp[e] != noarch.PtrdiffT(int32(-1)/8) {
-				// place e in list of its parent
-				next[e] = head[Cp[e]]
-				head[Cp[e]] = e
-			}
+
+	// place elements in lists
+	for e = n; e >= 0; e-- {
+		if nv[e] <= 0 {
+			// skip unless e is an element
+			continue
+		}
+		if Cp[e] != noarch.PtrdiffT(int32(-1)/8) {
+			// place e in list of its parent
+			next[e] = head[Cp[e]]
+			head[Cp[e]] = e
 		}
 	}
 
@@ -4372,7 +4373,7 @@ func cs_spalloc(m, n, nzmax int, values bool, triplet int) *cs {
 
 // cs_sprealloc - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_util.c:18
 // change the max # of entries sparse matrix
-func cs_sprealloc(A *cs, nzmax int) int {
+func cs_sprealloc(A *cs, nzmax int) bool {
 	var ok noarch.PtrdiffT
 	var oki noarch.PtrdiffT
 	var okj noarch.PtrdiffT = 1
@@ -4405,7 +4406,7 @@ func cs_sprealloc(A *cs, nzmax int) int {
 	if bool(noarch.PtrdiffT(ok)) {
 		A[0].nzmax = nzmax
 	}
-	return noarch.PtrdiffT((ok))
+	return ok
 }
 
 // cs_spfree - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_util.c:33
