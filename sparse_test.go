@@ -92,7 +92,7 @@ func Test(t *testing.T) {
 			T := cs_load(&stdin)
 			T.cs_print(false)
 
-			AC := cs_compress(T)
+			AC := T.cs_compress()
 			AC.cs_print(false)
 		})
 	}

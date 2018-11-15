@@ -1031,7 +1031,7 @@ type csd struct { // struct cs_dmperm_results
 // }
 
 // cs_compress - C = compressed-column form of a triplet matrix T
-func cs_compress(T *cs) *cs {
+func (T *cs) cs_compress() *cs {
 	var m int
 	var n int
 	var nz int
@@ -1058,10 +1058,10 @@ func cs_compress(T *cs) *cs {
 	// allocate result
 	C = cs_spalloc(m, n, nz, Tx != nil, false)
 	// get workspace
-	w = cs_calloc(n, uint(0)).([]noarch.PtrdiffT)
+	w = make([]int, n)
 	if C == nil || w == nil {
 		// out of memory
-		return (cs_done(C, w, nil, 0))
+		return cs_done(C, w, nil, false)
 	}
 	Cp = C.p
 	Ci = C.i
@@ -1076,7 +1076,7 @@ func cs_compress(T *cs) *cs {
 	cs_cumsum(Cp, w, n)
 	for k = 0; k < nz; k++ {
 		// A(i,j) is the pth entry in C
-		Ci[(func() noarch.PtrdiffT {
+		Ci[(func() int {
 			p = func() int {
 				tempVar := &w[Tj[k]]
 				defer func() {
@@ -1091,7 +1091,7 @@ func cs_compress(T *cs) *cs {
 		}
 	}
 	// success; free w and return C
-	return cs_done(C, w, nil, 1)
+	return cs_done(C, w, nil, true)
 }
 
 // // init_ata - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_counts.c:5
@@ -1265,18 +1265,18 @@ func cs_compress(T *cs) *cs {
 // }
 
 // cs_cumsum - p [0..n] = cumulative sum of c [0..n-1], and then copy p [0..n-1] into c
-func cs_cumsum(p []noarch.PtrdiffT, c []noarch.PtrdiffT, n int) float64 {
+func cs_cumsum(p []int, c []int, n int) int64 {
 	var nz int
-	var nz2 float64
+	var nz2 int64
 	if p == nil || c == nil {
 		// check inputs
-		return float64((-1))
+		return -1
 	}
 	for i := 0; i < n; i++ {
 		p[i] = nz
 		nz += c[i]
 		// also in double to avoid csi overflow
-		nz2 += float64(c[i])
+		nz2 += int64(c[i])
 		// also copy p[0..n-1] back into c[0..n-1]
 		c[i] = p[i]
 	}
@@ -4468,21 +4468,20 @@ func cs_sprealloc(A *cs, nzmax int) bool {
 // 	// free the csd struct and return NULL
 // 	return nil
 // }
-//
-// // cs_done - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_util.c:90
-// // free workspace and return a sparse matrix result
-// func cs_done(C *cs, w *int, x []float64, ok bool) *cs {
-// 	//
-// 	// TODO(KI): remove w,x
-// 	//
-//
-// 	// return result if OK, else free it
-// 	if ok {
-// 		return C
-// 	}
-// 	return nil
-// }
-//
+
+// cs_done - free workspace and return a sparse matrix result
+func cs_done(C *cs, w []int, x []float64, ok bool) *cs {
+	//
+	// TODO(KI): remove w,x
+	//
+
+	// return result if OK, else free it
+	if ok {
+		return C
+	}
+	return nil
+}
+
 // // cs_idone - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_util.c:98
 // // free workspace and return csi array result
 // func cs_idone(p *cs, C *cs, w interface{}, ok bool) *cs {
