@@ -19,5 +19,15 @@ int main(void)
 	// print data
 	cs_print(AT,0);
 
+	// m = # of rows of A
+    int m = A ? A->m : 0 ;
+
+	// triplet identify
+    T = cs_spalloc (m, m, m, 1, 1) ;
+    for (int i = 0 ; i < m ; i++) cs_entry (T, i, i, 1) ;
+    cs *Eye = cs_compress (T) ;
+	cs_print(Eye,0);
+
+
 	return 0;
 }

@@ -97,6 +97,17 @@ func Test(t *testing.T) {
 
 			AT := A.cs_transpose(true)
 			AT.cs_print(false)
+
+			var m int
+			if A != nil {
+				m = A.m
+			}
+			T = cs_spalloc(m, m, m, true, true)
+			for i := 0; i < m; i++ {
+				T.cs_entry(i, i, 1.0)
+			}
+			Eye := T.cs_compress()
+			Eye.cs_print(false)
 		})
 	}
 }
