@@ -857,38 +857,37 @@ func cs_amd(order Order, A *cs) *cs {
 	return cs_idone(P, C, W, true)
 }
 
-// cs_chol - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_chol.c:3
-// L = chol (A, [pinv parent cp]), pinv is optional
+// cs_chol - L = chol (A, [pinv parent cp]), pinv is optional
 func cs_chol(A []cs, S []css) []csn {
 	var d float64
 	var lki float64
 	var Lx []float64
 	var x []float64
 	var Cx []float64
-	var top noarch.PtrdiffT
-	var i noarch.PtrdiffT
-	var p noarch.PtrdiffT
-	var k noarch.PtrdiffT
-	var n noarch.PtrdiffT
-	var Li []noarch.PtrdiffT
-	var Lp []noarch.PtrdiffT
-	var cp []noarch.PtrdiffT
-	var pinv []noarch.PtrdiffT
-	var s []noarch.PtrdiffT
-	var c []noarch.PtrdiffT
-	var parent []noarch.PtrdiffT
-	var Cp []noarch.PtrdiffT
-	var Ci []noarch.PtrdiffT
+	var top int
+	var i int
+	var p int
+	var k int
+	var n int
+	var Li []int
+	var Lp []int
+	var cp []int
+	var pinv []int
+	var s []int
+	var c []int
+	var parent []int
+	var Cp []int
+	var Ci []int
 	var L []cs
 	var C []cs
 	var E []cs
 	var N []csn
-	if !(A != nil && noarch.PtrdiffT(A[0].nz) == -1) || S == nil || S[0].cp == nil || S[0].parent == nil {
+	if !(A != nil && A.nz == -1) || S == nil || S.cp == nil || S.parent == nil {
 		return nil
 	}
-	n = noarch.PtrdiffT(A[0].n)
+	n = A.n
 	// allocate result
-	N = cs_calloc(1, uint(32)).([]csn)
+	N = new(*csn) // cs_calloc(1, uint(32)).([]csn)
 	// get csi workspace
 	c = cs_malloc(noarch.PtrdiffT(2*int32(n)/8), uint(0)).([]noarch.PtrdiffT)
 	// get double workspace
@@ -1522,7 +1521,7 @@ func cs_unmatched(m noarch.PtrdiffT, wi []noarch.PtrdiffT, p []noarch.PtrdiffT, 
 // return 1 if row i is in R2
 func cs_rprune(i noarch.PtrdiffT, j noarch.PtrdiffT, aij float64, other interface{}) noarch.PtrdiffT {
 	var rr []noarch.PtrdiffT = other.([]noarch.PtrdiffT)
-	return noarch.PtrdiffT((i >= rr[1] && i < rr[2]))
+	return (i >= rr[1] && i < rr[2])
 }
 
 // cs_dmperm - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_dmperm.c:68
@@ -1704,18 +1703,18 @@ func cs_dmperm(A []cs, seed noarch.PtrdiffT) []csd {
 
 // cs_tol - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_droptol.c:2
 func cs_tol(i noarch.PtrdiffT, j noarch.PtrdiffT, aij float64, tol interface{}) noarch.PtrdiffT {
-	return noarch.PtrdiffT((math.Abs(aij) > (tol.([]float64))[(0)]))
+	return (math.Abs(aij) > (tol.([]float64))[(0)])
 }
 
 // cs_droptol - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_droptol.c:6
 func cs_droptol(A []cs, tol float64) noarch.PtrdiffT {
 	// keep all large entries
-	return (cs_fkeep(A, cs_tol, (*[100000000]float64)(unsafe.Pointer(&tol))[:]))
+	return cs_fkeep(A, cs_tol, (*[100000000]float64)(unsafe.Pointer(&tol))[:])
 }
 
 // cs_nonzero - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_dropzeros.c:2
 func cs_nonzero(i noarch.PtrdiffT, j noarch.PtrdiffT, aij float64, other interface{}) noarch.PtrdiffT {
-	return noarch.PtrdiffT((aij != 0))
+	return aij != 0
 }
 
 // cs_dropzeros - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_dropzeros.c:6
@@ -4096,7 +4095,7 @@ func cs_symperm(A []cs, pinv []noarch.PtrdiffT, values noarch.PtrdiffT) []cs {
 
 // cs_tdfs - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_tdfs.c:3
 // depth-first search and postorder of a tree rooted at node j
-func cs_tdfs(j, k int, head []noarch.PtrdiffT, next []noarch.PtrdiffT, post []noarch.PtrdiffT, stack []noarch.PtrdiffT) noarch.PtrdiffT {
+func cs_tdfs(j, k int, head []int, next []int, post []int, stack []int) noarch.PtrdiffT {
 	var i noarch.PtrdiffT
 	var p noarch.PtrdiffT
 	var top noarch.PtrdiffT
