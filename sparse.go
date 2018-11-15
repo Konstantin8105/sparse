@@ -1,4 +1,4 @@
-package main
+package sparse
 
 import (
 	"fmt"
@@ -3048,61 +3048,60 @@ func cs_post(parent []noarch.PtrdiffT, n noarch.PtrdiffT) []noarch.PtrdiffT {
 
 // cs_print - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_print.c:3
 // print a sparse matrix; use %g for integers to avoid differences with csi
-func cs_print(A []cs, brief noarch.PtrdiffT) noarch.PtrdiffT {
-	var p noarch.PtrdiffT
-	var j noarch.PtrdiffT
-	var m noarch.PtrdiffT
-	var n noarch.PtrdiffT
-	var nzmax noarch.PtrdiffT
-	var nz noarch.PtrdiffT
-	var Ap []noarch.PtrdiffT
-	var Ai []noarch.PtrdiffT
+func cs_print(A *cs, brief bool) bool {
+	var p int
+	var m int
+	var n int
+	var nzmax int
+	var nz int
+	var Ap []int
+	var Ai []int
 	var Ax []float64
 	if A == nil {
 		fmt.Printf("(null)\n")
 		return 0
 	}
-	m = noarch.PtrdiffT(A[0].m)
-	n = noarch.PtrdiffT(A[0].n)
-	Ap = A[0].p
-	Ai = A[0].i
-	Ax = A[0].x
-	nzmax = noarch.PtrdiffT(A[0].nzmax)
-	nz = noarch.PtrdiffT(A[0].nz)
-	noarch.Printf([]byte("CSparse Version %d.%d.%d, %s.  %s\n\x00"), 3, 2, 0, []byte("Sept 12, 2017\x00"), []byte("Copyright (c) Timothy A. Davis, 2006-2016\x00"))
+	m = A.m
+	n = A.n
+	Ap = A.p
+	Ai = A.i
+	Ax = A.x
+	nzmax = A.nzmax
+	nz = A.nz
+	fmt.Printf("CSparse Version %d.%d.%d, %s.  %s\n", 3, 2, 0, "Sept 12, 2017", "Copyright (c) Timothy A. Davis, 2006-2016")
 	if nz < 0 {
-		noarch.Printf([]byte("%g-by-%g, nzmax: %g nnz: %g, 1-norm: %g\n\x00"), float64(m), float64(noarch.PtrdiffT(n)), float64(nzmax), float64(noarch.PtrdiffT((Ap[n]))), cs_norm(A))
-		for j = 0; j < n; j++ {
-			noarch.Printf([]byte("    col %g : locations %g to %g\n\x00"), float64(noarch.PtrdiffT(j)), float64(noarch.PtrdiffT((Ap[j]))), float64((int32(Ap[j+1] - 1))))
+		fmt.Printf("%d-by-%d, nzmax: %d nnz: %d, 1-norm: %g\n", m, n, nzmax, Ap[n], cs_norm(A))
+		for j := 0; j < n; j++ {
+			fmt.Printf("    col %d : locations %d to %d\n", j, Ap[j], Ap[j+1]-1)
 			for p = Ap[j]; p < Ap[j+1]; p++ {
-				noarch.Printf([]byte("      %g : %g\n\x00"), float64(noarch.PtrdiffT((Ai[p]))), func() float64 {
+				fmt.Printf("      %d : %d\n", Ai[p], func() float64 {
 					if Ax != nil {
 						return Ax[p]
 					}
 					return 1
 				}())
-				if bool(brief) && p > noarch.PtrdiffT(20/8) {
+				if brief && p > 20 {
 					fmt.Printf("  ...\n")
-					return 1
+					return true
 				}
 			}
 		}
 	} else {
-		noarch.Printf([]byte("triplet: %g-by-%g, nzmax: %g nnz: %g\n\x00"), float64(m), float64(noarch.PtrdiffT(n)), float64(nzmax), float64(noarch.PtrdiffT(nz)))
+		fmt.Printf("triplet: %d-by-%d, nzmax: %d nnz: %d\n", m, n, nzmax, nz)
 		for p = 0; p < nz; p++ {
-			noarch.Printf([]byte("    %g %g : %g\n\x00"), float64(noarch.PtrdiffT((Ai[p]))), float64(noarch.PtrdiffT((Ap[p]))), func() float64 {
+			fmt.Printf("    %g %g : %g\n", Ai[p], Ap[p], func() float64 {
 				if Ax != nil {
 					return Ax[p]
 				}
 				return 1
 			}())
-			if bool(brief) && p > noarch.PtrdiffT(20/8) {
+			if brief && p > 20 {
 				fmt.Printf("  ...\n")
-				return 1
+				return true
 			}
 		}
 	}
-	return 1
+	return true
 }
 
 // cs_pvec - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_pvec.c:3

@@ -17,3 +17,6 @@ CSparse/Demo/cs_demo2
 CSparse/Demo/cs_demo3
 CSparse/Lib/*.o
 CSparse/Lib/*.a
+
+# testdata application
+testdata/csparse_test
