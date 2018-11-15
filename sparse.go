@@ -4519,35 +4519,22 @@ func cs_idone(p *cs, C *cs, w interface{}, ok bool) *cs {
 
 // cs_ndone - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_util.c:106
 // free workspace and return a numeric factorization (Cholesky, LU, or QR)
-func cs_ndone(N []csn, C []cs, w interface{}, x interface{}, ok noarch.PtrdiffT) []csn {
-	// free temporary matrix
-	cs_spfree(C) // TODO (KI) : remove
-	// free workspace
-	cs_free(w)
-	cs_free(x)
+func cs_ndone(N *csn, C *cs, w interface{}, x interface{}, ok bool) *csn {
 	// return result if OK, else free it
-	return (func() []csn {
-		if bool(ok) {
-			return N
-		}
-		return cs_nfree(N)
-	}())
+	if ok {
+		return N
+	}
+	return nil
 }
 
 // cs_ddone - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_util.c:115
 // free workspace and return a csd result
-func cs_ddone(D []csd, C []cs, w interface{}, ok noarch.PtrdiffT) []csd {
-	// free temporary matrix
-	cs_spfree(C)
-	// free workspace
-	cs_free(w)
+func cs_ddone(D *csd, C *cs, w interface{}, ok bool) *csd {
 	// return result if OK, else free it
-	return (func() []csd {
-		if bool(ok) {
-			return D
-		}
-		return cs_dfree(D)
-	}())
+	if ok {
+		return D
+	}
+	return nil
 }
 
 // cs_utsolve - solve U'x=b where x and b are dense.  x=b on input, solution on output.
