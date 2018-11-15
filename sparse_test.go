@@ -91,6 +91,9 @@ func Test(t *testing.T) {
 			stdin.Write(b)
 			T := cs_load(&stdin)
 			T.cs_print(false)
+
+			AC := cs_compress(T)
+			AC.cs_print(false)
 		})
 	}
 }

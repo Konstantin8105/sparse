@@ -1029,72 +1029,71 @@ type csd struct { // struct cs_dmperm_results
 // 	cs_nfree(N)
 // 	return noarch.PtrdiffT((ok))
 // }
-//
-// // cs_compress - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_compress.c:3
-// // C = compressed-column form of a triplet matrix T
-// func cs_compress(T []cs) []cs {
-// 	var m noarch.PtrdiffT
-// 	var n noarch.PtrdiffT
-// 	var nz noarch.PtrdiffT
-// 	var p noarch.PtrdiffT
-// 	var k noarch.PtrdiffT
-// 	var Cp []noarch.PtrdiffT
-// 	var Ci []noarch.PtrdiffT
-// 	var w []noarch.PtrdiffT
-// 	var Ti []noarch.PtrdiffT
-// 	var Tj []noarch.PtrdiffT
-// 	var Cx []float64
-// 	var Tx []float64
-// 	var C []cs
-// 	if !(T != nil && noarch.PtrdiffT(T[0].nz) >= 0) {
-// 		// check inputs
-// 		return nil
-// 	}
-// 	m = noarch.PtrdiffT(T[0].m)
-// 	n = noarch.PtrdiffT(T[0].n)
-// 	Ti = T[0].i
-// 	Tj = T[0].p
-// 	Tx = T[0].x
-// 	nz = noarch.PtrdiffT(T[0].nz)
-// 	// allocate result
-// 	C = cs_spalloc(m, noarch.PtrdiffT(n), noarch.PtrdiffT(nz), noarch.PtrdiffT(Tx != nil), 0)
-// 	// get workspace
-// 	w = cs_calloc(noarch.PtrdiffT(n), uint(0)).([]noarch.PtrdiffT)
-// 	if C == nil || w == nil {
-// 		// out of memory
-// 		return (cs_done(C, w, nil, 0))
-// 	}
-// 	Cp = C[0].p
-// 	Ci = C[0].i
-// 	Cx = C[0].x
-// 	{
-// 		// column counts
-// 		for k = 0; k < nz; k++ {
-// 			w[Tj[k]]++
-// 		}
-// 	}
-// 	// column pointers
-// 	cs_cumsum(Cp, w, noarch.PtrdiffT(n))
-// 	for k = 0; k < nz; k++ {
-// 		// A(i,j) is the pth entry in C
-// 		Ci[(func() noarch.PtrdiffT {
-// 			p = func() noarch.PtrdiffT {
-// 				tempVar := &w[Tj[k]]
-// 				defer func() {
-// 					*tempVar++
-// 				}()
-// 				return *tempVar
-// 			}()
-// 			return p
-// 		}())] = Ti[k]
-// 		if Cx != nil {
-// 			Cx[p] = Tx[k]
-// 		}
-// 	}
-// 	// success; free w and return C
-// 	return (cs_done(C, w, nil, 1))
-// }
-//
+
+cs_compress - C = compressed-column form of a triplet matrix T
+func cs_compress(T *cs) *cs {
+	var m noarch.PtrdiffT
+	var n noarch.PtrdiffT
+	var nz noarch.PtrdiffT
+	var p noarch.PtrdiffT
+	var k noarch.PtrdiffT
+	var Cp []noarch.PtrdiffT
+	var Ci []noarch.PtrdiffT
+	var w []noarch.PtrdiffT
+	var Ti []noarch.PtrdiffT
+	var Tj []noarch.PtrdiffT
+	var Cx []float64
+	var Tx []float64
+	var C []cs
+	if !(T != nil && noarch.PtrdiffT(T[0].nz) >= 0) {
+		// check inputs
+		return nil
+	}
+	m = noarch.PtrdiffT(T[0].m)
+	n = noarch.PtrdiffT(T[0].n)
+	Ti = T[0].i
+	Tj = T[0].p
+	Tx = T[0].x
+	nz = noarch.PtrdiffT(T[0].nz)
+	// allocate result
+	C = cs_spalloc(m, noarch.PtrdiffT(n), noarch.PtrdiffT(nz), noarch.PtrdiffT(Tx != nil), 0)
+	// get workspace
+	w = cs_calloc(noarch.PtrdiffT(n), uint(0)).([]noarch.PtrdiffT)
+	if C == nil || w == nil {
+		// out of memory
+		return (cs_done(C, w, nil, 0))
+	}
+	Cp = C[0].p
+	Ci = C[0].i
+	Cx = C[0].x
+	{
+		// column counts
+		for k = 0; k < nz; k++ {
+			w[Tj[k]]++
+		}
+	}
+	// column pointers
+	cs_cumsum(Cp, w, noarch.PtrdiffT(n))
+	for k = 0; k < nz; k++ {
+		// A(i,j) is the pth entry in C
+		Ci[(func() noarch.PtrdiffT {
+			p = func() noarch.PtrdiffT {
+				tempVar := &w[Tj[k]]
+				defer func() {
+					*tempVar++
+				}()
+				return *tempVar
+			}()
+			return p
+		}())] = Ti[k]
+		if Cx != nil {
+			Cx[p] = Tx[k]
+		}
+	}
+	// success; free w and return C
+	return (cs_done(C, w, nil, 1))
+}
+
 // // init_ata - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_counts.c:5
 // // column counts of LL'=A or LL'=A'A, given parent & post ordering
 // func init_ata(AT []cs, post []noarch.PtrdiffT, w []noarch.PtrdiffT, head [][]noarch.PtrdiffT, next [][]noarch.PtrdiffT) {
@@ -3059,7 +3058,7 @@ func (A *cs) cs_print(brief bool) bool {
 		for j := 0; j < n; j++ {
 			fmt.Printf("    col %d : locations %d to %d\n", j, Ap[j], Ap[j+1]-1)
 			for p = Ap[j]; p < Ap[j+1]; p++ {
-				fmt.Printf("      %d : %f\n", Ai[p], func() float64 {
+				fmt.Printf("      %d : %v\n", Ai[p], func() float64 {
 					if Ax != nil {
 						return Ax[p]
 					}
@@ -3074,7 +3073,7 @@ func (A *cs) cs_print(brief bool) bool {
 	} else {
 		fmt.Printf("triplet: %d-by-%d, nzmax: %d nnz: %d\n", m, n, nzmax, nz)
 		for p = 0; p < nz; p++ {
-			fmt.Printf("    %d %d : %f\n", Ai[p], Ap[p], func() float64 {
+			fmt.Printf("    %d %d : %v\n", Ai[p], Ap[p], func() float64 {
 				if Ax != nil {
 					return Ax[p]
 				}

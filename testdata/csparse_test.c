@@ -7,5 +7,11 @@ int main(void)
 	// print data
 	cs_print(T,0);
 
+	// A compressed-column form of T
+	cs *AC = cs_compress (T);
+
+	// print data
+	cs_print(AC,0);
+
 	return 0;
 }
