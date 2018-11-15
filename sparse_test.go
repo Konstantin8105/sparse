@@ -88,8 +88,9 @@ func Test(t *testing.T) {
 
 			fmt.Println("-------")
 
-			T := cs_load(stdin)
-			cs_print(T, false)
+			stdin.Write(b)
+			T := cs_load(&stdin)
+			T.cs_print(false)
 		})
 	}
 }

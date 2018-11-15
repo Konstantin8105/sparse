@@ -1790,37 +1790,26 @@ type csd struct { // struct cs_dmperm_results
 // }
 
 // cs_entry - add an entry to a triplet matrix; return 1 if ok, 0 otherwise
-func cs_entry(T *cs, i, j int, x float64) bool {
+func (T *cs) cs_entry(i, j int, x float64) bool {
 	if !(T != nil && T.nz >= 0) || i < 0 || j < 0 {
 		// check inputs
 		return false
 	}
-	if T.nz >= T.nzmax && cs_sprealloc(T, 2*T.nzmax) {
+	if T.nz >= T.nzmax && !cs_sprealloc(T, 2*T.nzmax) {
 		return false
 	}
 	if T.x != nil {
 		T.x[T.nz] = x
 	}
 	T.i[T.nz] = i
-	T.p[func() int {
-		tempVar := &T.nz
-		defer func() {
-			*tempVar++
-		}()
-		return *tempVar
-	}()] = j
-	T.m = func() int {
-		if T.m > i+1 {
-			return T.m
-		}
-		return i + 1
-	}()
-	T.n = func() int {
-		if T.n > j+1 {
-			return T.n
-		}
-		return j + 1
-	}()
+	T.p[T.nz] = j
+	T.nz++
+	if T.m < i+1 {
+		T.m = i + 1
+	}
+	if T.n < j+1 {
+		T.n = j + 1
+	}
 	return true
 }
 
@@ -2197,7 +2186,7 @@ func cs_load(f io.Reader) *cs {
 		if err != nil || n != 3 {
 			return nil
 		}
-		if cs_entry(T, i, j, x) {
+		if !T.cs_entry(i, j, x) {
 			return nil
 		}
 	}
@@ -2519,29 +2508,32 @@ func cs_load(f io.Reader) *cs {
 // 	// return NULL to simplify the use of cs_free
 // 	return nil
 // }
-//
-// // cs_realloc - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_malloc.c:29
-// // wrapper for realloc
-// func cs_realloc(p interface{}, n noarch.PtrdiffT, size uint, ok []noarch.PtrdiffT) interface{} {
-// 	var pnew interface{}
-// 	// realloc the block
-// 	pnew = make([]byte, uint32(func() int32 {
-// 		if n > 1 {
-// 			return int32(noarch.PtrdiffT((n)))
-// 		}
-// 		return 1
-// 	}())*uint32(size)*1/1)
-// 	// realloc fails if pnew is NULL
-// 	ok[0] = noarch.PtrdiffT(pnew != nil)
-// 	// return original p if failure
-// 	return (func() interface{} {
-// 		if bool(noarch.PtrdiffT((ok[0]))) {
-// 			return pnew
-// 		}
-// 		return p
-// 	}())
-// }
-//
+
+// cs_realloc - wrapper for realloc
+func cs_realloc(p interface{}, n int, ok *bool) interface{} {
+	//
+	// TODO (KI): redesign
+	//
+
+	switch v := p.(type) {
+	case []int:
+		if len(v) <= n {
+			v = append(v, make([]int, n-len(v))...)
+		}
+		*ok = true
+		return v
+
+	case []float64:
+		if len(v) <= n {
+			v = append(v, make([]float64, n-len(v))...)
+		}
+		*ok = true
+		return v
+	}
+	return nil
+
+}
+
 // // cs_augment - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_maxtrans.c:3
 // // find an augmenting path starting at column k and extend the match if found
 // func cs_augment(k noarch.PtrdiffT, A []cs, jmatch []noarch.PtrdiffT, cheap []noarch.PtrdiffT, w []noarch.PtrdiffT, js []noarch.PtrdiffT, is []noarch.PtrdiffT, ps []noarch.PtrdiffT) {
@@ -3041,7 +3033,7 @@ func cs_norm(A *cs) float64 {
 
 // cs_print - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_print.c:3
 // print a sparse matrix; use %g for integers to avoid differences with csi
-func cs_print(A *cs, brief bool) bool {
+func (A *cs) cs_print(brief bool) bool {
 	var p int
 	var m int
 	var n int
@@ -4358,12 +4350,11 @@ func cs_spalloc(m, n, nzmax int, values, triplet bool) *cs {
 		}
 		return -1
 	}()
-	A.p = cs_malloc(func() int {
-		if triplet {
-			return nzmax
-		}
-		return n + 1
-	}(), uint(0)).([]noarch.PtrdiffT)
+	if triplet {
+		A.p = make([]int, nzmax)
+	} else {
+		A.p = make([]int, n+1)
+	}
 	A.i = make([]int, nzmax) // cs_malloc(nzmax, uint(0)).([]noarch.PtrdiffT)
 	A.x = make([]float64, nzmax)
 	// func() interface{} {
@@ -4372,9 +4363,9 @@ func cs_spalloc(m, n, nzmax int, values, triplet bool) *cs {
 	// 	}
 	// 	return nil
 	// }().([]float64)
-	return (func() []cs {
+	return (func() *cs {
 		if A.p == nil || A.i == nil || values && A.x == nil {
-			return cs_spfree(A) // TODO (KI) : remove
+			return nil //cs_spfree(A) // TODO (KI) : remove
 		}
 		return A
 	}())
@@ -4382,37 +4373,37 @@ func cs_spalloc(m, n, nzmax int, values, triplet bool) *cs {
 
 // cs_sprealloc - change the max # of entries sparse matrix
 func cs_sprealloc(A *cs, nzmax int) bool {
-	var ok noarch.PtrdiffT
-	var oki noarch.PtrdiffT
-	var okj noarch.PtrdiffT = 1
-	var okx noarch.PtrdiffT = 1
+	var oki bool
+	var okj bool = true
+	var okx bool = true
 	if A == nil {
-		return 0
+		return false
 	}
 	if nzmax <= 0 {
-		nzmax = noarch.PtrdiffT(func() int32 {
-			if A != nil && noarch.PtrdiffT(A[0].nz) == -1 {
-				return int32(noarch.PtrdiffT((A[0].p[noarch.PtrdiffT(A[0].n)])))
+		nzmax = func() int {
+			if A != nil && A.nz == -1 {
+				return A.p[A.n]
 			}
-			return int32(noarch.PtrdiffT(A[0].nz))
-		}() / 8)
+			return A.nz
+		}()
 	}
-	nzmax = noarch.PtrdiffT(func() int32 {
+	nzmax = func() int {
 		if nzmax > 1 {
-			return int32(nzmax)
+			return nzmax
 		}
 		return 1
-	}() / 8)
-	A[0].i = cs_realloc(A[0].i, nzmax, uint(0), (*[100000000]noarch.PtrdiffT)(unsafe.Pointer(&oki))[:]).([]noarch.PtrdiffT)
-	if A != nil && noarch.PtrdiffT(A[0].nz) >= 0 {
-		A[0].p = cs_realloc(A[0].p, nzmax, uint(0), (*[100000000]noarch.PtrdiffT)(unsafe.Pointer(&okj))[:]).([]noarch.PtrdiffT)
+	}()
+
+	A.i = cs_realloc(A.i, nzmax, &oki).([]int)
+	if A != nil && A.nz >= 0 {
+		A.p = cs_realloc(A.p, nzmax, &okj).([]int)
 	}
-	if A[0].x != nil {
-		A[0].x = cs_realloc(A[0].x, nzmax, uint(8), (*[100000000]noarch.PtrdiffT)(unsafe.Pointer(&okx))[:]).([]float64)
+	if A.x != nil {
+		A.x = cs_realloc(A.x, nzmax, &okx).([]float64)
 	}
-	ok = noarch.PtrdiffT(bool(oki) && bool(okj) && bool(okx))
-	if bool(ok) {
-		A[0].nzmax = nzmax
+	ok := oki && okj && okx
+	if ok {
+		A.nzmax = nzmax
 	}
 	return ok
 }
