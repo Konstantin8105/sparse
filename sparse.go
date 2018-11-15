@@ -4121,73 +4121,72 @@ func (A *cs) cs_print(brief bool) bool {
 // 	}
 // 	return noarch.PtrdiffT((k))
 // }
-//
-// // cs_transpose - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_transpose.c:3
-// // C = A'
-// func cs_transpose(A *cs, values bool) *cs {
-// 	var p noarch.PtrdiffT
-// 	var q noarch.PtrdiffT
-// 	var j noarch.PtrdiffT
-// 	var Cp []noarch.PtrdiffT
-// 	var Ci []noarch.PtrdiffT
-// 	var n noarch.PtrdiffT
-// 	var m noarch.PtrdiffT
-// 	var Ap []noarch.PtrdiffT
-// 	var Ai []noarch.PtrdiffT
-// 	var w []noarch.PtrdiffT
-// 	var Cx []float64
-// 	var Ax []float64
-// 	var C []cs
-// 	if !(A != nil && noarch.PtrdiffT(A[0].nz) == -1) {
-// 		// check inputs
-// 		return nil
-// 	}
-// 	m = noarch.PtrdiffT(A[0].m)
-// 	n = noarch.PtrdiffT(A[0].n)
-// 	Ap = A[0].p
-// 	Ai = A[0].i
-// 	Ax = A[0].x
-// 	// allocate result
-// 	C = cs_spalloc(noarch.PtrdiffT(n), m, noarch.PtrdiffT(Ap[n]), noarch.PtrdiffT(bool(values) && Ax != nil), 0)
-// 	// get workspace
-// 	w = cs_calloc(m, uint(0)).([]noarch.PtrdiffT)
-// 	if C == nil || w == nil {
-// 		// out of memory
-// 		return (cs_done(C, w, nil, 0))
-// 	}
-// 	Cp = C[0].p
-// 	Ci = C[0].i
-// 	Cx = C[0].x
-// 	{
-// 		// row counts
-// 		for p = 0; p < Ap[n]; p++ {
-// 			w[Ai[p]]++
-// 		}
-// 	}
-// 	// row pointers
-// 	cs_cumsum(Cp, w, m)
-// 	for j = 0; j < n; j++ {
-// 		for p = Ap[j]; p < Ap[j+1]; p++ {
-// 			// place A(i,j) as entry C(j,i)
-// 			Ci[(func() noarch.PtrdiffT {
-// 				q = func() noarch.PtrdiffT {
-// 					tempVar := &w[Ai[p]]
-// 					defer func() {
-// 						*tempVar++
-// 					}()
-// 					return *tempVar
-// 				}()
-// 				return q
-// 			}())] = j
-// 			if Cx != nil {
-// 				Cx[q] = Ax[p]
-// 			}
-// 		}
-// 	}
-// 	// success; free w and return C
-// 	return (cs_done(C, w, nil, 1))
-// }
-//
+
+// cs_transpose - C = A'
+func (A *cs) cs_transpose(values bool) *cs {
+	var p int
+	var q int
+	var j int
+	var Cp []int
+	var Ci []int
+	var n int
+	var m int
+	var Ap []int
+	var Ai []int
+	var w []int
+	var Cx []float64
+	var Ax []float64
+	var C *cs
+	if !(A != nil && A.nz == -1) {
+		// check inputs
+		return nil
+	}
+	m = A.m
+	n = A.n
+	Ap = A.p
+	Ai = A.i
+	Ax = A.x
+	// allocate result
+	C = cs_spalloc(n, m, Ap[n], values && Ax != nil, false)
+	// get workspace
+	w = make([]int, m)
+	if C == nil || w == nil {
+		// out of memory
+		return cs_done(C, w, nil, false)
+	}
+	Cp = C.p
+	Ci = C.i
+	Cx = C.x
+
+	// row counts
+	for p = 0; p < Ap[n]; p++ {
+		w[Ai[p]]++
+	}
+
+	// row pointers
+	cs_cumsum(Cp, w, m)
+	for j = 0; j < n; j++ {
+		for p = Ap[j]; p < Ap[j+1]; p++ {
+			// place A(i,j) as entry C(j,i)
+			Ci[(func() int {
+				q = func() int {
+					tempVar := &w[Ai[p]]
+					defer func() {
+						*tempVar++
+					}()
+					return *tempVar
+				}()
+				return q
+			}())] = j
+			if Cx != nil {
+				Cx[q] = Ax[p]
+			}
+		}
+	}
+	// success; free w and return C
+	return cs_done(C, w, nil, true)
+}
+
 // // cs_updown - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_updown.c:3
 // // sparse Cholesky update/downdate, L*L' + sigma*w*w' (sigma = +1 or -1)
 // func cs_updown(L []cs, sigma noarch.PtrdiffT, C []cs, parent []noarch.PtrdiffT) noarch.PtrdiffT {
