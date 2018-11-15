@@ -165,23 +165,23 @@ func cs_amd(order Order, A *cs) *cs {
 	var dk noarch.PtrdiffT
 	var dext noarch.PtrdiffT
 	var lemax noarch.PtrdiffT
-	var e noarch.PtrdiffT
-	var elenk noarch.PtrdiffT
+	var e int // noarch.PtrdiffT
+	// var elenk noarch.PtrdiffT
 	var eln noarch.PtrdiffT
 	var i noarch.PtrdiffT
 	var j int
-	var k noarch.PtrdiffT
+	// var k noarch.PtrdiffT
 	var k1 noarch.PtrdiffT
 	var k2 noarch.PtrdiffT
-	var k3 noarch.PtrdiffT
+	// var k3 noarch.PtrdiffT
 	var jlast noarch.PtrdiffT
-	var ln noarch.PtrdiffT
+	var ln int // noarch.PtrdiffT
 	// var dense noarch.PtrdiffT
 	// var nzmax noarch.PtrdiffT
-	var mindeg noarch.PtrdiffT
+	// var mindeg noarch.PtrdiffT
 	var nvi noarch.PtrdiffT
 	var nvj noarch.PtrdiffT
-	var nvk noarch.PtrdiffT
+	// var nvk noarch.PtrdiffT
 	// var mark noarch.PtrdiffT
 	var wnvi noarch.PtrdiffT
 	var ok noarch.PtrdiffT
@@ -192,12 +192,12 @@ func cs_amd(order Order, A *cs) *cs {
 	var p2 int
 	var p3 noarch.PtrdiffT
 	var p4 noarch.PtrdiffT
-	var pj noarch.PtrdiffT
+	var pj int // noarch.PtrdiffT
 	var pk noarch.PtrdiffT
 	var pk1 noarch.PtrdiffT
 	var pk2 noarch.PtrdiffT
 	var pn noarch.PtrdiffT
-	var q noarch.PtrdiffT
+	// var q noarch.PtrdiffT
 	// var n noarch.PtrdiffT
 	// var m noarch.PtrdiffT
 	// var t noarch.PtrdiffT
@@ -280,7 +280,7 @@ func cs_amd(order Order, A *cs) *cs {
 	}
 	// add elbow room to C
 	t := cnz + cnz/5 + 2*n/8
-	if P == nil || W == nil || cs_sprealloc(C, t) {
+	if P == nil || cs_sprealloc(C, t) { //  || W == nil
 		return cs_idone(P, C, W, false)
 	}
 	var (
@@ -370,11 +370,18 @@ func cs_amd(order Order, A *cs) *cs {
 		}
 	}
 
+	var (
+		mindeg int
+		k      int
+		elenk  int
+		nvk    int
+	)
+
 	// while (selecting pivots) do
 	for nel < n {
 
 		// --- Select node of minimum approximate degree --------------------
-		for k = -1; mindeg < n && (func() noarch.PtrdiffT {
+		for k = -1; mindeg < n && (func() int {
 			k = head[mindeg]
 			return k
 		}()) == -1; mindeg++ {
@@ -395,7 +402,7 @@ func cs_amd(order Order, A *cs) *cs {
 
 			// --- Garbage collection -------------------------------------------
 			for j = 0; j < n; j++ {
-				if (func() noarch.PtrdiffT {
+				if (func() int {
 					p = Cp[j]
 					return p
 				}()) >= 0 {
@@ -403,40 +410,37 @@ func cs_amd(order Order, A *cs) *cs {
 					// save first entry of object
 					Cp[j] = Ci[p]
 					// first entry is now CS_FLIP(j)
-					Ci[p] = -noarch.PtrdiffT((j)) - 2
+					Ci[p] = -j - 2
 				}
 			}
 
 			// scan all of memory
-			q = 0
-			p = 0
+			var (
+				q, p int
+			)
 			for p = 0; p < cnz; {
-				if (func() noarch.PtrdiffT {
-					j = -noarch.PtrdiffT((Ci[func() noarch.PtrdiffT {
+				if (func() int {
+					j = -(Ci[func() int {
 						defer func() {
 							p++
 						}()
 						return p
-					}()])) - 2
+					}()]) - 2
 					return j
 				}()) >= 0 {
 					// found object j
 					// restore first entry of object
 					Ci[q] = Cp[j]
 					// new pointer to object j
-					Cp[j] = func() noarch.PtrdiffT {
-						defer func() {
-							q++
-						}()
-						return q
-					}()
-					for k3 = 0; k3 < len[j]-1; k3++ {
-						Ci[func() noarch.PtrdiffT {
+					Cp[j] = q
+					q++
+					for k3 := 0; k3 < len[j]-1; k3++ {
+						Ci[func() int {
 							defer func() {
 								q++
 							}()
 							return q
-						}()] = Ci[func() noarch.PtrdiffT {
+						}()] = Ci[func() int {
 							defer func() {
 								p++
 							}()
@@ -452,7 +456,7 @@ func cs_amd(order Order, A *cs) *cs {
 		// --- Construct new element ----------------------------------------
 		dk = 0
 		// flag k as in Lk
-		nv[k] = -noarch.PtrdiffT(nvk)
+		nv[k] = -nvk
 		p = Cp[k]
 		// do in place if elen[k] == 0
 		pk1 = noarch.PtrdiffT(func() int32 {
@@ -462,7 +466,7 @@ func cs_amd(order Order, A *cs) *cs {
 			return int32(noarch.PtrdiffT(cnz))
 		}() / 8)
 		pk2 = pk1
-		for k1 = 1; k1 <= elenk+1; k1++ {
+		for k1 := 1; k1 <= elenk+1; k1++ {
 			if k1 > elenk {
 				// search the nodes in k
 				e = k
@@ -472,7 +476,7 @@ func cs_amd(order Order, A *cs) *cs {
 				ln = len[k] - elenk
 			} else {
 				// search the nodes in e
-				e = Ci[func() noarch.PtrdiffT {
+				e = Ci[func() int {
 					defer func() {
 						p++
 					}()
@@ -482,14 +486,14 @@ func cs_amd(order Order, A *cs) *cs {
 				// length of list of nodes in e
 				ln = len[e]
 			}
-			for k2 = 1; k2 <= ln; k2++ {
-				i = Ci[func() noarch.PtrdiffT {
+			for k2 := 1; k2 <= ln; k2++ {
+				i = Ci[func() int {
 					defer func() {
 						pj++
 					}()
 					return pj
 				}()]
-				if (func() noarch.PtrdiffT {
+				if (func() int {
 					nvi = nv[i]
 					return nvi
 				}()) <= 0 {
@@ -499,9 +503,9 @@ func cs_amd(order Order, A *cs) *cs {
 				// degree[Lk] += size of node i
 				dk += nvi
 				// negate nv[i] to denote i in Lk
-				nv[i] = -noarch.PtrdiffT(nvi)
+				nv[i] = -nvi
 				// place i in Lk
-				Ci[func() noarch.PtrdiffT {
+				Ci[func() int {
 					defer func() {
 						pk2++
 					}()
@@ -519,7 +523,7 @@ func cs_amd(order Order, A *cs) *cs {
 			}
 			if e != k {
 				// absorb e into k
-				Cp[e] = -noarch.PtrdiffT((k)) - 2
+				Cp[e] = -k - 2
 				// e is now a dead element
 				w[e] = 0
 			}
