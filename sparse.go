@@ -1030,42 +1030,42 @@ type csd struct { // struct cs_dmperm_results
 // 	return noarch.PtrdiffT((ok))
 // }
 
-cs_compress - C = compressed-column form of a triplet matrix T
+// cs_compress - C = compressed-column form of a triplet matrix T
 func cs_compress(T *cs) *cs {
-	var m noarch.PtrdiffT
-	var n noarch.PtrdiffT
-	var nz noarch.PtrdiffT
-	var p noarch.PtrdiffT
-	var k noarch.PtrdiffT
-	var Cp []noarch.PtrdiffT
-	var Ci []noarch.PtrdiffT
-	var w []noarch.PtrdiffT
-	var Ti []noarch.PtrdiffT
-	var Tj []noarch.PtrdiffT
+	var m int
+	var n int
+	var nz int
+	var p int
+	var k int
+	var Cp []int
+	var Ci []int
+	var w []int
+	var Ti []int
+	var Tj []int
 	var Cx []float64
 	var Tx []float64
-	var C []cs
-	if !(T != nil && noarch.PtrdiffT(T[0].nz) >= 0) {
+	var C *cs
+	if !(T != nil && T.nz >= 0) {
 		// check inputs
 		return nil
 	}
-	m = noarch.PtrdiffT(T[0].m)
-	n = noarch.PtrdiffT(T[0].n)
-	Ti = T[0].i
-	Tj = T[0].p
-	Tx = T[0].x
-	nz = noarch.PtrdiffT(T[0].nz)
+	m = T.m
+	n = T.n
+	Ti = T.i
+	Tj = T.p
+	Tx = T.x
+	nz = T.nz
 	// allocate result
-	C = cs_spalloc(m, noarch.PtrdiffT(n), noarch.PtrdiffT(nz), noarch.PtrdiffT(Tx != nil), 0)
+	C = cs_spalloc(m, n, nz, Tx != nil, false)
 	// get workspace
-	w = cs_calloc(noarch.PtrdiffT(n), uint(0)).([]noarch.PtrdiffT)
+	w = cs_calloc(n, uint(0)).([]noarch.PtrdiffT)
 	if C == nil || w == nil {
 		// out of memory
 		return (cs_done(C, w, nil, 0))
 	}
-	Cp = C[0].p
-	Ci = C[0].i
-	Cx = C[0].x
+	Cp = C.p
+	Ci = C.i
+	Cx = C.x
 	{
 		// column counts
 		for k = 0; k < nz; k++ {
@@ -1073,11 +1073,11 @@ func cs_compress(T *cs) *cs {
 		}
 	}
 	// column pointers
-	cs_cumsum(Cp, w, noarch.PtrdiffT(n))
+	cs_cumsum(Cp, w, n)
 	for k = 0; k < nz; k++ {
 		// A(i,j) is the pth entry in C
 		Ci[(func() noarch.PtrdiffT {
-			p = func() noarch.PtrdiffT {
+			p = func() int {
 				tempVar := &w[Tj[k]]
 				defer func() {
 					*tempVar++
@@ -1091,7 +1091,7 @@ func cs_compress(T *cs) *cs {
 		}
 	}
 	// success; free w and return C
-	return (cs_done(C, w, nil, 1))
+	return cs_done(C, w, nil, 1)
 }
 
 // // init_ata - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_counts.c:5
@@ -1263,30 +1263,28 @@ func cs_compress(T *cs) *cs {
 // 	// success: free workspace
 // 	return (cs_idone(colcount, AT, w, 1))
 // }
-//
-// // cs_cumsum - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_cumsum.c:3
-// // p [0..n] = cumulative sum of c [0..n-1], and then copy p [0..n-1] into c
-// func cs_cumsum(p []noarch.PtrdiffT, c []noarch.PtrdiffT, n noarch.PtrdiffT) float64 {
-// 	var i noarch.PtrdiffT
-// 	var nz noarch.PtrdiffT
-// 	var nz2 float64
-// 	if p == nil || c == nil {
-// 		// check inputs
-// 		return float64((-1))
-// 	}
-// 	for i = 0; i < n; i++ {
-// 		p[i] = nz
-// 		nz += c[i]
-// 		// also in double to avoid csi overflow
-// 		nz2 += float64(c[i])
-// 		// also copy p[0..n-1] back into c[0..n-1]
-// 		c[i] = p[i]
-// 	}
-// 	p[n] = nz
-// 	// return sum (c [0..n-1])
-// 	return (nz2)
-// }
-//
+
+// cs_cumsum - p [0..n] = cumulative sum of c [0..n-1], and then copy p [0..n-1] into c
+func cs_cumsum(p []noarch.PtrdiffT, c []noarch.PtrdiffT, n noarch.PtrdiffT) float64 {
+	var nz noarch.PtrdiffT
+	var nz2 float64
+	if p == nil || c == nil {
+		// check inputs
+		return float64((-1))
+	}
+	for i := 0; i < n; i++ {
+		p[i] = nz
+		nz += c[i]
+		// also in double to avoid csi overflow
+		nz2 += float64(c[i])
+		// also copy p[0..n-1] back into c[0..n-1]
+		c[i] = p[i]
+	}
+	p[n] = nz
+	// return sum (c [0..n-1])
+	return (nz2)
+}
+
 // // cs_dfs - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_dfs.c:3
 // // depth-first-search of the graph of a matrix, starting at node j
 // func cs_dfs(j noarch.PtrdiffT, G []cs, top noarch.PtrdiffT, xi []noarch.PtrdiffT, pstack []noarch.PtrdiffT, pinv []noarch.PtrdiffT) noarch.PtrdiffT {
