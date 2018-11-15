@@ -2178,10 +2178,7 @@ func cs_leaf(i noarch.PtrdiffT, j noarch.PtrdiffT, first []noarch.PtrdiffT, maxf
 }
 
 // cs_load - load a triplet matrix from a file
-func cs_load(f *noarch.File) *cs {
-	var i float64
-	var j float64
-	var x float64
+func cs_load(f io.Reader) *cs {
 	var T *cs
 	if f == nil {
 		// use double for integers to avoid csi conflicts
@@ -2189,10 +2186,20 @@ func cs_load(f *noarch.File) *cs {
 		return nil
 	}
 	// allocate result
-	T = cs_spalloc(0, 0, 1, 1, 1)
-	for noarch.Fscanf(f, []byte("%lg %lg %lg\n\x00"), (*[100000000]float64)(unsafe.Pointer(&i))[:], (*[100000000]float64)(unsafe.Pointer(&j))[:], (*[100000000]float64)(unsafe.Pointer(&x))[:]) == 3 {
+	T = cs_spalloc(0, 0, 1, true, true)
+	for {
+		var i, j int
+		var x float64
+
+		n, err := fmt.Fscanf(f, "%d %d %f\n", &i, &j, &x)
+		if err == io.EOF {
+			break
+		}
+		if err != nil || n != 3 {
+			return nil
+		}
 		if cs_entry(T, i, j, x) {
-			return cs_spfree(T)
+			return nil
 		}
 	}
 	return T
