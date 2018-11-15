@@ -1265,8 +1265,8 @@ func cs_compress(T *cs) *cs {
 // }
 
 // cs_cumsum - p [0..n] = cumulative sum of c [0..n-1], and then copy p [0..n-1] into c
-func cs_cumsum(p []noarch.PtrdiffT, c []noarch.PtrdiffT, n noarch.PtrdiffT) float64 {
-	var nz noarch.PtrdiffT
+func cs_cumsum(p []noarch.PtrdiffT, c []noarch.PtrdiffT, n int) float64 {
+	var nz int
 	var nz2 float64
 	if p == nil || c == nil {
 		// check inputs
@@ -1282,7 +1282,7 @@ func cs_cumsum(p []noarch.PtrdiffT, c []noarch.PtrdiffT, n noarch.PtrdiffT) floa
 	}
 	p[n] = nz
 	// return sum (c [0..n-1])
-	return (nz2)
+	return nz2
 }
 
 // // cs_dfs - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_dfs.c:3
