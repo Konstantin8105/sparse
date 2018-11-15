@@ -10,3 +10,10 @@
 
 # Output of the go coverage tool, specifically when used with LiteIDE
 *.out
+
+# CSparse temp files
+CSparse/Demo/cs_demo1
+CSparse/Demo/cs_demo2
+CSparse/Demo/cs_demo3
+CSparse/Lib/*.o
+CSparse/Lib/*.a
