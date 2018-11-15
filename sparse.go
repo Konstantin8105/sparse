@@ -4336,7 +4336,7 @@ func cs_usolve(U *cs, x []float64) bool {
 
 // cs_spalloc - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_util.c:3
 // allocate a sparse matrix (triplet form or compressed-column form)
-func cs_spalloc(m, n, nzmax int, values bool, triplet int) *cs {
+func cs_spalloc(m, n, nzmax int, values, triplet bool) *cs {
 	A := new(cs)
 	if A == nil {
 		// allocate the cs struct
@@ -4346,35 +4346,36 @@ func cs_spalloc(m, n, nzmax int, values bool, triplet int) *cs {
 	// define dimensions and nzmax
 	A.m = m
 	A.n = n
-	nzmax = noarch.PtrdiffT(func() int32 {
+	nzmax = func() int {
 		if nzmax > 1 {
-			return int32(nzmax)
+			return nzmax
 		}
 		return 1
-	}() / 8)
-	A[0].nzmax = nzmax
+	}()
+	A.nzmax = nzmax
 	// allocate triplet or comp.col
-	A[0].nz = noarch.PtrdiffT(func() int {
-		if bool(noarch.PtrdiffT(triplet)) {
+	A.nz = func() int {
+		if triplet {
 			return 0
 		}
 		return -1
-	}())
-	A[0].p = cs_malloc(noarch.PtrdiffT(func() int32 {
-		if bool(noarch.PtrdiffT(triplet)) {
+	}()
+	A.p = cs_malloc(func() int {
+		if triplet {
 			return int32(nzmax)
 		}
-		return int32(n + 1)
-	}()/8), uint(0)).([]noarch.PtrdiffT)
-	A[0].i = cs_malloc(nzmax, uint(0)).([]noarch.PtrdiffT)
-	A[0].x = func() interface{} {
-		if bool(noarch.PtrdiffT(values)) {
-			return cs_malloc(nzmax, uint(8))
-		}
-		return nil
-	}().([]float64)
+		return n + 1
+	}(), uint(0)).([]noarch.PtrdiffT)
+	A.i = make([]int, nzmax) // cs_malloc(nzmax, uint(0)).([]noarch.PtrdiffT)
+	A.x = make([]float64, nzmax)
+	// func() interface{} {
+	// 	if values {
+	// 		return cs_malloc(nzmax, uint(8))
+	// 	}
+	// 	return nil
+	// }().([]float64)
 	return (func() []cs {
-		if A[0].p == nil || A[0].i == nil || bool(values) && A[0].x == nil {
+		if A.p == nil || A.i == nil || values && A.x == nil {
 			return cs_spfree(A)
 		}
 		return A
