@@ -28,6 +28,8 @@ int main(void)
     cs *Eye = cs_compress (T) ;
 	cs_print(Eye,0);
 
+	cs * C = cs_multiply(A,AT);
+	cs_print(C,0);
 
 	return 0;
 }

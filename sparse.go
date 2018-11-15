@@ -2773,88 +2773,82 @@ func cs_realloc(p interface{}, n int, ok *bool) interface{} {
 // 		return nil
 // 	}(), w, 1))
 // }
-//
-// // cs_multiply - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_multiply.c:3
-// // C = A*B
-// func cs_multiply(A *cs, B *cs) *cs {
-// 	var p noarch.PtrdiffT
-// 	var j noarch.PtrdiffT
-// 	var nz noarch.PtrdiffT
-// 	var anz noarch.PtrdiffT
-// 	var Cp []noarch.PtrdiffT
-// 	var Ci []noarch.PtrdiffT
-// 	var Bp []noarch.PtrdiffT
-// 	var m noarch.PtrdiffT
-// 	var n noarch.PtrdiffT
-// 	var bnz noarch.PtrdiffT
-// 	var w []noarch.PtrdiffT
-// 	var values noarch.PtrdiffT
-// 	var Bi []noarch.PtrdiffT
-// 	var x []float64
-// 	var Bx []float64
-// 	var Cx []float64
-// 	var C []cs
-// 	if !(A != nil && noarch.PtrdiffT(A[0].nz) == -1) || !(B != nil && noarch.PtrdiffT(B[0].nz) == -1) {
-// 		// check inputs
-// 		return nil
-// 	}
-// 	if noarch.PtrdiffT(A[0].n) != noarch.PtrdiffT(B[0].m) {
-// 		return nil
-// 	}
-// 	m = noarch.PtrdiffT(A[0].m)
-// 	anz = A[0].p[noarch.PtrdiffT(A[0].n)]
-// 	n = noarch.PtrdiffT(B[0].n)
-// 	Bp = B[0].p
-// 	Bi = B[0].i
-// 	Bx = B[0].x
-// 	bnz = Bp[n]
-// 	// get workspace
-// 	w = cs_calloc(m, uint(0)).([]noarch.PtrdiffT)
-// 	values = noarch.PtrdiffT(A[0].x != nil && Bx != nil)
-// 	// get workspace
-// 	x = func() interface{} {
-// 		if bool(noarch.PtrdiffT(values)) {
-// 			return cs_malloc(m, uint(8))
-// 		}
-// 		return nil
-// 	}().([]float64)
-// 	// allocate result
-// 	C = cs_spalloc(m, noarch.PtrdiffT(n), anz+bnz, noarch.PtrdiffT(values), 0)
-// 	if C == nil || w == nil || bool(values) && x == nil {
-// 		return (cs_done(C, w, x, 0))
-// 	}
-// 	Cp = C[0].p
-// 	for j = 0; j < n; j++ {
-// 		if nz+m > noarch.PtrdiffT(C[0].nzmax) && bool(noarch.NotNoarch.PtrdiffT(cs_sprealloc(C, noarch.PtrdiffT((2*int32(C[0].nzmax)+int32(m))/8)))) {
-// 			// out of memory
-// 			return (cs_done(C, w, x, 0))
-// 		}
-// 		// C->i and C->x may be reallocated
-// 		Ci = C[0].i
-// 		Cx = C[0].x
-// 		// column j of C starts here
-// 		Cp[j] = nz
-// 		for p = Bp[j]; p < Bp[j+1]; p++ {
-// 			nz = cs_scatter(A, noarch.PtrdiffT(Bi[p]), func() float64 {
-// 				if Bx != nil {
-// 					return Bx[p]
-// 				}
-// 				return 1
-// 			}(), w, x, j+1, C, noarch.PtrdiffT(nz))
-// 		}
-// 		if bool(noarch.PtrdiffT(values)) {
-// 			for p = Cp[j]; p < nz; p++ {
-// 				Cx[p] = x[Ci[p]]
-// 			}
-// 		}
-// 	}
-// 	// finalize the last column of C
-// 	Cp[n] = nz
-// 	// remove extra space from C
-// 	cs_sprealloc(C, 0)
-// 	// success; free workspace, return C
-// 	return (cs_done(C, w, x, 1))
-// }
+
+// cs_multiply - C = A*B
+func cs_multiply(A *cs, B *cs) *cs {
+	var p int
+	var nz int
+	var anz int
+	var Cp []int
+	var Ci []int
+	var Bp []int
+	var m int
+	var n int
+	var bnz int
+	var w []int
+	var Bi []int
+	var x []float64
+	var Bx []float64
+	var Cx []float64
+	var C *cs
+	if !(A != nil && A.nz == -1) || !(B != nil && B.nz == -1) {
+		// check inputs
+		return nil
+	}
+	if A.n != B.m {
+		return nil
+	}
+	m = A.m
+	anz = A.p[A.n]
+	n = B.n
+	Bp = B.p
+	Bi = B.i
+	Bx = B.x
+	bnz = Bp[n]
+	// get workspace
+	w = make([]int, m)
+	values := (A.x != nil && Bx != nil)
+	// get workspace
+	if values {
+		x = make([]float64, m)
+	}
+	// allocate result
+	C = cs_spalloc(m, n, anz+bnz, values, false)
+	if C == nil || w == nil || bool(values) && x == nil {
+		return cs_done(C, w, x, false)
+	}
+	Cp = C.p
+	for j := 0; j < n; j++ {
+		if nz+m > C.nzmax && !cs_sprealloc(C, 2*C.nzmax+m) {
+			// out of memory
+			return cs_done(C, w, x, false)
+		}
+		// C->i and C->x may be reallocated
+		Ci = C.i
+		Cx = C.x
+		// column j of C starts here
+		Cp[j] = nz
+		for p = Bp[j]; p < Bp[j+1]; p++ {
+			nz = cs_scatter(A, Bi[p], func() float64 {
+				if Bx != nil {
+					return Bx[p]
+				}
+				return 1
+			}(), w, x, j+1, C, nz)
+		}
+		if values {
+			for p := Cp[j]; p < nz; p++ {
+				Cx[p] = x[Ci[p]]
+			}
+		}
+	}
+	// finalize the last column of C
+	Cp[n] = nz
+	// remove extra space from C
+	cs_sprealloc(C, 0)
+	// success; free workspace, return C
+	return cs_done(C, w, x, true)
+}
 
 // cs_norm - 1-norm of a sparse matrix = max (sum (abs (A))), largest column sum
 func cs_norm(A *cs) float64 {
@@ -3466,49 +3460,48 @@ func (A *cs) cs_print(brief bool) bool {
 // 	}
 // 	return noarch.PtrdiffT((top))
 // }
-//
-// // cs_scatter - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_scatter.c:3
-// // x = x + beta * A(:,j), where x is a dense vector and A(:,j) is sparse
-// func cs_scatter(A *cs, j int, beta float64, w *int, x []float64, mark int, C *cs, nz int) int {
-// 	var i noarch.PtrdiffT
-// 	var p noarch.PtrdiffT
-// 	var Ap []noarch.PtrdiffT
-// 	var Ai []noarch.PtrdiffT
-// 	var Ci []noarch.PtrdiffT
-// 	var Ax []float64
-// 	if !(A != nil && noarch.PtrdiffT(A[0].nz) == -1) || w == nil || !(C != nil && noarch.PtrdiffT(C[0].nz) == -1) {
-// 		// check inputs
-// 		return -1
-// 	}
-// 	Ap = A[0].p
-// 	Ai = A[0].i
-// 	Ax = A[0].x
-// 	Ci = C[0].i
-// 	for p = Ap[j]; p < Ap[j+1]; p++ {
-// 		// A(i,j) is nonzero
-// 		i = Ai[p]
-// 		if w[i] < mark {
-// 			// i is new entry in column j
-// 			w[i] = mark
-// 			// add i to pattern of C(:,j)
-// 			Ci[func() noarch.PtrdiffT {
-// 				defer func() {
-// 					nz++
-// 				}()
-// 				return nz
-// 			}()] = i
-// 			if x != nil {
-// 				// x(i) = beta*A(i,j)
-// 				x[i] = beta * Ax[p]
-// 			}
-// 		} else if x != nil {
-// 			// i exists in C(:,j) already
-// 			x[i] += beta * Ax[p]
-// 		}
-// 	}
-// 	return noarch.PtrdiffT((nz))
-// }
-//
+
+// cs_scatter - x = x + beta * A(:,j), where x is a dense vector and A(:,j) is sparse
+func cs_scatter(A *cs, j int, beta float64, w []int, x []float64, mark int, C *cs, nz int) int {
+	var i int
+	var p int
+	var Ap []int
+	var Ai []int
+	var Ci []int
+	var Ax []float64
+	if !(A != nil && A.nz == -1) || w == nil || !(C != nil && C.nz == -1) {
+		// check inputs
+		return -1
+	}
+	Ap = A.p
+	Ai = A.i
+	Ax = A.x
+	Ci = C.i
+	for p = Ap[j]; p < Ap[j+1]; p++ {
+		// A(i,j) is nonzero
+		i = Ai[p]
+		if w[i] < mark {
+			// i is new entry in column j
+			w[i] = mark
+			// add i to pattern of C(:,j)
+			Ci[func() int {
+				defer func() {
+					nz++
+				}()
+				return nz
+			}()] = i
+			if x != nil {
+				// x(i) = beta*A(i,j)
+				x[i] = beta * Ax[p]
+			}
+		} else if x != nil {
+			// i exists in C(:,j) already
+			x[i] += beta * Ax[p]
+		}
+	}
+	return nz
+}
+
 // // cs_scc - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_scc.c:3
 // // find the strongly connected components of a square matrix
 // // matrix A temporarily modified, then restored

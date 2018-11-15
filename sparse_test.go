@@ -108,6 +108,9 @@ func Test(t *testing.T) {
 			}
 			Eye := T.cs_compress()
 			Eye.cs_print(false)
+
+			C := cs_multiply(A, AT)
+			C.cs_print(false)
 		})
 	}
 }
