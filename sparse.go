@@ -1791,39 +1791,38 @@ func cs_dupl(A []cs) noarch.PtrdiffT {
 	return (cs_sprealloc(A, 0))
 }
 
-// cs_entry - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_entry.c:3
-// add an entry to a triplet matrix; return 1 if ok, 0 otherwise
-func cs_entry(T []cs, i noarch.PtrdiffT, j noarch.PtrdiffT, x float64) bool {
-	if !(T != nil && noarch.PtrdiffT(T[0].nz) >= 0) || i < 0 || j < 0 {
+// cs_entry - add an entry to a triplet matrix; return 1 if ok, 0 otherwise
+func cs_entry(T *cs, i, j int, x float64) bool {
+	if !(T != nil && T.nz >= 0) || i < 0 || j < 0 {
 		// check inputs
 		return false
 	}
-	if noarch.PtrdiffT(T[0].nz) >= noarch.PtrdiffT(T[0].nzmax) && bool(noarch.NotNoarch.PtrdiffT(cs_sprealloc(T, noarch.PtrdiffT(2*int32(T[0].nzmax)/8)))) {
+	if T.nz >= T.nzmax && cs_sprealloc(T, 2*int32(T.nzmax)) {
 		return false
 	}
-	if T[0].x != nil {
-		T[0].x[noarch.PtrdiffT(T[0].nz)] = x
+	if T.x != nil {
+		T.x[T.nz] = x
 	}
-	T[0].i[noarch.PtrdiffT(T[0].nz)] = i
-	T[0].p[func() noarch.PtrdiffT {
-		tempVar := &T[0].nz
+	T.i[T.nz] = i
+	T.p[func() int {
+		tempVar := &T.nz
 		defer func() {
 			*tempVar++
 		}()
 		return *tempVar
 	}()] = j
-	T[0].m = noarch.PtrdiffT(func() int32 {
+	T.m = func() int {
 		if T[0].m > i+1 {
-			return int32(noarch.PtrdiffT((T[0].m)))
+			return T.m
 		}
-		return (int32(i + 1))
-	}() / 8)
-	T[0].n = noarch.PtrdiffT(func() int32 {
-		if T[0].n > j+1 {
-			return int32(noarch.PtrdiffT((T[0].n)))
+		return i + 1
+	}()
+	T.n = func() int {
+		if T.n > j+1 {
+			return T.n
 		}
-		return (int32(j + 1))
-	}() / 8)
+		return j + 1
+	}()
 	return true
 }
 
