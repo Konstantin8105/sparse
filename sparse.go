@@ -1466,7 +1466,7 @@ func cs_bfs(A []cs, n noarch.PtrdiffT, wi []noarch.PtrdiffT, wj []noarch.Ptrdiff
 	}
 	if mark != 1 {
 		// free A' if it was created
-		cs_spfree(C)
+		cs_spfree(C) // TODO (KI) : remove
 	}
 	return 1
 }
@@ -3408,7 +3408,7 @@ func cs_qrsol(order noarch.PtrdiffT, A []cs, b []float64) noarch.PtrdiffT {
 	cs_free(x)
 	cs_sfree(S)
 	cs_nfree(N)
-	cs_spfree(AT)
+	cs_spfree(AT) // TODO (KI) : remove
 	return noarch.PtrdiffT((ok))
 }
 
@@ -3672,7 +3672,7 @@ func cs_schol(order noarch.PtrdiffT, A []cs) []css {
 	// find column counts of chol(C)
 	c = cs_counts(C, S[0].parent, post, 0)
 	cs_free(post)
-	cs_spfree(C)
+	cs_spfree(C) // TODO (KI) : remove
 	// allocate result S->cp
 	S[0].cp = cs_malloc(n+1, uint(0)).([]noarch.PtrdiffT)
 	S[0].lnz = cs_cumsum(S[0].cp, c, noarch.PtrdiffT(n))
@@ -3960,7 +3960,7 @@ func cs_sqr(order noarch.PtrdiffT, A []cs, qr noarch.PtrdiffT) []css {
 			}
 		}
 		if bool(noarch.PtrdiffT(order)) {
-			cs_spfree(C)
+			cs_spfree(C) // TODO (KI) : remove
 		}
 	} else {
 		// for LU factorization only,
@@ -4382,7 +4382,7 @@ func cs_spalloc(m, n, nzmax int, values, triplet bool) *cs {
 	// }().([]float64)
 	return (func() []cs {
 		if A.p == nil || A.i == nil || values && A.x == nil {
-			return cs_spfree(A)
+			return cs_spfree(A) // TODO (KI) : remove
 		}
 		return A
 	}())
@@ -4439,8 +4439,8 @@ func cs_nfree(N []csn) []csn {
 		// do nothing if N already NULL
 		return nil
 	}
-	cs_spfree(N[0].L)
-	cs_spfree(N[0].U)
+	cs_spfree(N[0].L) // TODO (KI) : remove
+	cs_spfree(N[0].U) // TODO (KI) : remove
 	cs_free(N[0].pinv)
 	cs_free(N[0].B)
 	// free the csn struct and return NULL
@@ -4521,7 +4521,7 @@ func cs_idone(p *cs, C *cs, w interface{}, ok bool) *cs {
 // free workspace and return a numeric factorization (Cholesky, LU, or QR)
 func cs_ndone(N []csn, C []cs, w interface{}, x interface{}, ok noarch.PtrdiffT) []csn {
 	// free temporary matrix
-	cs_spfree(C)
+	cs_spfree(C) // TODO (KI) : remove
 	// free workspace
 	cs_free(w)
 	cs_free(x)
