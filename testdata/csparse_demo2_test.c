@@ -11,7 +11,7 @@ typedef struct problem_struct
     double *resid ;
 } problem ;
 
-/* 1 if A is square & upper tri., -1 if square & lower tri., 0 otherwise */
+// 1 if A is square & upper tri., -1 if square & lower tri., 0 otherwise */
 static csi is_sym (cs *A)
 {
     csi is_upper, is_lower, j, p, n = A->n, m = A->m, *Ap = A->p, *Ai = A->i ;
@@ -29,21 +29,21 @@ static csi is_sym (cs *A)
     return (is_upper ? 1 : (is_lower ? -1 : 0)) ;
 }
 
-/* true for off-diagonal entries */
+// true for off-diagonal entries */
 static csi dropdiag (csi i, csi j, double aij, void *other) { return (i != j) ;}
 
-/* C = A + triu(A,1)' */
+// C = A + triu(A,1)' */
 static cs *make_sym (cs *A)
 {
     cs *AT, *C ;
-    AT = cs_transpose (A, 1) ;          /* AT = A' */
-    cs_fkeep (AT, &dropdiag, NULL) ;    /* drop diagonal entries from AT */
-    C = cs_add (A, AT, 1, 1) ;          /* C = A+AT */
+    AT = cs_transpose (A, 1) ;          // AT = A' */
+    cs_fkeep (AT, &dropdiag, NULL) ;    // drop diagonal entries from AT */
+    C = cs_add (A, AT, 1, 1) ;          // C = A+AT */
     cs_spfree (AT) ;
     return (C) ;
 }
 
-/* free a problem */
+// free a problem */
 problem *free_problem (problem *Prob)
 {
     if (!Prob) return (NULL) ;
@@ -55,7 +55,7 @@ problem *free_problem (problem *Prob)
     return (cs_free (Prob)) ;
 }
 
-/* read a problem from a file; use %g for integers to avoid csi conflicts */
+// read a problem from a file; use %g for integers to avoid csi conflicts */
 problem *get_problem (FILE *f, double tol)
 {
     cs *T, *A, *C ;
@@ -63,18 +63,18 @@ problem *get_problem (FILE *f, double tol)
     problem *Prob ;
     Prob = cs_calloc (1, sizeof (problem)) ;
     if (!Prob) return (NULL) ;
-    T = cs_load (f) ;                   /* load triplet matrix T from a file */
-    Prob->A = A = cs_compress (T) ;     /* A = compressed-column form of T */
-    cs_spfree (T) ;                     /* clear T */
-    if (!cs_dupl (A)) return (free_problem (Prob)) ; /* sum up duplicates */
-    Prob->sym = sym = is_sym (A) ;      /* determine if A is symmetric */
+    T = cs_load (f) ;                   // load triplet matrix T from a file */
+    Prob->A = A = cs_compress (T) ;     // A = compressed-column form of T */
+    cs_spfree (T) ;                     // clear T */
+    if (!cs_dupl (A)) return (free_problem (Prob)) ; // sum up duplicates */
+    Prob->sym = sym = is_sym (A) ;      // determine if A is symmetric */
     m = A->m ; n = A->n ;
     mn = CS_MAX (m,n) ;
     nz1 = A->p [n] ;
-    cs_dropzeros (A) ;                  /* drop zero entries */
+    cs_dropzeros (A) ;                  // drop zero entries */
     nz2 = A->p [n] ;
-    if (tol > 0) cs_droptol (A, tol) ;  /* drop tiny entries (just to test) */
-    Prob->C = C = sym ? make_sym (A) : A ;  /* C = A + triu(A,1)', or C=A */
+    if (tol > 0) cs_droptol (A, tol) ;  // drop tiny entries (just to test) */
+    Prob->C = C = sym ? make_sym (A) : A ;  // C = A + triu(A,1)', or C=A */
     if (!C) return (free_problem (Prob)) ;
     printf ("\n--- Matrix: %g-by-%g, nnz: %g (sym: %g: nnz %g), norm: %8.2e\n",
             (double) m, (double) n, (double) (A->p [n]), (double) sym,
