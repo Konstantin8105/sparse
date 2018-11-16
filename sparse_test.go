@@ -90,13 +90,13 @@ func Test(t *testing.T) {
 
 			stdin.Write(b)
 			T := cs_load(&stdin)
-			T.cs_print(false)
+			cs_print(T, false)
 
-			A := T.cs_compress()
-			A.cs_print(false)
+			A := cs_compress(T)
+			cs_print(A, false)
 
-			AT := A.cs_transpose(true)
-			AT.cs_print(false)
+			AT := cs_transpose(A, true)
+			cs_print(AT, false)
 
 			var m int
 			if A != nil {
@@ -104,13 +104,13 @@ func Test(t *testing.T) {
 			}
 			T = cs_spalloc(m, m, m, true, true)
 			for i := 0; i < m; i++ {
-				T.cs_entry(i, i, 1.0)
+				cs_entry(T, i, i, 1.0)
 			}
-			Eye := T.cs_compress()
-			Eye.cs_print(false)
+			Eye := cs_compress(T)
+			cs_print(Eye, false)
 
 			C := cs_multiply(A, AT)
-			C.cs_print(false)
+			cs_print(C, false)
 		})
 	}
 }

@@ -1031,7 +1031,7 @@ type csd struct { // struct cs_dmperm_results
 // }
 
 // cs_compress - C = compressed-column form of a triplet matrix T
-func (T *cs) cs_compress() *cs {
+func cs_compress(T *cs) *cs {
 	var m int
 	var n int
 	var nz int
@@ -1787,7 +1787,7 @@ func cs_cumsum(p []int, c []int, n int) int64 {
 // }
 
 // cs_entry - add an entry to a triplet matrix; return 1 if ok, 0 otherwise
-func (T *cs) cs_entry(i, j int, x float64) bool {
+func cs_entry(T *cs, i, j int, x float64) bool {
 	if !(T != nil && T.nz >= 0) || i < 0 || j < 0 {
 		// check inputs
 		return false
@@ -2183,7 +2183,7 @@ func cs_load(f io.Reader) *cs {
 		if err != nil || n != 3 {
 			return nil
 		}
-		if !T.cs_entry(i, j, x) {
+		if !cs_entry(T, i, j, x) {
 			return nil
 		}
 	}
@@ -3024,7 +3024,7 @@ func cs_norm(A *cs) float64 {
 
 // cs_print - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_print.c:3
 // print a sparse matrix; use %g for integers to avoid differences with csi
-func (A *cs) cs_print(brief bool) bool {
+func cs_print(A *cs, brief bool) bool {
 	var p int
 	var m int
 	var n int
@@ -4116,7 +4116,7 @@ func cs_scatter(A *cs, j int, beta float64, w []int, x []float64, mark int, C *c
 // }
 
 // cs_transpose - C = A'
-func (A *cs) cs_transpose(values bool) *cs {
+func cs_transpose(A *cs, values bool) *cs {
 	var p int
 	var q int
 	var j int
