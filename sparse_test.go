@@ -47,6 +47,31 @@ func buildC(t *testing.T, filename string) {
 	}
 }
 
+func getCresult(t *testing.T, matrix string) (in []byte, out string) {
+	cmd := exec.Command(
+		"./testdata/csparse_test",
+	)
+
+	var stdin, stdout, stderr bytes.Buffer
+	b, err := ioutil.ReadFile(matrix)
+	if err != nil {
+		t.Fatal(err)
+	}
+	stdin.Write(b)
+	cmd.Stdin = &stdin
+	cmd.Stdout = &stdout
+	cmd.Stderr = &stderr
+	err = cmd.Run()
+	if err != nil {
+		t.Fatalf("cmd.Run() failed with %s.\n%s\n%s\n",
+			err,
+			stderr.String(),
+			stdout.String(),
+		)
+	}
+	return b, stdout.String()
+}
+
 func TestDemo1(t *testing.T) {
 
 	t.Run("Build test", func(t *testing.T) {
@@ -67,31 +92,12 @@ func TestDemo1(t *testing.T) {
 
 		t.Run("Demo1: "+matrixes[i], func(t *testing.T) {
 			// data checking
-			cmd := exec.Command(
-				"./testdata/csparse_test",
-			)
-
-			var stdin, stdout, stderr bytes.Buffer
-			b, err := ioutil.ReadFile(matrixes[i])
-			if err != nil {
-				t.Fatal(err)
-			}
-			stdin.Write(b)
-			cmd.Stdin = &stdin
-			cmd.Stdout = &stdout
-			cmd.Stderr = &stderr
-			err = cmd.Run()
-			if err != nil {
-				t.Fatalf("cmd.Run() failed with %s.\n%s\n%s\n",
-					err,
-					stderr.String(),
-					stdout.String(),
-				)
-			}
-			fmt.Println(stdout.String())
+			b, c := getCresult(t, matrixes[i])
+			fmt.Println(c)
 
 			fmt.Println("-------")
 
+			var stdin bytes.Buffer
 			stdin.Write(b)
 			T := cs_load(&stdin)
 			// cs_print(T, false)
@@ -119,6 +125,35 @@ func TestDemo1(t *testing.T) {
 			// D = C + Eye*norm(C,1)
 			D := cs_add(C, Eye, 1, cs_norm(C))
 			cs_print(D, false)
+		})
+	}
+}
+
+func TestDemo2(t *testing.T) {
+
+	t.Run("Build test", func(t *testing.T) {
+		buildC(t, "testdata/csparse_demo2_test.c")
+	})
+
+	matrixes, err := filepath.Glob("CSparse/Matrix/" + "*")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	for i := range matrixes {
+
+		// TODO : remove
+		if !strings.Contains(matrixes[i], "t1") {
+			continue
+		}
+		t.Run("Demo2: "+matrixes[i], func(t *testing.T) {
+			// data checking
+			b, c := getCresult(t, matrixes[i])
+			fmt.Println(c)
+
+			fmt.Println("-------")
+
+			_ = b
 		})
 	}
 }
