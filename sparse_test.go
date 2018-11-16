@@ -90,13 +90,13 @@ func Test(t *testing.T) {
 
 			stdin.Write(b)
 			T := cs_load(&stdin)
-			cs_print(T, false)
+			// cs_print(T, false)
 
 			A := cs_compress(T)
-			cs_print(A, false)
+			// cs_print(A, false)
 
 			AT := cs_transpose(A, true)
-			cs_print(AT, false)
+			// cs_print(AT, false)
 
 			var m int
 			if A != nil {
@@ -107,10 +107,14 @@ func Test(t *testing.T) {
 				cs_entry(T, i, i, 1.0)
 			}
 			Eye := cs_compress(T)
-			cs_print(Eye, false)
+			// cs_print(Eye, false)
 
 			C := cs_multiply(A, AT)
-			cs_print(C, false)
+			// cs_print(C, false)
+
+			// D = C + Eye*norm(C,1)
+			D := cs_add(C, Eye, 1, cs_norm(C))
+			cs_print(D, false)
 		})
 	}
 }

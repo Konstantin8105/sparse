@@ -50,62 +50,63 @@ type csd struct { // struct cs_dmperm_results
 
 // TODO(KI) : remove comments like "transpiled function from ..."
 
-// // cs_add - C = alpha*A + beta*B
-// func cs_add(A *cs, B *cs, alpha float64, beta float64) *cs {
-// 	var x []float64
-// 	if !(A != nil && A.nz == -1) || !(B != nil && B.nz == -1) {
-// 		// check inputs
-// 		return nil
-// 	}
-// 	if (A.m != B.m) || (A.n != B.n) {
-// 		return nil
-// 	}
-// 	var (
-// 		m   = A.m
-// 		anz = A.p[A.n]
-// 		n   = B.n
-// 		Bp  = B.p
-// 		Bx  = B.x
-// 		bnz = Bp[n]
-// 		// get workspace
-// 		w = new(int)
-// 	)
-// 	values := (A.x != nil && Bx != nil)
-// 	// get workspace
-// 	if values {
-// 		x = make([]float64, m)
-// 	}
-// 	// allocate result
-// 	C := cs_spalloc(m, n, anz+bnz, values, 0)
-// 	if C == nil || w == nil || values && x == nil {
-// 		return cs_done(C, w, x, false)
-// 	}
-// 	var (
-// 		Cp = C.p
-// 		Ci = C.i
-// 		Cx = C.x
-// 	)
-// 	var nz int
-// 	for j := 0; j < n; j++ {
-// 		// column j of C starts here
-// 		Cp[j] = nz
-// 		// alpha*A(:,j)
-// 		nz = cs_scatter(A, j, alpha, w, x, j+1, C, nz)
-// 		// beta*B(:,j)
-// 		nz = cs_scatter(B, j, beta, w, x, j+1, C, nz)
-// 		if values {
-// 			for p := Cp[j]; p < nz; p++ {
-// 				Cx[p] = x[Ci[p]]
-// 			}
-// 		}
-// 	}
-// 	// finalize the last column of C
-// 	Cp[n] = nz
-// 	// remove extra space from C
-// 	cs_sprealloc(C, 0)
-// 	// success; free workspace, return C
-// 	return cs_done(C, w, x, true)
-// }
+// cs_add - C = alpha*A + beta*B
+func cs_add(A *cs, B *cs, alpha float64, beta float64) *cs {
+	var x []float64
+	if !(A != nil && A.nz == -1) || !(B != nil && B.nz == -1) {
+		// check inputs
+		return nil
+	}
+	if (A.m != B.m) || (A.n != B.n) {
+		return nil
+	}
+	var (
+		m   = A.m
+		anz = A.p[A.n]
+		n   = B.n
+		Bp  = B.p
+		Bx  = B.x
+		bnz = Bp[n]
+		// get workspace
+		w = make([]int, m)
+	)
+	values := (A.x != nil && Bx != nil)
+	// get workspace
+	if values {
+		x = make([]float64, m)
+	}
+	// allocate result
+	C := cs_spalloc(m, n, anz+bnz, values, false)
+	if C == nil || w == nil || values && x == nil {
+		return cs_done(C, w, x, false)
+	}
+	var (
+		Cp = C.p
+		Ci = C.i
+		Cx = C.x
+	)
+	var nz int
+	for j := 0; j < n; j++ {
+		// column j of C starts here
+		Cp[j] = nz
+		// alpha*A(:,j)
+		nz = cs_scatter(A, j, alpha, w, x, j+1, C, nz)
+		// beta*B(:,j)
+		nz = cs_scatter(B, j, beta, w, x, j+1, C, nz)
+		if values {
+			for p := Cp[j]; p < nz; p++ {
+				Cx[p] = x[Ci[p]]
+			}
+		}
+	}
+	// finalize the last column of C
+	Cp[n] = nz
+	// remove extra space from C
+	cs_sprealloc(C, 0)
+	// success; free workspace, return C
+	return cs_done(C, w, x, true)
+}
+
 //
 // // cs_wclear - clear w
 // func cs_wclear(mark, lemax int, w []int, n int) int {
