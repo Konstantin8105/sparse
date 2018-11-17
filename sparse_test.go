@@ -157,7 +157,8 @@ func TestDemo2(t *testing.T) {
 
 			var stdin bytes.Buffer
 			stdin.Write(b)
-			_ = get_problem(&stdin, 1e-14)
+			prob := get_problem(&stdin, 1e-14)
+			demo2(prob)
 		})
 	}
 }
@@ -296,4 +297,193 @@ func get_problem(f io.Reader, tol float64) *problem {
 		}
 		return Prob
 	}())
+}
+
+// demo2 - solve a linear system using Cholesky, LU, and QR, with various orderings
+func demo2(Prob *problem) bool {
+	var t float64
+	var tol float64
+	var ok bool
+	var order Order
+	var D *csd
+	if Prob == nil {
+		return false
+	}
+	A := Prob.A
+	C := Prob.C
+	b := Prob.b
+	x := Prob.x
+	resid := Prob.resid
+	m := A.m
+	n := A.n
+	// partial pivoting tolerance
+	tol = func() float64 {
+		if Prob.sym == 1 {
+			return 0.001
+		}
+		return 1
+	}()
+	// randomized dmperm analysis
+	D = cs_dmperm(C, 1)
+	if D == nil {
+		return false
+	}
+	nb := D.nb
+	r := D.r
+	s := D.s
+	rr := D.rr
+	sprank := rr[3]
+	{
+		ns := 0
+		k := 0
+		for k = 0; k < nb; k++ {
+			ns += noarch.PtrdiffT(int32(map[bool]int{false: 0, true: 1}[r[k+noarch.PtrdiffT(1/8)] == r[k]+noarch.PtrdiffT(1/8) && s[k+noarch.PtrdiffT(1/8)] == s[k]+noarch.PtrdiffT(1/8)]) / 8)
+		}
+	}
+	noarch.Printf([]byte("blocks: %g singletons: %g structural rank: %g\n\x00"), float64(noarch.PtrdiffT(nb)), float64(noarch.PtrdiffT(ns)), float64(noarch.PtrdiffT(sprank)))
+	cs_dfree(D)
+	{
+		// natural and amd(A'*A)
+		for order = 0; order <= 3; order += noarch.PtrdiffT(3 / 8) {
+			if bool(noarch.NotNoarch.PtrdiffT(noarch.PtrdiffT(order))) && m > noarch.PtrdiffT(1000/8) {
+				continue
+			}
+			fmt.Printf("QR   ")
+			print_order(noarch.PtrdiffT(order))
+			// compute right-hand side
+			rhs(x, b, noarch.PtrdiffT(m))
+			t = tic()
+			// min norm(Ax-b) with QR
+			ok = cs_qrsol(noarch.PtrdiffT(order), C, x)
+			noarch.Printf([]byte("time: %8.2f \x00"), toc(t))
+			// print residual
+			print_resid(noarch.PtrdiffT(ok), C, x, b, resid)
+		}
+	}
+	if m != n || sprank < n {
+		// return if rect. or singular
+		return noarch.PtrdiffT((1))
+	}
+	{
+		// try all orderings
+		for order = 0; order <= 3; order++ {
+			if bool(noarch.NotNoarch.PtrdiffT(noarch.PtrdiffT(order))) && m > noarch.PtrdiffT(1000/8) {
+				continue
+			}
+			fmt.Printf("LU   ")
+			print_order(noarch.PtrdiffT(order))
+			// compute right-hand side
+			rhs(x, b, noarch.PtrdiffT(m))
+			t = tic()
+			// solve Ax=b with LU
+			ok = cs_lusol(noarch.PtrdiffT(order), C, x, tol)
+			noarch.Printf([]byte("time: %8.2f \x00"), toc(t))
+			// print residual
+			print_resid(noarch.PtrdiffT(ok), C, x, b, resid)
+		}
+	}
+	if bool(noarch.NotNoarch.PtrdiffT(noarch.PtrdiffT(Prob[0].sym))) {
+		return noarch.PtrdiffT((1))
+	}
+	{
+		// natural and amd(A+A')
+		for order = 0; order <= 1; order++ {
+			if bool(noarch.NotNoarch.PtrdiffT(noarch.PtrdiffT(order))) && m > noarch.PtrdiffT(1000/8) {
+				continue
+			}
+			fmt.Printf("Chol ")
+			print_order(noarch.PtrdiffT(order))
+			// compute right-hand side
+			rhs(x, b, noarch.PtrdiffT(m))
+			t = tic()
+			// solve Ax=b with Cholesky
+			ok = cs_cholsol(noarch.PtrdiffT(order), C, x)
+			noarch.Printf([]byte("time: %8.2f \x00"), toc(t))
+			// print residual
+			print_resid(noarch.PtrdiffT(ok), C, x, b, resid)
+		}
+	}
+	return noarch.PtrdiffT((1))
+}
+
+// norm - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/testdata/csparse_demo2_test.c:16
+// infinity-norm of x
+func norm(x []float64, n noarch.PtrdiffT) float64 {
+	var i noarch.PtrdiffT
+	var normx float64
+	for i = 0; i < n; i++ {
+		normx = func() float64 {
+			if normx > math.Abs(x[i]) {
+				return (normx)
+			}
+			return (math.Abs(x[i]))
+		}()
+	}
+	return (normx)
+}
+
+// tic - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/testdata/csparse_demo2_test.c:136
+func tic() (c4goDefaultReturn float64) {
+	// Warning (*ast.ReturnStmt):  $GOPATH/src/github.com/Konstantin8105/sparse/testdata/csparse_demo2_test.c:136 :Cannot transpileToStmt : Cannot transpileReturnStmt. err = Cannot transpileToExpr. err = Cannot transpile ParenExpr. err = Cannot transpileToExpr. err = Cannot transpile BinaryOperator with type 'double' : result type = {unknown52}. Error: operator is `/`. cannot atomic for left part. Cannot transpileToExpr. err = Cannot transpileImplicitCastExpr. err = Cannot casting {clock_t -> double}. err = Cannot resolve type 'clock_t' : I couldn't find an appropriate Go type for the C type 'clock_t'.
+	{
+		// Warning (*ast.BinaryOperator):  $GOPATH/src/github.com/Konstantin8105/sparse/testdata/csparse_demo2_test.c:136 :Cannot transpile BinaryOperator with type 'double' : result type = {unknown52}. Error: operator is `/`. cannot atomic for left part. Cannot transpileToExpr. err = Cannot transpileImplicitCastExpr. err = Cannot casting {clock_t -> double}. err = Cannot resolve type 'clock_t' : I couldn't find an appropriate Go type for the C type 'clock_t'.
+		// Warning (*ast.ParenExpr):  $GOPATH/src/github.com/Konstantin8105/sparse/testdata/csparse_demo2_test.c:136 :Cannot transpile ParenExpr. err = Cannot transpileToExpr. err = Cannot transpile BinaryOperator with type 'double' : result type = {unknown52}. Error: operator is `/`. cannot atomic for left part. Cannot transpileToExpr. err = Cannot transpileImplicitCastExpr. err = Cannot casting {clock_t -> double}. err = Cannot resolve type 'clock_t' : I couldn't find an appropriate Go type for the C type 'clock_t'.
+	}
+	return
+}
+
+// toc - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/testdata/csparse_demo2_test.c:137
+func toc(t float64) float64 {
+	var s float64 = tic()
+	return (func() float64 {
+		if float64(0) > s-t {
+			return float64((0))
+		}
+		return (s - t)
+	}())
+}
+
+// print_resid - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/testdata/csparse_demo2_test.c:80
+// compute residual, norm(A*x-b,inf) / (norm(A,1)*norm(x,inf) + norm(b,inf))
+func print_resid(ok noarch.PtrdiffT, A []cs, x []float64, b []float64, resid []float64) {
+	var i noarch.PtrdiffT
+	var m noarch.PtrdiffT
+	var n noarch.PtrdiffT
+	if bool(noarch.NotNoarch.PtrdiffT(noarch.PtrdiffT(ok))) {
+		fmt.Printf("    (failed)\n")
+		return
+	}
+	m = noarch.PtrdiffT(A[0].m)
+	n = noarch.PtrdiffT(A[0].n)
+	{
+		// resid = -b
+		for i = 0; i < m; i++ {
+			resid[i] = -b[i]
+		}
+	}
+	// resid = resid + A*x
+	cs_gaxpy(A, x, resid)
+	noarch.Printf([]byte("resid: %8.2e\n\x00"), norm(resid, noarch.PtrdiffT(m))/func() float64 {
+		if n == noarch.PtrdiffT(0/8) {
+			return 1
+		}
+		return (cs_norm(A)*norm(x, noarch.PtrdiffT(n)) + norm(b, noarch.PtrdiffT(m)))
+	}())
+}
+
+// print_order - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/testdata/csparse_demo2_test.c:91
+func print_order(order noarch.PtrdiffT) {
+	switch noarch.PtrdiffT(order) {
+	case 0:
+		fmt.Printf("natural    ")
+	case 1:
+		fmt.Printf("amd(A+A')  ")
+	case 2:
+		fmt.Printf("amd(S'*S)  ")
+	case 3:
+		{
+			fmt.Printf("amd(A'*A)  ")
+			break
+		}
+	}
 }
