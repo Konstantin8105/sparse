@@ -2573,38 +2573,38 @@ func cs_realloc(p interface{}, n int, ok *bool) interface{} {
 // find a maximum transveral
 //[jmatch [0..m-1]; imatch [0..n-1]]
 func cs_maxtrans(A *cs, seed int) []int {
-	var i noarch.PtrdiffT
-	var j noarch.PtrdiffT
-	var k noarch.PtrdiffT
-	var n noarch.PtrdiffT
-	var m noarch.PtrdiffT
-	var p noarch.PtrdiffT
-	var n2 noarch.PtrdiffT
-	var m2 noarch.PtrdiffT
-	var Ap []noarch.PtrdiffT
-	var jimatch []noarch.PtrdiffT
-	var w []noarch.PtrdiffT
-	var cheap []noarch.PtrdiffT
-	var js []noarch.PtrdiffT
-	var is []noarch.PtrdiffT
-	var ps []noarch.PtrdiffT
-	var Ai []noarch.PtrdiffT
-	var Cp []noarch.PtrdiffT
-	var jmatch []noarch.PtrdiffT
-	var imatch []noarch.PtrdiffT
-	var q []noarch.PtrdiffT
+	var i int
+	var j int
+	var k int
+	// var n noarch.PtrdiffT
+	// var m noarch.PtrdiffT
+	var p int
+	var n2 int
+	var m2 int
+	// var Ap []noarch.PtrdiffT
+	// var jimatch []int
+	// var w []noarch.PtrdiffT
+	var cheap []int
+	var js []int
+	var is []int
+	var ps []int
+	// var Ai []noarch.PtrdiffT
+	var Cp []int
+	// var jmatch []noarch.PtrdiffT
+	// var imatch []noarch.PtrdiffT
+	var q []int
 	var C []cs
-	if !(A != nil && noarch.PtrdiffT(A[0].nz) == -1) {
+	if !(A != nil && A.nz == -1) {
 		// check inputs
 		return nil
 	}
-	n = noarch.PtrdiffT(A[0].n)
-	m = noarch.PtrdiffT(A[0].m)
-	Ap = A[0].p
-	Ai = A[0].i
-	jimatch = cs_calloc(m+n, uint(0)).([]noarch.PtrdiffT)
+	n := A.n
+	m := A.m
+	Ap := A.p
+	Ai := A.i
+	jimatch := make([]int, m+n) // cs_calloc(m+n, uint(0)).([]noarch.PtrdiffT)
 	// allocate result
-	w = jimatch
+	w := jimatch
 	if jimatch == nil {
 		return nil
 	}
