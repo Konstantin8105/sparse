@@ -20,3 +20,4 @@ CSparse/Lib/*.a
 
 # testdata application
 testdata/csparse_test
+testdata/*.go
