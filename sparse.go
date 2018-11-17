@@ -1566,7 +1566,7 @@ func cs_dmperm(A *cs, seed int) *csd {
 	// max transversal
 	jmatch := cs_maxtrans(A, seed)
 	// imatch = inverse of jmatch
-	imatch := jmatch[m] // jmatch+m
+	imatch := jmatch[m:] // jmatch+m
 	if jmatch == nil {
 		return cs_ddone(D, nil, jmatch, false)
 	}
@@ -2572,7 +2572,7 @@ func cs_realloc(p interface{}, n int, ok *bool) interface{} {
 // cs_maxtrans - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_maxtrans.c:44
 // find a maximum transveral
 //[jmatch [0..m-1]; imatch [0..n-1]]
-func cs_maxtrans(A *cs, seed int) int {
+func cs_maxtrans(A *cs, seed int) []int {
 	var i noarch.PtrdiffT
 	var j noarch.PtrdiffT
 	var k noarch.PtrdiffT
@@ -2608,19 +2608,19 @@ func cs_maxtrans(A *cs, seed int) int {
 	if jimatch == nil {
 		return nil
 	}
-	{
-		// count nonempty rows and columns
-		k = 0
-		j = 0
-		for j = 0; j < n; j++ {
-			n2 += noarch.PtrdiffT(int32(map[bool]int{false: 0, true: 1}[Ap[j] < Ap[j+1]]) / 8)
-			for p = Ap[j]; p < Ap[j+1]; p++ {
-				w[Ai[p]] = 1
-				// count entries already on diagonal
-				k += noarch.PtrdiffT(int32(map[bool]int{false: 0, true: 1}[j == Ai[p]]) / 8)
-			}
+
+	// count nonempty rows and columns
+	k = 0
+	j = 0
+	for j = 0; j < n; j++ {
+		n2 += noarch.PtrdiffT(int32(map[bool]int{false: 0, true: 1}[Ap[j] < Ap[j+1]]) / 8)
+		for p = Ap[j]; p < Ap[j+1]; p++ {
+			w[Ai[p]] = 1
+			// count entries already on diagonal
+			k += noarch.PtrdiffT(int32(map[bool]int{false: 0, true: 1}[j == Ai[p]]) / 8)
 		}
 	}
+
 	if k == noarch.PtrdiffT(func() int32 {
 		if m < n {
 			return int32(noarch.PtrdiffT((m)))
@@ -2691,44 +2691,42 @@ func cs_maxtrans(A *cs, seed int) int {
 	js = (*(*[1000000000]noarch.PtrdiffT)(unsafe.Pointer(uintptr(unsafe.Pointer(&w[0])) + (uintptr)(int(2*int32(n)))*unsafe.Sizeof(w[0]))))[:]
 	is = (*(*[1000000000]noarch.PtrdiffT)(unsafe.Pointer(uintptr(unsafe.Pointer(&w[0])) + (uintptr)(int(3*int32(n)))*unsafe.Sizeof(w[0]))))[:]
 	ps = (*(*[1000000000]noarch.PtrdiffT)(unsafe.Pointer(uintptr(unsafe.Pointer(&w[0])) + (uintptr)(int(4*int32(n)))*unsafe.Sizeof(w[0]))))[:]
-	{
-		// for cheap assignment
-		for j = 0; j < n; j++ {
-			cheap[j] = Cp[j]
-		}
+
+	// for cheap assignment
+	for j = 0; j < n; j++ {
+		cheap[j] = Cp[j]
 	}
-	{
-		// all columns unflagged
-		for j = 0; j < n; j++ {
-			w[j] = -1
-		}
+
+	// all columns unflagged
+	for j = 0; j < n; j++ {
+		w[j] = -1
 	}
-	{
-		// nothing matched yet
-		for i = 0; i < m; i++ {
-			jmatch[i] = -1
-		}
+
+	// nothing matched yet
+	for i = 0; i < m; i++ {
+		jmatch[i] = -1
 	}
+
 	// q = random permutation
 	q = cs_randperm(noarch.PtrdiffT(n), noarch.PtrdiffT(seed))
-	{
-		// augment, starting at column q[k]
-		for k = 0; k < n; k++ {
-			cs_augment(noarch.PtrdiffT(func() int32 {
-				if q != nil {
-					return int32(noarch.PtrdiffT(q[k]))
-				}
-				return int32(noarch.PtrdiffT(k))
-			}()/8), C, jmatch, cheap, w, js, is, ps)
-		}
+
+	// augment, starting at column q[k]
+	for k = 0; k < n; k++ {
+		cs_augment(noarch.PtrdiffT(func() int32 {
+			if q != nil {
+				return int32(noarch.PtrdiffT(q[k]))
+			}
+			return int32(noarch.PtrdiffT(k))
+		}()/8), C, jmatch, cheap, w, js, is, ps)
 	}
+
 	cs_free(q)
-	{
-		// find row match
-		for j = 0; j < n; j++ {
-			imatch[j] = -1
-		}
+
+	// find row match
+	for j = 0; j < n; j++ {
+		imatch[j] = -1
 	}
+
 	for i = 0; i < m; i++ {
 		if jmatch[i] >= 0 {
 			imatch[jmatch[i]] = i
