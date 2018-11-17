@@ -2499,75 +2499,83 @@ func cs_realloc(p interface{}, n int, ok *bool) interface{} {
 
 }
 
-// // cs_augment - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_maxtrans.c:3
-// // find an augmenting path starting at column k and extend the match if found
-// func cs_augment(k noarch.PtrdiffT, A []cs, jmatch []noarch.PtrdiffT, cheap []noarch.PtrdiffT, w []noarch.PtrdiffT, js []noarch.PtrdiffT, is []noarch.PtrdiffT, ps []noarch.PtrdiffT) {
-// 	var found noarch.PtrdiffT
-// 	var p noarch.PtrdiffT
-// 	var i noarch.PtrdiffT = -1
-// 	var Ap []noarch.PtrdiffT = A[0].p
-// 	var Ai []noarch.PtrdiffT = A[0].i
-// 	var head noarch.PtrdiffT
-// 	var j noarch.PtrdiffT
-// 	// start with just node k in jstack
-// 	js[0] = k
-// 	for head >= 0 {
-// 		// --- Start (or continue) depth-first-search at node j -------------
-// 		// get j from top of jstack
-// 		j = js[head]
-// 		if w[j] != k {
-// 			// 1st time j visited for kth path
-// 			// mark j as visited for kth path
-// 			w[j] = k
-// 			for p = cheap[j]; p < Ap[j+1] && bool(noarch.NotNoarch.PtrdiffT(noarch.PtrdiffT(found))); p++ {
-// 				// try a cheap assignment (i,j)
-// 				i = Ai[p]
-// 				found = noarch.PtrdiffT(jmatch[i] == -1)
-// 			}
-// 			// start here next time j is traversed
-// 			cheap[j] = p
-// 			if bool(noarch.PtrdiffT(found)) {
-// 				// column j matched with row i
-// 				is[head] = i
-// 				// end of augmenting path
-// 				break
-// 			}
-// 			// no cheap match: start dfs for j
-// 			ps[head] = Ap[j]
-// 		}
-// 		{
-// 			// --- Depth-first-search of neighbors of j -------------------------
-// 			for p = ps[head]; p < Ap[j+1]; p++ {
-// 				// consider row i
-// 				i = Ai[p]
-// 				if w[jmatch[i]] == k {
-// 					// skip jmatch [i] if marked
-// 					continue
-// 				}
-// 				// pause dfs of node j
-// 				ps[head] = p + 1
-// 				// i will be matched with j if found
-// 				is[head] = i
-// 				// start dfs at column jmatch [i]
-// 				js[func() noarch.PtrdiffT {
-// 					head++
-// 					return head
-// 				}()] = jmatch[i]
-// 				break
-// 			}
-// 		}
-// 		if p == Ap[j+1] {
-// 			// node j is done; pop from stack
-// 			head--
-// 		}
-// 	}
-// 	if bool(noarch.PtrdiffT(found)) {
-// 		// augment the match if path found:
-// 		for p = head; p >= 0; p-- {
-// 			jmatch[is[p]] = js[p]
-// 		}
-// 	}
-// }
+// cs_augment - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_maxtrans.c:3
+// find an augmenting path starting at column k and extend the match if found
+func cs_augment(k int,
+	A *cs,
+	jmatch []int,
+	cheap []int,
+	w []int,
+	js []int,
+	is []int,
+	ps []int) {
+
+	var found bool
+	var p noarch.PtrdiffT
+	var i noarch.PtrdiffT = -1
+	var Ap []noarch.PtrdiffT = A[0].p
+	var Ai []noarch.PtrdiffT = A[0].i
+	var head noarch.PtrdiffT
+	var j noarch.PtrdiffT
+	// start with just node k in jstack
+	js[0] = k
+	for head >= 0 {
+		// --- Start (or continue) depth-first-search at node j -------------
+		// get j from top of jstack
+		j = js[head]
+		if w[j] != k {
+			// 1st time j visited for kth path
+			// mark j as visited for kth path
+			w[j] = k
+			for p = cheap[j]; p < Ap[j+1] && bool(noarch.NotNoarch.PtrdiffT(noarch.PtrdiffT(found))); p++ {
+				// try a cheap assignment (i,j)
+				i = Ai[p]
+				found = noarch.PtrdiffT(jmatch[i] == -1)
+			}
+			// start here next time j is traversed
+			cheap[j] = p
+			if bool(noarch.PtrdiffT(found)) {
+				// column j matched with row i
+				is[head] = i
+				// end of augmenting path
+				break
+			}
+			// no cheap match: start dfs for j
+			ps[head] = Ap[j]
+		}
+
+		// --- Depth-first-search of neighbors of j -------------------------
+		for p = ps[head]; p < Ap[j+1]; p++ {
+			// consider row i
+			i = Ai[p]
+			if w[jmatch[i]] == k {
+				// skip jmatch [i] if marked
+				continue
+			}
+			// pause dfs of node j
+			ps[head] = p + 1
+			// i will be matched with j if found
+			is[head] = i
+			// start dfs at column jmatch [i]
+			js[func() int {
+				head++
+				return head
+			}()] = jmatch[i]
+			break
+		}
+
+		if p == Ap[j+1] {
+			// node j is done; pop from stack
+			head--
+		}
+	}
+	if found {
+		// augment the match if path found:
+		for p = head; p >= 0; p-- {
+			jmatch[is[p]] = js[p]
+		}
+	}
+}
 
 // cs_maxtrans - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_maxtrans.c:44
 // find a maximum transveral
@@ -2579,7 +2587,7 @@ func cs_maxtrans(A *cs, seed int) []int {
 	// var n noarch.PtrdiffT
 	// var m noarch.PtrdiffT
 	var p int
-	var n2 int
+	// var n2 int
 	var m2 int
 	// var Ap []noarch.PtrdiffT
 	// var jimatch []int
@@ -2590,10 +2598,10 @@ func cs_maxtrans(A *cs, seed int) []int {
 	var ps []int
 	// var Ai []noarch.PtrdiffT
 	var Cp []int
-	// var jmatch []noarch.PtrdiffT
-	// var imatch []noarch.PtrdiffT
+	var jmatch []int
+	var imatch []int
 	var q []int
-	var C []cs
+	// var C []cs
 	if !(A != nil && A.nz == -1) {
 		// check inputs
 		return nil
@@ -2610,26 +2618,29 @@ func cs_maxtrans(A *cs, seed int) []int {
 	}
 
 	// count nonempty rows and columns
-	k = 0
-	j = 0
-	for j = 0; j < n; j++ {
-		n2 += noarch.PtrdiffT(int32(map[bool]int{false: 0, true: 1}[Ap[j] < Ap[j+1]]) / 8)
+	n2 := 0
+	for j, k = 0, 0; j < n; j++ {
+		if Ap[j] < Ap[j+1] {
+			n2++
+		}
 		for p = Ap[j]; p < Ap[j+1]; p++ {
 			w[Ai[p]] = 1
 			// count entries already on diagonal
-			k += noarch.PtrdiffT(int32(map[bool]int{false: 0, true: 1}[j == Ai[p]]) / 8)
+			if j == Ai[p] {
+				k++
+			}
 		}
 	}
 
-	if k == noarch.PtrdiffT(func() int32 {
+	if k == func() int {
 		if m < n {
-			return int32(noarch.PtrdiffT((m)))
+			return m
 		}
-		return int32(noarch.PtrdiffT((n)))
-	}()/8) {
+		return n
+	}() {
 		// quick return if diagonal zero-free
 		jmatch = jimatch
-		imatch = (*(*[1000000000]noarch.PtrdiffT)(unsafe.Pointer(uintptr(unsafe.Pointer(&jimatch[0])) + (uintptr)(int(m))*unsafe.Sizeof(jimatch[0]))))[:]
+		imatch = jimatch[m:]
 		for i = 0; i < k; i++ {
 			jmatch[i] = i
 		}
@@ -2642,55 +2653,55 @@ func cs_maxtrans(A *cs, seed int) []int {
 		for ; j < n; j++ {
 			imatch[j] = -1
 		}
-		return (cs_idone(jimatch, nil, nil, 1))
+		return (cs_idone(jimatch, nil, nil, true))
 	}
 	for i = 0; i < m; i++ {
 		m2 += w[i]
 	}
 	// transpose if needed
-	C = func() []cs {
+	C := func() *cs {
 		if m2 < n2 {
-			return cs_transpose(A, 0)
+			return cs_transpose(A, false)
 		}
 		return (A)
 	}()
 	if C == nil {
-		return (cs_idone(jimatch, func() []cs {
+		return (cs_idone(jimatch, func() *cs {
 			if m2 < n2 {
 				return C
 			}
 			return nil
-		}(), nil, 0))
+		}(), nil, false))
 	}
-	n = noarch.PtrdiffT(C[0].n)
-	m = noarch.PtrdiffT(C[0].m)
-	Cp = C[0].p
-	jmatch = func() []noarch.PtrdiffT {
+	n = C.n
+	m = C.m
+	Cp = C.p
+	jmatch = func() []int {
 		if m2 < n2 {
-			return (*(*[1000000000]noarch.PtrdiffT)(unsafe.Pointer(uintptr(unsafe.Pointer(&jimatch[0])) + (uintptr)(int(n))*unsafe.Sizeof(jimatch[0]))))[:]
+			return jmatch[n:]
 		}
 		return jimatch
 	}()
-	imatch = func() []noarch.PtrdiffT {
+	imatch = func() []int {
 		if m2 < n2 {
 			return jimatch
 		}
-		return (*(*[1000000000]noarch.PtrdiffT)(unsafe.Pointer(uintptr(unsafe.Pointer(&jimatch[0])) + (uintptr)(int(m))*unsafe.Sizeof(jimatch[0]))))[:]
+		return jimatch[m:]
 	}()
 	// get workspace
-	w = cs_malloc(noarch.PtrdiffT(5*int32(n)/8), uint(0)).([]noarch.PtrdiffT)
+	w = make([]int, 5*n) // cs_malloc(noarch.PtrdiffT(5*int32(n)/8), uint(0)).([]noarch.PtrdiffT)
 	if w == nil {
-		return (cs_idone(jimatch, func() []cs {
+		return (cs_idone(jimatch, func() *cs {
 			if m2 < n2 {
 				return C
 			}
 			return nil
-		}(), w, 0))
+		}(), w, false))
 	}
-	cheap = (*(*[1000000000]noarch.PtrdiffT)(unsafe.Pointer(uintptr(unsafe.Pointer(&w[0])) + (uintptr)(int(n))*unsafe.Sizeof(w[0]))))[:]
-	js = (*(*[1000000000]noarch.PtrdiffT)(unsafe.Pointer(uintptr(unsafe.Pointer(&w[0])) + (uintptr)(int(2*int32(n)))*unsafe.Sizeof(w[0]))))[:]
-	is = (*(*[1000000000]noarch.PtrdiffT)(unsafe.Pointer(uintptr(unsafe.Pointer(&w[0])) + (uintptr)(int(3*int32(n)))*unsafe.Sizeof(w[0]))))[:]
-	ps = (*(*[1000000000]noarch.PtrdiffT)(unsafe.Pointer(uintptr(unsafe.Pointer(&w[0])) + (uintptr)(int(4*int32(n)))*unsafe.Sizeof(w[0]))))[:]
+	cheap = w[n:]
+	js = w[2*n:]
+	is = w[3*n:]
+	ps = w[4*n:]
 
 	// for cheap assignment
 	for j = 0; j < n; j++ {
@@ -2708,7 +2719,7 @@ func cs_maxtrans(A *cs, seed int) []int {
 	}
 
 	// q = random permutation
-	q = cs_randperm(noarch.PtrdiffT(n), noarch.PtrdiffT(seed))
+	q = cs_randperm(n, seed)
 
 	// augment, starting at column q[k]
 	for k = 0; k < n; k++ {
@@ -3351,46 +3362,46 @@ func cs_print(A *cs, brief bool) bool {
 // 	cs_spfree(AT) // TODO (KI) : remove
 // 	return noarch.PtrdiffT((ok))
 // }
-//
-// // cs_randperm - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_randperm.c:5
-// // return a random permutation vector, the identity perm, or p = n-1:-1:0.
-// // * seed = -1 means p = n-1:-1:0.  seed = 0 means p = identity.  otherwise
-// // * p = random permutation.
-// func cs_randperm(n noarch.PtrdiffT, seed noarch.PtrdiffT) []noarch.PtrdiffT {
-// 	var p []noarch.PtrdiffT
-// 	var k noarch.PtrdiffT
-// 	var j noarch.PtrdiffT
-// 	var t noarch.PtrdiffT
-// 	if seed == 0 {
-// 		// return p = NULL (identity)
-// 		return nil
-// 	}
-// 	// allocate result
-// 	p = cs_malloc(noarch.PtrdiffT(n), uint(0)).([]noarch.PtrdiffT)
-// 	if p == nil {
-// 		// out of memory
-// 		return nil
-// 	}
-// 	for k = 0; k < n; k++ {
-// 		p[k] = n - k - 1
-// 	}
-// 	if seed == -1 {
-// 		// return reverse permutation
-// 		return (p)
-// 	}
-// 	// get new random number seed
-// 	rand.Seed(int64(uint32(noarch.PtrdiffT(seed))))
-// 	for k = 0; k < n; k++ {
-// 		// j = rand integer in range k to n-1
-// 		j = k + noarch.PtrdiffT(int32(rand.Int())%int32(n-k)/8)
-// 		// swap p[k] and p[j]
-// 		t = p[j]
-// 		p[j] = p[k]
-// 		p[k] = t
-// 	}
-// 	return (p)
-// }
-//
+
+// cs_randperm - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_randperm.c:5
+// return a random permutation vector, the identity perm, or p = n-1:-1:0.
+// * seed = -1 means p = n-1:-1:0.  seed = 0 means p = identity.  otherwise
+// * p = random permutation.
+func cs_randperm(n int, seed int) []int {
+	var p []noarch.PtrdiffT
+	var k noarch.PtrdiffT
+	var j noarch.PtrdiffT
+	var t noarch.PtrdiffT
+	if seed == 0 {
+		// return p = NULL (identity)
+		return nil
+	}
+	// allocate result
+	p = cs_malloc(noarch.PtrdiffT(n), uint(0)).([]noarch.PtrdiffT)
+	if p == nil {
+		// out of memory
+		return nil
+	}
+	for k = 0; k < n; k++ {
+		p[k] = n - k - 1
+	}
+	if seed == -1 {
+		// return reverse permutation
+		return (p)
+	}
+	// get new random number seed
+	rand.Seed(int64(uint32(noarch.PtrdiffT(seed))))
+	for k = 0; k < n; k++ {
+		// j = rand integer in range k to n-1
+		j = k + noarch.PtrdiffT(int32(rand.Int())%int32(n-k)/8)
+		// swap p[k] and p[j]
+		t = p[j]
+		p[j] = p[k]
+		p[k] = t
+	}
+	return (p)
+}
+
 // // cs_reach - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_reach.c:4
 // // xi [top...n-1] = nodes reachable from graph of G*P' via nodes in B(:,k).
 // // * xi [n...2n-1] used as workspace
@@ -4439,7 +4450,7 @@ func cs_done(C *cs, w []int, x []float64, ok bool) *cs {
 
 // cs_idone - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_util.c:98
 // free workspace and return csi array result
-func cs_idone(p *cs, C *cs, w interface{}, ok bool) *cs {
+func cs_idone(p []int, C *cs, w interface{}, ok bool) []int {
 	//
 	// TODO (KI) : remove C, w
 	//
