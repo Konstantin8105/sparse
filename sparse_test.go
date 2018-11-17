@@ -3,6 +3,7 @@ package sparse
 import (
 	"bytes"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"os/exec"
 	"path/filepath"
@@ -143,9 +144,10 @@ func TestDemo2(t *testing.T) {
 	for i := range matrixes {
 
 		// TODO : remove
-		if !strings.Contains(matrixes[i], "t1") {
-			continue
-		}
+		// if !strings.Contains(matrixes[i], "t1") {
+		// 	continue
+		// }
+
 		t.Run("Demo2: "+matrixes[i], func(t *testing.T) {
 			// data checking
 			b, c := getCresult(t, matrixes[i])
@@ -153,7 +155,9 @@ func TestDemo2(t *testing.T) {
 
 			fmt.Println("-------")
 
-			_ = b
+			var stdin bytes.Buffer
+			stdin.Write(b)
+			_ = get_problem(&stdin, 1e-14)
 		})
 	}
 }
@@ -161,163 +165,135 @@ func TestDemo2(t *testing.T) {
 type problem struct {
 	A     *cs
 	C     *cs
-	sym   bool
-	x     *float64
-	b     *float64
-	resid *float64
+	sym   int
+	x     []float64
+	b     []float64
+	resid []float64
 }
 
 // is_sym - 1 if A is square & upper tri., -1 if square & lower tri., 0 otherwise
-func is_sym(A []cs) noarch.PtrdiffT {
-	var is_upper noarch.PtrdiffT
-	var is_lower noarch.PtrdiffT
-	var j noarch.PtrdiffT
-	var p noarch.PtrdiffT
-	var n noarch.PtrdiffT = noarch.PtrdiffT(A[0].n)
-	var m noarch.PtrdiffT = noarch.PtrdiffT(A[0].m)
-	var Ap []noarch.PtrdiffT = A[0].p
-	var Ai []noarch.PtrdiffT = A[0].i
+func is_sym(A *cs) int {
+	var is_upper bool
+	var is_lower bool
+	n := A.n
+	m := A.m
+	var Ap []int = A.p
+	var Ai []int = A.i
 	if m != n {
-		return noarch.PtrdiffT((0))
+		return 0
 	}
-	is_upper = 1
-	is_lower = 1
-	for j = 0; j < n; j++ {
-		for p = Ap[j]; p < Ap[j+noarch.PtrdiffT(1/8)]; p++ {
+	is_upper = true
+	is_lower = true
+	for j := 0; j < n; j++ {
+		for p := Ap[j]; p < Ap[j+1]; p++ {
 			if Ai[p] > j {
-				is_upper = 0
+				is_upper = false
 			}
 			if Ai[p] < j {
-				is_lower = 0
+				is_lower = false
 			}
 		}
 	}
-	return noarch.PtrdiffT((func() int {
-		if bool(noarch.PtrdiffT(is_upper)) {
-			return 1
-		}
-		return (func() int {
-			if bool(noarch.PtrdiffT(is_lower)) {
-				return -1
-			}
-			return 0
-		}())
-	}()))
+	if is_upper {
+		return 1
+	}
+	if is_lower {
+		return -1
+	}
+	return 0
 }
 
 // dropdiag - true for off-diagonal entries
-func dropdiag(i noarch.PtrdiffT, j noarch.PtrdiffT, aij float64, other interface{}) noarch.PtrdiffT {
-	return noarch.PtrdiffT((i != j))
+func dropdiag(i int, j int, aij float64, other interface{}) bool {
+	return (i != j)
 }
 
 // make_sym - C = A + triu(A,1)'
-func make_sym(A []cs) []cs {
-	var AT []cs
-	var C []cs
-	// AT = A' */
-	AT = cs_transpose(A, 1)
-	// drop diagonal entries from AT */
+func make_sym(A *cs) *cs {
+	var AT *cs
+	var C *cs
+	// AT = A'
+	AT = cs_transpose(A, true)
+	// drop diagonal entries from AT
 	cs_fkeep(AT, dropdiag, nil)
-	// C = A+AT */
+	// C = A+AT
 	C = cs_add(A, AT, 1, 1)
 	cs_spfree(AT)
 	return (C)
 }
 
-// free_problem - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/testdata/csparse_demo2_test.c:47
-// free a problem */
-func free_problem(Prob *problem) *problem {
-	return nil
-}
-
-// get_problem - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/testdata/csparse_demo2_test.c:59
-// read a problem from a file; use %g for integers to avoid csi conflicts */
-func get_problem(f *noarch.File, tol float64) []problem {
-	var T []cs
-	var A []cs
-	var C []cs
-	var sym noarch.PtrdiffT
-	var m noarch.PtrdiffT
-	var n noarch.PtrdiffT
-	var mn noarch.PtrdiffT
-	var nz1 noarch.PtrdiffT
-	var nz2 noarch.PtrdiffT
-	var Prob []problem
-	// Warning (*ast.UnaryExprOrTypeTraitExpr):  $GOPATH/src/github.com/Konstantin8105/sparse/testdata/csparse_demo2_test.c:64 :Cannot determine sizeof : |problem|. err = Cannot canculate `struct` sizeof for `string`. Cannot determine sizeof : |ptrdiff_t|. err = error in array size
-	Prob = cs_calloc(1, uint(0)).([]problem)
+// get_problem - read a problem from a file; use %g for integers to avoid csi conflicts */
+func get_problem(f io.Reader, tol float64) *problem {
+	var C *cs
+	var nz1 int
+	var nz2 int
+	Prob := new(problem)
 	if Prob == nil {
 		return nil
 	}
 	// load triplet matrix T from a file */
-	T = cs_load(f)
-	A = cs_compress(T)
+	T := cs_load(f)
+	A := cs_compress(T)
 	// A = compressed-column form of T */
-	Prob[0].A = A
+	Prob.A = A
 	// clear T */
 	cs_spfree(T)
-	if bool(noarch.NotNoarch.PtrdiffT(cs_dupl(A))) {
+	if !cs_dupl(A) {
 		// sum up duplicates */
-		return (free_problem(Prob))
+		return nil
 	}
-	sym = is_sym(A)
+	sym := is_sym(A)
 	// determine if A is symmetric */
-	Prob[0].sym = sym
-	m = noarch.PtrdiffT(A[0].m)
-	n = noarch.PtrdiffT(A[0].n)
-	mn = noarch.PtrdiffT(func() int32 {
-		if m > n {
-			return int32(noarch.PtrdiffT((m)))
-		}
-		return int32(noarch.PtrdiffT((n)))
-	}() / 8)
-	nz1 = A[0].p[n]
+	Prob.sym = sym
+	m := A.m
+	n := A.n
+	mn := n
+	if m > n {
+		mn = m
+	}
+	nz1 = A.p[n]
 	// drop zero entries */
 	cs_dropzeros(A)
-	nz2 = A[0].p[n]
+	nz2 = A.p[n]
 	if tol > 0 {
 		// drop tiny entries (just to test) */
 		cs_droptol(A, tol)
 	}
-	C = func() []cs {
-		if bool(noarch.PtrdiffT(sym)) {
+	C = func() *cs {
+		if sym == 1 {
 			return make_sym(A)
 		}
 		return A
 	}()
 	// C = A + triu(A,1)', or C=A */
-	Prob[0].C = C
+	Prob.C = C
 	if C == nil {
-		return (free_problem(Prob))
+		return nil
 	}
-	noarch.Printf([]byte("\n--- Matrix: %g-by-%g, nnz: %g (sym: %g: nnz %g), norm: %8.2e\n\x00"), float64(noarch.PtrdiffT(m)), float64(noarch.PtrdiffT(n)), float64(noarch.PtrdiffT((A[0].p[n]))), float64(noarch.PtrdiffT(sym)), float64((func() int32 {
-		if bool(noarch.PtrdiffT(sym)) {
-			return int32(noarch.PtrdiffT(C[0].p[n]))
-		}
-		return 0
-	}())), cs_norm(C))
+	fmt.Printf("\n--- Matrix: %g-by-%g, nnz: %g (sym: %g: nnz %g), norm: %8.2e\n",
+		float64((m)),
+		float64((n)),
+		float64((A.p[n])),
+		float64((sym)),
+		float64((func() int {
+			if sym == 1 {
+				return C.p[n]
+			}
+			return 0
+		}())), cs_norm(C))
 	if nz1 != nz2 {
-		noarch.Printf([]byte("zero entries dropped: %g\n\x00"), float64((int32(nz1 - nz2))))
+		fmt.Printf("zero entries dropped: %g\n", float64(nz1-nz2))
 	}
-	if nz2 != A[0].p[n] {
-		noarch.Printf([]byte("tiny entries dropped: %g\n\x00"), float64((int32(nz2 - A[0].p[n]))))
+	if nz2 != A.p[n] {
+		fmt.Printf("tiny entries dropped: %g\n", float64((int32(nz2 - A.p[n]))))
 	}
-	Prob[0].b = cs_malloc(noarch.PtrdiffT(mn), uint(8)).([]float64)
-	Prob[0].x = cs_malloc(noarch.PtrdiffT(mn), uint(8)).([]float64)
-	Prob[0].resid = cs_malloc(noarch.PtrdiffT(mn), uint(8)).([]float64)
-	return (func() []problem {
-		if Prob[0].b == nil || Prob[0].x == nil || Prob[0].resid == nil {
-			return free_problem(Prob)
+	Prob.b = make([]float64, mn)
+	Prob.x = make([]float64, mn)
+	Prob.resid = make([]float64, mn)
+	return (func() *problem {
+		if Prob.b == nil || Prob.x == nil || Prob.resid == nil {
+			return nil
 		}
 		return Prob
 	}())
-}
-
-// main - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/testdata/csparse_demo2_test.c:92
-// cs_demo2: read a matrix and solve a linear system
-func main() {
-	defer noarch.AtexitRun()
-	var Prob []problem = get_problem(noarch.Stdin, 1e-14)
-	// demo2 (Prob) ;
-	free_problem(Prob)
-	os.Exit((0))
 }

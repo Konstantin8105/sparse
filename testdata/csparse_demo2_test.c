@@ -11,6 +11,26 @@ typedef struct problem_struct
     double *resid ;
 } problem ;
 
+
+/* infinity-norm of x */
+static double norm (double *x, csi n)
+{
+    csi i ;
+    double normx = 0 ;
+    for (i = 0 ; i < n ; i++) normx = CS_MAX (normx, fabs (x [i])) ;
+    return (normx) ;
+}
+
+
+/* create a right-hand side */
+static void rhs (double *x, double *b, csi m)
+{
+    csi i ;
+    for (i = 0 ; i < m ; i++) b [i] = 1 + ((double) i) / m ;
+    for (i = 0 ; i < m ; i++) x [i] = b [i] ;
+}
+
+
 // 1 if A is square & upper tri., -1 if square & lower tri., 0 otherwise */
 static csi is_sym (cs *A)
 {
@@ -55,6 +75,31 @@ problem *free_problem (problem *Prob)
     return (cs_free (Prob)) ;
 }
 
+
+/* compute residual, norm(A*x-b,inf) / (norm(A,1)*norm(x,inf) + norm(b,inf)) */
+static void print_resid (csi ok, cs *A, double *x, double *b, double *resid)
+{
+    csi i, m, n ;
+    if (!ok) { printf ("    (failed)\n") ; return ; }
+    m = A->m ; n = A->n ;
+    for (i = 0 ; i < m ; i++) resid [i] = -b [i] ;  /* resid = -b */
+    cs_gaxpy (A, x, resid) ;                        /* resid = resid + A*x  */
+    printf ("resid: %8.2e\n", norm (resid,m) / ((n == 0) ? 1 :
+        (cs_norm (A) * norm (x,n) + norm (b,m)))) ;
+}
+
+static void print_order (csi order)
+{
+    switch (order)
+    {
+        case 0: printf ("natural    ") ; break ;
+        case 1: printf ("amd(A+A')  ") ; break ;
+        case 2: printf ("amd(S'*S)  ") ; break ;
+        case 3: printf ("amd(A'*A)  ") ; break ;
+    }
+}
+
+
 // read a problem from a file; use %g for integers to avoid csi conflicts */
 problem *get_problem (FILE *f, double tol)
 {
@@ -88,11 +133,76 @@ problem *get_problem (FILE *f, double tol)
     return ((!Prob->b || !Prob->x || !Prob->resid) ? free_problem (Prob) : Prob) ;
 }
 
+static double tic (void) { return (clock () / (double) CLOCKS_PER_SEC) ; }
+static double toc (double t) { double s = tic () ; return (CS_MAX (0, s-t)) ; }
+
+
+/* solve a linear system using Cholesky, LU, and QR, with various orderings */
+csi demo2 (problem *Prob)
+{
+    cs *A, *C ;
+    double *b, *x, *resid,  t, tol ;
+    csi k, m, n, ok, order, nb, ns, *r, *s, *rr, sprank ;
+    csd *D ;
+    if (!Prob) return (0) ;
+    A = Prob->A ; C = Prob->C ; b = Prob->b ; x = Prob->x ; resid = Prob->resid;
+    m = A->m ; n = A->n ;
+    tol = Prob->sym ? 0.001 : 1 ;               /* partial pivoting tolerance */
+    D = cs_dmperm (C, 1) ;                      /* randomized dmperm analysis */
+    if (!D) return (0) ;
+    nb = D->nb ; r = D->r ; s = D->s ; rr = D->rr ;
+    sprank = rr [3] ;
+    for (ns = 0, k = 0 ; k < nb ; k++)
+    {
+        ns += ((r [k+1] == r [k]+1) && (s [k+1] == s [k]+1)) ;
+    }
+    printf ("blocks: %g singletons: %g structural rank: %g\n",
+        (double) nb, (double) ns, (double) sprank) ;
+    cs_dfree (D) ;
+    for (order = 0 ; order <= 3 ; order += 3)   /* natural and amd(A'*A) */
+    {
+        if (!order && m > 1000) continue ;
+        printf ("QR   ") ;
+        print_order (order) ;
+        rhs (x, b, m) ;                         /* compute right-hand side */
+        t = tic () ;
+        ok = cs_qrsol (order, C, x) ;           /* min norm(Ax-b) with QR */
+        printf ("time: %8.2f ", toc (t)) ;
+        print_resid (ok, C, x, b, resid) ;      /* print residual */
+    }
+    if (m != n || sprank < n) return (1) ;      /* return if rect. or singular*/
+    for (order = 0 ; order <= 3 ; order++)      /* try all orderings */
+    {
+        if (!order && m > 1000) continue ;
+        printf ("LU   ") ;
+        print_order (order) ;
+        rhs (x, b, m) ;                         /* compute right-hand side */
+        t = tic () ;
+        ok = cs_lusol (order, C, x, tol) ;      /* solve Ax=b with LU */
+        printf ("time: %8.2f ", toc (t)) ;
+        print_resid (ok, C, x, b, resid) ;      /* print residual */
+    }
+    if (!Prob->sym) return (1) ;
+    for (order = 0 ; order <= 1 ; order++)      /* natural and amd(A+A') */
+    {
+        if (!order && m > 1000) continue ;
+        printf ("Chol ") ;
+        print_order (order) ;
+        rhs (x, b, m) ;                         /* compute right-hand side */
+        t = tic () ;
+        ok = cs_cholsol (order, C, x) ;         /* solve Ax=b with Cholesky */
+        printf ("time: %8.2f ", toc (t)) ;
+        print_resid (ok, C, x, b, resid) ;      /* print residual */
+    }
+    return (1) ;
+} 
+
+
 // cs_demo2: read a matrix and solve a linear system
 int main (void)
 {
     problem *Prob = get_problem (stdin, 1e-14) ;
-    // demo2 (Prob) ;
+    demo2 (Prob) ;
     free_problem (Prob) ;
     return (0) ;
 }

@@ -1696,96 +1696,85 @@ func cs_cumsum(p []int, c []int, n int) int64 {
 // 	cs_dfree(scc)
 // 	return (cs_ddone(D, C, nil, 1))
 // }
-//
-// // cs_tol - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_droptol.c:2
-// func cs_tol(i noarch.PtrdiffT, j noarch.PtrdiffT, aij float64, tol interface{}) noarch.PtrdiffT {
-// 	return (math.Abs(aij) > (tol.([]float64))[(0)])
-// }
-//
-// // cs_droptol - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_droptol.c:6
-// func cs_droptol(A []cs, tol float64) noarch.PtrdiffT {
-// 	// keep all large entries
-// 	return cs_fkeep(A, cs_tol, (*[100000000]float64)(unsafe.Pointer(&tol))[:])
-// }
-//
-// // cs_nonzero - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_dropzeros.c:2
-// func cs_nonzero(i noarch.PtrdiffT, j noarch.PtrdiffT, aij float64, other interface{}) noarch.PtrdiffT {
-// 	return aij != 0
-// }
-//
-// // cs_dropzeros - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_dropzeros.c:6
-// func cs_dropzeros(A []cs) noarch.PtrdiffT {
-// 	// keep all nonzero entries
-// 	return (cs_fkeep(A, cs_nonzero, nil))
-// }
-//
-// // cs_dupl - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_dupl.c:3
-// // remove duplicate entries from A
-// func cs_dupl(A []cs) noarch.PtrdiffT {
-// 	var i noarch.PtrdiffT
-// 	var j noarch.PtrdiffT
-// 	var p noarch.PtrdiffT
-// 	var q noarch.PtrdiffT
-// 	var nz noarch.PtrdiffT
-// 	var n noarch.PtrdiffT
-// 	var m noarch.PtrdiffT
-// 	var Ap []noarch.PtrdiffT
-// 	var Ai []noarch.PtrdiffT
-// 	var w []noarch.PtrdiffT
-// 	var Ax []float64
-// 	if !(A != nil && noarch.PtrdiffT(A[0].nz) == -1) {
-// 		// check inputs
-// 		return 0
-// 	}
-// 	m = noarch.PtrdiffT(A[0].m)
-// 	n = noarch.PtrdiffT(A[0].n)
-// 	Ap = A[0].p
-// 	Ai = A[0].i
-// 	Ax = A[0].x
-// 	// get workspace
-// 	w = cs_malloc(m, uint(0)).([]noarch.PtrdiffT)
-// 	if w == nil {
-// 		// out of memory
-// 		return 0
-// 	}
-// 	{
-// 		// row i not yet seen
-// 		for i = 0; i < m; i++ {
-// 			w[i] = -1
-// 		}
-// 	}
-// 	for j = 0; j < n; j++ {
-// 		// column j will start at q
-// 		q = nz
-// 		for p = Ap[j]; p < Ap[j+1]; p++ {
-// 			// A(i,j) is nonzero
-// 			i = Ai[p]
-// 			if w[i] >= q {
-// 				// A(i,j) is a duplicate
-// 				Ax[w[i]] += Ax[p]
-// 			} else {
-// 				// record where row i occurs
-// 				w[i] = nz
-// 				// keep A(i,j)
-// 				Ai[nz] = i
-// 				Ax[func() noarch.PtrdiffT {
-// 					defer func() {
-// 						nz++
-// 					}()
-// 					return nz
-// 				}()] = Ax[p]
-// 			}
-// 		}
-// 		// record start of column j
-// 		Ap[j] = q
-// 	}
-// 	// finalize A
-// 	Ap[n] = nz
-// 	// free workspace
-// 	cs_free(w)
-// 	// remove extra space from A
-// 	return (cs_sprealloc(A, 0))
-// }
+
+// cs_tol - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_droptol.c:2
+func cs_tol(i, j int, aij float64, other interface{}) bool {
+	return (math.Abs(aij) > *(other.(*float64)))
+}
+
+// cs_droptol - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_droptol.c:6
+func cs_droptol(A *cs, tol float64) int {
+	// keep all large entries
+	return cs_fkeep(A, cs_tol, &tol)
+}
+
+// cs_nonzero
+func cs_nonzero(i, j int, aij float64, other interface{}) bool {
+	return aij != 0
+}
+
+// cs_dropzeros
+func cs_dropzeros(A *cs) int {
+	// keep all nonzero entries
+	return cs_fkeep(A, cs_nonzero, nil)
+}
+
+// cs_dupl - remove duplicate entries from A
+func cs_dupl(A *cs) bool {
+	var nz int
+	if !(A != nil && A.nz == -1) {
+		// check inputs
+		return false
+	}
+	m := A.m
+	n := A.n
+	Ap := A.p
+	Ai := A.i
+	Ax := A.x
+	// get workspace
+	w := make([]int, m)
+	if w == nil {
+		// out of memory
+		return false
+	}
+
+	// row i not yet seen
+	for i := 0; i < m; i++ {
+		w[i] = -1
+	}
+
+	for j := 0; j < n; j++ {
+		// column j will start at q
+		q := nz
+		for p := Ap[j]; p < Ap[j+1]; p++ {
+			// A(i,j) is nonzero
+			i := Ai[p]
+			if w[i] >= q {
+				// A(i,j) is a duplicate
+				Ax[w[i]] += Ax[p]
+			} else {
+				// record where row i occurs
+				w[i] = nz
+				// keep A(i,j)
+				Ai[nz] = i
+				Ax[func() int {
+					defer func() {
+						nz++
+					}()
+					return nz
+				}()] = Ax[p]
+			}
+		}
+		// record start of column j
+		Ap[j] = q
+	}
+	// finalize A
+	Ap[n] = nz
+	// free workspace
+	cs_free(w)
+	// remove extra space from A
+	return (cs_sprealloc(A, 0))
+}
 
 // cs_entry - add an entry to a triplet matrix; return 1 if ok, 0 otherwise
 func cs_entry(T *cs, i, j int, x float64) bool {
@@ -1955,57 +1944,50 @@ func cs_entry(T *cs, i, j int, x float64) bool {
 // 	}
 // 	return (cs_idone(parent, nil, w, 1))
 // }
-//
-// // cs_fkeep - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_fkeep.c:3
-// // drop entries for which fkeep(A(i,j)) is false; return nz if OK, else -1
-// func cs_fkeep(A *cs, fkeep func(int, int, float64, interface{}) bool, other interface{}) noarch.PtrdiffT {
-// 	var j noarch.PtrdiffT
-// 	var p noarch.PtrdiffT
-// 	var nz noarch.PtrdiffT
-// 	var n noarch.PtrdiffT
-// 	var Ap []noarch.PtrdiffT
-// 	var Ai []noarch.PtrdiffT
-// 	var Ax []float64
-// 	if !(A != nil && noarch.PtrdiffT(A[0].nz) == -1) || fkeep == nil {
-// 		// check inputs
-// 		return -1
-// 	}
-// 	n = noarch.PtrdiffT(A[0].n)
-// 	Ap = A[0].p
-// 	Ai = A[0].i
-// 	Ax = A[0].x
-// 	for j = 0; j < n; j++ {
-// 		// get current location of col j
-// 		p = Ap[j]
-// 		// record new location of col j
-// 		Ap[j] = nz
-// 		for ; p < Ap[j+1]; p++ {
-// 			if bool(fkeep(noarch.PtrdiffT(Ai[p]), noarch.PtrdiffT(j), func() float64 {
-// 				if Ax != nil {
-// 					return Ax[p]
-// 				}
-// 				return 1
-// 			}(), other)) {
-// 				if Ax != nil {
-// 					// keep A(i,j)
-// 					Ax[nz] = Ax[p]
-// 				}
-// 				Ai[func() noarch.PtrdiffT {
-// 					defer func() {
-// 						nz++
-// 					}()
-// 					return nz
-// 				}()] = Ai[p]
-// 			}
-// 		}
-// 	}
-// 	// finalize A
-// 	Ap[n] = nz
-// 	// remove extra space from A
-// 	cs_sprealloc(A, 0)
-// 	return noarch.PtrdiffT((nz))
-// }
-//
+
+// cs_fkeep - drop entries for which fkeep(A(i,j)) is false; return nz if OK, else -1
+func cs_fkeep(A *cs, fkeep func(int, int, float64, interface{}) bool, other interface{}) int {
+	var nz int
+	if !(A != nil && A.nz == -1) || fkeep == nil {
+		// check inputs
+		return -1
+	}
+	n := A.n
+	Ap := A.p
+	Ai := A.i
+	Ax := A.x
+	for j := 0; j < n; j++ {
+		// get current location of col j
+		p := Ap[j]
+		// record new location of col j
+		Ap[j] = nz
+		for ; p < Ap[j+1]; p++ {
+			if fkeep(Ai[p], j, func() float64 {
+				if Ax != nil {
+					return Ax[p]
+				}
+				return 1
+			}(), other) {
+				if Ax != nil {
+					// keep A(i,j)
+					Ax[nz] = Ax[p]
+				}
+				Ai[func() int {
+					defer func() {
+						nz++
+					}()
+					return nz
+				}()] = Ai[p]
+			}
+		}
+	}
+	// finalize A
+	Ap[n] = nz
+	// remove extra space from A
+	cs_sprealloc(A, 0)
+	return nz
+}
+
 // // cs_gaxpy - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_gaxpy.c:3
 // // y = A*x+y
 // func cs_gaxpy(A []cs, x []float64, y []float64) noarch.PtrdiffT {
@@ -2495,17 +2477,16 @@ func cs_load(f io.Reader) *cs {
 // 		return 1
 // 	}()))))))
 // }
-//
-// // cs_free - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_malloc.c:22
-// // wrapper for free
-// func cs_free(p interface{}) interface{} {
-// 	if p != nil {
-// 		_ = p
-// 		// free p if it is not already NULL
-// 	}
-// 	// return NULL to simplify the use of cs_free
-// 	return nil
-// }
+
+// cs_free - wrapper for free
+func cs_free(p interface{}) interface{} {
+	if p != nil {
+		_ = p
+		// free p if it is not already NULL
+	}
+	// return NULL to simplify the use of cs_free
+	return nil
+}
 
 // cs_realloc - wrapper for realloc
 func cs_realloc(p interface{}, n int, ok *bool) interface{} {
@@ -4398,13 +4379,12 @@ func cs_sprealloc(A *cs, nzmax int) bool {
 	return ok
 }
 
-// // cs_spfree - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_util.c:33
-// // free a sparse matrix
-// func cs_spfree(A *cs) *cs {
-// 	// free the cs struct and return NULL
-// 	return nil
-// }
-//
+// cs_spfree - free a sparse matrix
+func cs_spfree(A *cs) *cs {
+	// free the cs struct and return NULL
+	return nil
+}
+
 // // cs_nfree - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_util.c:43
 // // free a numeric factorization
 // func cs_nfree(N []csn) []csn {
