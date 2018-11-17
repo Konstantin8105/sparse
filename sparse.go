@@ -39,10 +39,10 @@ type csn struct { // struct cs_numeric
 
 // cs_dmperm or cs_scc output
 type csd struct { // struct cs_dmperm_results
-	p  *int   // size m, row permutation
-	q  *int   // size n, column permutation
-	r  *int   // size nb+1, block k is rows R[k] to R[k+1]-1 in A(P,Q)
-	s  *int   // size nb+1, block k is cols S[k] to S[k+1]-1 in A(P,Q)
+	p  []int  // size m, row permutation
+	q  []int  // size n, column permutation
+	r  []int  // size nb+1, block k is rows R[k] to R[k+1]-1 in A(P,Q)
+	s  []int  // size nb+1, block k is cols S[k] to S[k+1]-1 in A(P,Q)
 	nb int    // # of blocks in fine dmperm decomposition
 	rr [5]int // coarse row decomposition
 	cc [5]int // coarse column decomposition
@@ -1379,175 +1379,172 @@ func cs_cumsum(p []int, c []int, n int) int64 {
 // 	}
 // 	return noarch.PtrdiffT((top))
 // }
-//
-// // cs_bfs - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_dmperm.c:3
-// // breadth-first search for coarse decomposition (C0,C1,R1 or R0,R3,C3)
-// func cs_bfs(A []cs, n noarch.PtrdiffT, wi []noarch.PtrdiffT, wj []noarch.PtrdiffT, queue []noarch.PtrdiffT, imatch []noarch.PtrdiffT, jmatch []noarch.PtrdiffT, mark noarch.PtrdiffT) noarch.PtrdiffT {
-// 	var Ap []noarch.PtrdiffT
-// 	var Ai []noarch.PtrdiffT
-// 	var head noarch.PtrdiffT
-// 	var tail noarch.PtrdiffT
-// 	var j noarch.PtrdiffT
-// 	var i noarch.PtrdiffT
-// 	var p noarch.PtrdiffT
-// 	var j2 noarch.PtrdiffT
-// 	var C []cs
-// 	{
-// 		// place all unmatched nodes in queue
-// 		for j = 0; j < n; j++ {
-// 			if imatch[j] >= 0 {
-// 				// skip j if matched
-// 				continue
-// 			}
-// 			// j in set C0 (R0 if transpose)
-// 			wj[j] = 0
-// 			// place unmatched col j in queue
-// 			queue[func() noarch.PtrdiffT {
-// 				defer func() {
-// 					tail++
-// 				}()
-// 				return tail
-// 			}()] = j
-// 		}
-// 	}
-// 	if tail == 0 {
-// 		// quick return if no unmatched nodes
-// 		return 1
-// 	}
-// 	C = func() []cs {
-// 		if mark == 1 {
-// 			return (A)
-// 		}
-// 		return cs_transpose(A, 0)
-// 	}()
-// 	if C == nil {
-// 		// bfs of C=A' to find R3,C3 from R0
-// 		return 0
-// 	}
-// 	Ap = C[0].p
-// 	Ai = C[0].i
-// 	for head < tail {
-// 		// while queue is not empty
-// 		// get the head of the queue
-// 		j = queue[func() noarch.PtrdiffT {
-// 			defer func() {
-// 				head++
-// 			}()
-// 			return head
-// 		}()]
-// 		for p = Ap[j]; p < Ap[j+1]; p++ {
-// 			i = Ai[p]
-// 			if wi[i] >= 0 {
-// 				// skip if i is marked
-// 				continue
-// 			}
-// 			// i in set R1 (C3 if transpose)
-// 			wi[i] = mark
-// 			// traverse alternating path to j2
-// 			j2 = jmatch[i]
-// 			if wj[j2] >= 0 {
-// 				// skip j2 if it is marked
-// 				continue
-// 			}
-// 			// j2 in set C1 (R3 if transpose)
-// 			wj[j2] = mark
-// 			// add j2 to queue
-// 			queue[func() noarch.PtrdiffT {
-// 				defer func() {
-// 					tail++
-// 				}()
-// 				return tail
-// 			}()] = j2
-// 		}
-// 	}
-// 	if mark != 1 {
-// 		// free A' if it was created
-// 		cs_spfree(C) // TODO (KI) : remove
-// 	}
-// 	return 1
-// }
-//
-// // cs_matched - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_dmperm.c:37
-// // collect matched rows and columns into p and q
-// func cs_matched(n noarch.PtrdiffT, wj []noarch.PtrdiffT, imatch []noarch.PtrdiffT, p []noarch.PtrdiffT, q []noarch.PtrdiffT, cc []noarch.PtrdiffT, rr []noarch.PtrdiffT, set noarch.PtrdiffT, mark noarch.PtrdiffT) {
-// 	var kc noarch.PtrdiffT = cc[set]
-// 	var j noarch.PtrdiffT
-// 	var kr noarch.PtrdiffT = rr[set-1]
-// 	for j = 0; j < n; j++ {
-// 		if wj[j] != mark {
-// 			// skip if j is not in C set
-// 			continue
-// 		}
-// 		p[func() noarch.PtrdiffT {
-// 			defer func() {
-// 				kr++
-// 			}()
-// 			return kr
-// 		}()] = imatch[j]
-// 		q[func() noarch.PtrdiffT {
-// 			defer func() {
-// 				kc++
-// 			}()
-// 			return kc
-// 		}()] = j
-// 	}
-// 	cc[set+1] = kc
-// 	rr[set] = kr
-// }
-//
-// // cs_unmatched - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_dmperm.c:53
-// // collect unmatched rows into the permutation vector p
-// func cs_unmatched(m noarch.PtrdiffT, wi []noarch.PtrdiffT, p []noarch.PtrdiffT, rr []noarch.PtrdiffT, set noarch.PtrdiffT) {
-// 	var i noarch.PtrdiffT
-// 	var kr noarch.PtrdiffT = rr[set]
-// 	for i = 0; i < m; i++ {
-// 		if wi[i] == 0 {
-// 			p[func() noarch.PtrdiffT {
-// 				defer func() {
-// 					kr++
-// 				}()
-// 				return kr
-// 			}()] = i
-// 		}
-// 	}
-// 	rr[set+1] = kr
-// }
-//
-// // cs_rprune - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_dmperm.c:61
-// // return 1 if row i is in R2
-// func cs_rprune(i noarch.PtrdiffT, j noarch.PtrdiffT, aij float64, other interface{}) noarch.PtrdiffT {
-// 	var rr []noarch.PtrdiffT = other.([]noarch.PtrdiffT)
-// 	return (i >= rr[1] && i < rr[2])
-// }
+
+// cs_bfs - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_dmperm.c:3
+// breadth-first search for coarse decomposition (C0,C1,R1 or R0,R3,C3)
+func cs_bfs(A *cs,
+	n int,
+	wi []int,
+	wj []int,
+	queue []int,
+	imatch []int,
+	jmatch []int,
+	mark int) bool {
+
+	var head int
+	var tail int
+	var j2 int
+	var C *cs
+
+	// place all unmatched nodes in queue
+	for j := 0; j < n; j++ {
+		if imatch[j] >= 0 {
+			// skip j if matched
+			continue
+		}
+		// j in set C0 (R0 if transpose)
+		wj[j] = 0
+		// place unmatched col j in queue
+		queue[func() int {
+			defer func() {
+				tail++
+			}()
+			return tail
+		}()] = j
+	}
+
+	if tail == 0 {
+		// quick return if no unmatched nodes
+		return true
+	}
+	C = func() *cs {
+		if mark == 1 {
+			return A
+		}
+		return cs_transpose(A, false)
+	}()
+	if C == nil {
+		// bfs of C=A' to find R3,C3 from R0
+		return false
+	}
+	Ap := C.p
+	Ai := C.i
+	for head < tail {
+		// while queue is not empty
+		// get the head of the queue
+		j := queue[func() int {
+			defer func() {
+				head++
+			}()
+			return head
+		}()]
+		for p := Ap[j]; p < Ap[j+1]; p++ {
+			i := Ai[p]
+			if wi[i] >= 0 {
+				// skip if i is marked
+				continue
+			}
+			// i in set R1 (C3 if transpose)
+			wi[i] = mark
+			// traverse alternating path to j2
+			j2 = jmatch[i]
+			if wj[j2] >= 0 {
+				// skip j2 if it is marked
+				continue
+			}
+			// j2 in set C1 (R3 if transpose)
+			wj[j2] = mark
+			// add j2 to queue
+			queue[func() int {
+				defer func() {
+					tail++
+				}()
+				return tail
+			}()] = j2
+		}
+	}
+	if mark != 1 {
+		// free A' if it was created
+		cs_spfree(C) // TODO (KI) : remove
+	}
+	return true
+}
+
+// cs_matched - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_dmperm.c:37
+// collect matched rows and columns into p and q
+func cs_matched(n int,
+	wj []int,
+	imatch []int,
+	p []int,
+	q []int,
+	cc [5]int,
+	rr [5]int,
+	set int,
+	mark int) {
+
+	kc := cc[set]
+	kr := rr[set-1]
+
+	for j := 0; j < n; j++ {
+		if wj[j] != mark {
+			// skip if j is not in C set
+			continue
+		}
+		p[func() int {
+			defer func() {
+				kr++
+			}()
+			return kr
+		}()] = imatch[j]
+		q[func() int {
+			defer func() {
+				kc++
+			}()
+			return kc
+		}()] = j
+	}
+	cc[set+1] = kc
+	rr[set] = kr
+}
+
+// cs_unmatched - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_dmperm.c:53
+// collect unmatched rows into the permutation vector p
+func cs_unmatched(m int, wi []int, p []int, rr [5]int, set int) {
+	kr := rr[set]
+	for i := 0; i < m; i++ {
+		if wi[i] == 0 {
+			p[func() int {
+				defer func() {
+					kr++
+				}()
+				return kr
+			}()] = i
+		}
+	}
+	rr[set+1] = kr
+}
+
+// cs_rprune - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_dmperm.c:61
+// return 1 if row i is in R2
+func cs_rprune(i, j int, aij float64, other interface{}) bool {
+	rr := other.([5]int)
+	return (i >= rr[1] && i < rr[2])
+}
 
 // cs_dmperm - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_dmperm.c:68
 // Given A, compute coarse and then fine dmperm
-func cs_dmperm(A *cs, seed noarch.PtrdiffT) *csd {
-	var i noarch.PtrdiffT
-	var j noarch.PtrdiffT
-	var k noarch.PtrdiffT
-	var cnz noarch.PtrdiffT
-	var nc noarch.PtrdiffT
-	var jmatch []noarch.PtrdiffT
-	var imatch []noarch.PtrdiffT
-	var wi []noarch.PtrdiffT
-	var wj []noarch.PtrdiffT
-	var pinv []noarch.PtrdiffT
-	var Cp []noarch.PtrdiffT
-	var Ci []noarch.PtrdiffT
-	var ps []noarch.PtrdiffT
-	var rs []noarch.PtrdiffT
-	var nb1 noarch.PtrdiffT
-	var nb2 noarch.PtrdiffT
-	var p []noarch.PtrdiffT
-	var q []noarch.PtrdiffT
-	var cc []noarch.PtrdiffT
-	var rr []noarch.PtrdiffT
-	var r []noarch.PtrdiffT
-	var s []noarch.PtrdiffT
-	var ok noarch.PtrdiffT
-	var C []cs
-	var scc []csd
+func cs_dmperm(A *cs, seed int) *csd {
+	var cnz int
+	// var nc noarch.PtrdiffT
+	// var pinv []noarch.PtrdiffT
+	// var Cp []noarch.PtrdiffT
+	// var Ci []noarch.PtrdiffT
+	// var ps []noarch.PtrdiffT
+	// var rs []noarch.PtrdiffT
+	// var nb1 noarch.PtrdiffT
+	// var nb2 noarch.PtrdiffT
+	// var C []cs
+	// var scc []csd
 	if !(A != nil && A.nz == -1) {
 		// check inputs
 		return nil
@@ -1560,127 +1557,126 @@ func cs_dmperm(A *cs, seed noarch.PtrdiffT) *csd {
 	if D == nil {
 		return nil
 	}
-	p = D[0].p
-	q = D[0].q
-	r = D[0].r
-	s = D[0].s
-	cc = D[0].cc[:]
-	rr = D[0].rr[:]
+	p := D.p
+	q := D.q
+	r := D.r
+	s := D.s
+	cc := D.cc
+	rr := D.rr
 	// max transversal
-	jmatch = cs_maxtrans(A, noarch.PtrdiffT(seed))
+	jmatch := cs_maxtrans(A, seed)
 	// imatch = inverse of jmatch
-	imatch = (*(*[1000000000]noarch.PtrdiffT)(unsafe.Pointer(uintptr(unsafe.Pointer(&jmatch[0])) + (uintptr)(int(m))*unsafe.Sizeof(jmatch[0]))))[:]
+	imatch := jmatch[m] // jmatch+m
 	if jmatch == nil {
-		return (cs_ddone(D, nil, jmatch, 0))
+		return cs_ddone(D, nil, jmatch, false)
 	}
 	// --- Coarse decomposition ---------------------------------------------
 	// use r and s as workspace
-	wi = r
-	wj = s
-	{
-		// unmark all cols for bfs
-		for j = 0; j < n; j++ {
-			wj[j] = -1
-		}
+	wi := r
+	wj := s
+
+	// unmark all cols for bfs
+	for j := 0; j < n; j++ {
+		wj[j] = -1
 	}
-	{
-		// unmark all rows for bfs
-		for i = 0; i < m; i++ {
-			wi[i] = -1
-		}
+
+	// unmark all rows for bfs
+	for i := 0; i < m; i++ {
+		wi[i] = -1
 	}
+
 	// find C1, R1 from C0
-	cs_bfs(A, noarch.PtrdiffT(n), wi, wj, q, imatch, jmatch, 1)
+	cs_bfs(A, n, wi, wj, q, imatch, jmatch, 1)
 	// find R3, C3 from R0
-	ok = cs_bfs(A, m, wj, wi, p, jmatch, imatch, 3)
-	if bool(noarch.NotNoarch.PtrdiffT(ok)) {
-		return (cs_ddone(D, nil, jmatch, 0))
+	ok := cs_bfs(A, m, wj, wi, p, jmatch, imatch, 3)
+	if ok {
+		return (cs_ddone(D, nil, jmatch, false))
 	}
 	// unmatched set C0
-	cs_unmatched(noarch.PtrdiffT(n), wj, q, cc, 0)
+	cs_unmatched(n, wj, q, cc, 0)
 	// set R1 and C1
-	cs_matched(noarch.PtrdiffT(n), wj, imatch, p, q, cc, rr, 1, 1)
+	cs_matched(n, wj, imatch, p, q, cc, rr, 1, 1)
 	// set R2 and C2
-	cs_matched(noarch.PtrdiffT(n), wj, imatch, p, q, cc, rr, 2, -1)
+	cs_matched(n, wj, imatch, p, q, cc, rr, 2, -1)
 	// set R3 and C3
-	cs_matched(noarch.PtrdiffT(n), wj, imatch, p, q, cc, rr, 3, 3)
+	cs_matched(n, wj, imatch, p, q, cc, rr, 3, 3)
 	// unmatched set R0
 	cs_unmatched(m, wi, p, rr, 3)
 	cs_free(jmatch)
 	// --- Fine decomposition -----------------------------------------------
 	// pinv=p'
-	pinv = cs_pinv(p, m)
+	pinv := cs_pinv(p, m)
 	if pinv == nil {
-		return (cs_ddone(D, nil, nil, 0))
+		return (cs_ddone(D, nil, nil, false))
 	}
 	// C=A(p,q) (it will hold A(R2,C2))
-	C = cs_permute(A, pinv, q, 0)
+	C := cs_permute(A, pinv, q, false)
 	cs_free(pinv)
 	if C == nil {
-		return (cs_ddone(D, nil, nil, 0))
+		return (cs_ddone(D, nil, nil, false))
 	}
-	Cp = C[0].p
+	Cp := C.p
 	// delete cols C0, C1, and C3 from C
-	nc = cc[3] - cc[2]
+	nc := cc[3] - cc[2]
 	if cc[2] > 0 {
-		for j = cc[2]; j <= cc[3]; j++ {
+		for j := cc[2]; j <= cc[3]; j++ {
 			Cp[j-cc[2]] = Cp[j]
 		}
 	}
-	C[0].n = nc
+	C.n = nc
 	if rr[2]-rr[1] < m {
 		// delete rows R0, R1, and R3 from C
 		cs_fkeep(C, cs_rprune, rr)
 		cnz = Cp[nc]
-		Ci = C[0].i
+		Ci := C.i
 		if rr[1] > 0 {
-			for k = 0; k < cnz; k++ {
+			for k := 0; k < cnz; k++ {
 				Ci[k] -= rr[1]
 			}
 		}
 	}
-	C[0].m = nc
+	C.m = nc
 	// find strongly connected components of C
-	scc = cs_scc(C)
+	scc := cs_scc(C)
 	if scc == nil {
-		return (cs_ddone(D, C, nil, 0))
+		return (cs_ddone(D, C, nil, false))
 	}
 	// --- Combine coarse and fine decompositions ---------------------------
 	// C(ps,ps) is the permuted matrix
-	ps = scc[0].p
+	ps := scc.p
 	// kth block is rs[k]..rs[k+1]-1
-	rs = scc[0].r
+	rs := scc.r
 	// # of blocks of A(R2,C2)
-	nb1 = noarch.PtrdiffT(scc[0].nb)
-	for k = 0; k < nc; k++ {
+	nb1 := scc.nb
+	for k := 0; k < nc; k++ {
 		wj[k] = q[ps[k]+cc[2]]
 	}
-	for k = 0; k < nc; k++ {
+	for k := 0; k < nc; k++ {
 		q[k+cc[2]] = wj[k]
 	}
-	for k = 0; k < nc; k++ {
+	for k := 0; k < nc; k++ {
 		wi[k] = p[ps[k]+rr[1]]
 	}
-	for k = 0; k < nc; k++ {
+	for k := 0; k < nc; k++ {
 		p[k+rr[1]] = wi[k]
 	}
 	// create the fine block partitions
-	nb2 = 0
+	nb2 := 0
 	s[0] = 0
 	r[0] = s[0]
 	if cc[2] > 0 {
 		// leading coarse block A (R1, [C0 C1])
 		nb2++
 	}
-	{
-		// coarse block A (R2,C2)
-		for k = 0; k < nb1; k++ {
-			// A (R2,C2) splits into nb1 fine blocks
-			r[nb2] = rs[k] + rr[1]
-			s[nb2] = rs[k] + cc[2]
-			nb2++
-		}
+
+	// coarse block A (R2,C2)
+	for k := 0; k < nb1; k++ {
+		// A (R2,C2) splits into nb1 fine blocks
+		r[nb2] = rs[k] + rr[1]
+		s[nb2] = rs[k] + cc[2]
+		nb2++
 	}
+
 	if rr[2] < m {
 		// trailing coarse block A ([R3 R0], C3)
 		r[nb2] = rr[2]
@@ -1689,9 +1685,9 @@ func cs_dmperm(A *cs, seed noarch.PtrdiffT) *csd {
 	}
 	r[nb2] = m
 	s[nb2] = n
-	D[0].nb = nb2
+	D.nb = nb2
 	cs_dfree(scc)
-	return (cs_ddone(D, C, nil, 1))
+	return (cs_ddone(D, C, nil, true))
 }
 
 // cs_tol - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_droptol.c:2
@@ -1989,7 +1985,7 @@ func cs_fkeep(A *cs, fkeep func(int, int, float64, interface{}) bool, other inte
 func cs_gaxpy(A *cs, x []float64, y []float64) bool {
 	if !(A != nil && A.nz == -1) || x == nil || y == nil {
 		// check inputs
-		return 0
+		return false
 	}
 	n := A.n
 	Ap := A.p
@@ -2572,179 +2568,179 @@ func cs_realloc(p interface{}, n int, ok *bool) interface{} {
 // 		}
 // 	}
 // }
-//
-// // cs_maxtrans - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_maxtrans.c:44
-// // find a maximum transveral
-// //[jmatch [0..m-1]; imatch [0..n-1]]
-// func cs_maxtrans(A []cs, seed noarch.PtrdiffT) []noarch.PtrdiffT {
-// 	var i noarch.PtrdiffT
-// 	var j noarch.PtrdiffT
-// 	var k noarch.PtrdiffT
-// 	var n noarch.PtrdiffT
-// 	var m noarch.PtrdiffT
-// 	var p noarch.PtrdiffT
-// 	var n2 noarch.PtrdiffT
-// 	var m2 noarch.PtrdiffT
-// 	var Ap []noarch.PtrdiffT
-// 	var jimatch []noarch.PtrdiffT
-// 	var w []noarch.PtrdiffT
-// 	var cheap []noarch.PtrdiffT
-// 	var js []noarch.PtrdiffT
-// 	var is []noarch.PtrdiffT
-// 	var ps []noarch.PtrdiffT
-// 	var Ai []noarch.PtrdiffT
-// 	var Cp []noarch.PtrdiffT
-// 	var jmatch []noarch.PtrdiffT
-// 	var imatch []noarch.PtrdiffT
-// 	var q []noarch.PtrdiffT
-// 	var C []cs
-// 	if !(A != nil && noarch.PtrdiffT(A[0].nz) == -1) {
-// 		// check inputs
-// 		return nil
-// 	}
-// 	n = noarch.PtrdiffT(A[0].n)
-// 	m = noarch.PtrdiffT(A[0].m)
-// 	Ap = A[0].p
-// 	Ai = A[0].i
-// 	jimatch = cs_calloc(m+n, uint(0)).([]noarch.PtrdiffT)
-// 	// allocate result
-// 	w = jimatch
-// 	if jimatch == nil {
-// 		return nil
-// 	}
-// 	{
-// 		// count nonempty rows and columns
-// 		k = 0
-// 		j = 0
-// 		for j = 0; j < n; j++ {
-// 			n2 += noarch.PtrdiffT(int32(map[bool]int{false: 0, true: 1}[Ap[j] < Ap[j+1]]) / 8)
-// 			for p = Ap[j]; p < Ap[j+1]; p++ {
-// 				w[Ai[p]] = 1
-// 				// count entries already on diagonal
-// 				k += noarch.PtrdiffT(int32(map[bool]int{false: 0, true: 1}[j == Ai[p]]) / 8)
-// 			}
-// 		}
-// 	}
-// 	if k == noarch.PtrdiffT(func() int32 {
-// 		if m < n {
-// 			return int32(noarch.PtrdiffT((m)))
-// 		}
-// 		return int32(noarch.PtrdiffT((n)))
-// 	}()/8) {
-// 		// quick return if diagonal zero-free
-// 		jmatch = jimatch
-// 		imatch = (*(*[1000000000]noarch.PtrdiffT)(unsafe.Pointer(uintptr(unsafe.Pointer(&jimatch[0])) + (uintptr)(int(m))*unsafe.Sizeof(jimatch[0]))))[:]
-// 		for i = 0; i < k; i++ {
-// 			jmatch[i] = i
-// 		}
-// 		for ; i < m; i++ {
-// 			jmatch[i] = -1
-// 		}
-// 		for j = 0; j < k; j++ {
-// 			imatch[j] = j
-// 		}
-// 		for ; j < n; j++ {
-// 			imatch[j] = -1
-// 		}
-// 		return (cs_idone(jimatch, nil, nil, 1))
-// 	}
-// 	for i = 0; i < m; i++ {
-// 		m2 += w[i]
-// 	}
-// 	// transpose if needed
-// 	C = func() []cs {
-// 		if m2 < n2 {
-// 			return cs_transpose(A, 0)
-// 		}
-// 		return (A)
-// 	}()
-// 	if C == nil {
-// 		return (cs_idone(jimatch, func() []cs {
-// 			if m2 < n2 {
-// 				return C
-// 			}
-// 			return nil
-// 		}(), nil, 0))
-// 	}
-// 	n = noarch.PtrdiffT(C[0].n)
-// 	m = noarch.PtrdiffT(C[0].m)
-// 	Cp = C[0].p
-// 	jmatch = func() []noarch.PtrdiffT {
-// 		if m2 < n2 {
-// 			return (*(*[1000000000]noarch.PtrdiffT)(unsafe.Pointer(uintptr(unsafe.Pointer(&jimatch[0])) + (uintptr)(int(n))*unsafe.Sizeof(jimatch[0]))))[:]
-// 		}
-// 		return jimatch
-// 	}()
-// 	imatch = func() []noarch.PtrdiffT {
-// 		if m2 < n2 {
-// 			return jimatch
-// 		}
-// 		return (*(*[1000000000]noarch.PtrdiffT)(unsafe.Pointer(uintptr(unsafe.Pointer(&jimatch[0])) + (uintptr)(int(m))*unsafe.Sizeof(jimatch[0]))))[:]
-// 	}()
-// 	// get workspace
-// 	w = cs_malloc(noarch.PtrdiffT(5*int32(n)/8), uint(0)).([]noarch.PtrdiffT)
-// 	if w == nil {
-// 		return (cs_idone(jimatch, func() []cs {
-// 			if m2 < n2 {
-// 				return C
-// 			}
-// 			return nil
-// 		}(), w, 0))
-// 	}
-// 	cheap = (*(*[1000000000]noarch.PtrdiffT)(unsafe.Pointer(uintptr(unsafe.Pointer(&w[0])) + (uintptr)(int(n))*unsafe.Sizeof(w[0]))))[:]
-// 	js = (*(*[1000000000]noarch.PtrdiffT)(unsafe.Pointer(uintptr(unsafe.Pointer(&w[0])) + (uintptr)(int(2*int32(n)))*unsafe.Sizeof(w[0]))))[:]
-// 	is = (*(*[1000000000]noarch.PtrdiffT)(unsafe.Pointer(uintptr(unsafe.Pointer(&w[0])) + (uintptr)(int(3*int32(n)))*unsafe.Sizeof(w[0]))))[:]
-// 	ps = (*(*[1000000000]noarch.PtrdiffT)(unsafe.Pointer(uintptr(unsafe.Pointer(&w[0])) + (uintptr)(int(4*int32(n)))*unsafe.Sizeof(w[0]))))[:]
-// 	{
-// 		// for cheap assignment
-// 		for j = 0; j < n; j++ {
-// 			cheap[j] = Cp[j]
-// 		}
-// 	}
-// 	{
-// 		// all columns unflagged
-// 		for j = 0; j < n; j++ {
-// 			w[j] = -1
-// 		}
-// 	}
-// 	{
-// 		// nothing matched yet
-// 		for i = 0; i < m; i++ {
-// 			jmatch[i] = -1
-// 		}
-// 	}
-// 	// q = random permutation
-// 	q = cs_randperm(noarch.PtrdiffT(n), noarch.PtrdiffT(seed))
-// 	{
-// 		// augment, starting at column q[k]
-// 		for k = 0; k < n; k++ {
-// 			cs_augment(noarch.PtrdiffT(func() int32 {
-// 				if q != nil {
-// 					return int32(noarch.PtrdiffT(q[k]))
-// 				}
-// 				return int32(noarch.PtrdiffT(k))
-// 			}()/8), C, jmatch, cheap, w, js, is, ps)
-// 		}
-// 	}
-// 	cs_free(q)
-// 	{
-// 		// find row match
-// 		for j = 0; j < n; j++ {
-// 			imatch[j] = -1
-// 		}
-// 	}
-// 	for i = 0; i < m; i++ {
-// 		if jmatch[i] >= 0 {
-// 			imatch[jmatch[i]] = i
-// 		}
-// 	}
-// 	return (cs_idone(jimatch, func() []cs {
-// 		if m2 < n2 {
-// 			return C
-// 		}
-// 		return nil
-// 	}(), w, 1))
-// }
+
+// cs_maxtrans - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_maxtrans.c:44
+// find a maximum transveral
+//[jmatch [0..m-1]; imatch [0..n-1]]
+func cs_maxtrans(A *cs, seed int) int {
+	var i noarch.PtrdiffT
+	var j noarch.PtrdiffT
+	var k noarch.PtrdiffT
+	var n noarch.PtrdiffT
+	var m noarch.PtrdiffT
+	var p noarch.PtrdiffT
+	var n2 noarch.PtrdiffT
+	var m2 noarch.PtrdiffT
+	var Ap []noarch.PtrdiffT
+	var jimatch []noarch.PtrdiffT
+	var w []noarch.PtrdiffT
+	var cheap []noarch.PtrdiffT
+	var js []noarch.PtrdiffT
+	var is []noarch.PtrdiffT
+	var ps []noarch.PtrdiffT
+	var Ai []noarch.PtrdiffT
+	var Cp []noarch.PtrdiffT
+	var jmatch []noarch.PtrdiffT
+	var imatch []noarch.PtrdiffT
+	var q []noarch.PtrdiffT
+	var C []cs
+	if !(A != nil && noarch.PtrdiffT(A[0].nz) == -1) {
+		// check inputs
+		return nil
+	}
+	n = noarch.PtrdiffT(A[0].n)
+	m = noarch.PtrdiffT(A[0].m)
+	Ap = A[0].p
+	Ai = A[0].i
+	jimatch = cs_calloc(m+n, uint(0)).([]noarch.PtrdiffT)
+	// allocate result
+	w = jimatch
+	if jimatch == nil {
+		return nil
+	}
+	{
+		// count nonempty rows and columns
+		k = 0
+		j = 0
+		for j = 0; j < n; j++ {
+			n2 += noarch.PtrdiffT(int32(map[bool]int{false: 0, true: 1}[Ap[j] < Ap[j+1]]) / 8)
+			for p = Ap[j]; p < Ap[j+1]; p++ {
+				w[Ai[p]] = 1
+				// count entries already on diagonal
+				k += noarch.PtrdiffT(int32(map[bool]int{false: 0, true: 1}[j == Ai[p]]) / 8)
+			}
+		}
+	}
+	if k == noarch.PtrdiffT(func() int32 {
+		if m < n {
+			return int32(noarch.PtrdiffT((m)))
+		}
+		return int32(noarch.PtrdiffT((n)))
+	}()/8) {
+		// quick return if diagonal zero-free
+		jmatch = jimatch
+		imatch = (*(*[1000000000]noarch.PtrdiffT)(unsafe.Pointer(uintptr(unsafe.Pointer(&jimatch[0])) + (uintptr)(int(m))*unsafe.Sizeof(jimatch[0]))))[:]
+		for i = 0; i < k; i++ {
+			jmatch[i] = i
+		}
+		for ; i < m; i++ {
+			jmatch[i] = -1
+		}
+		for j = 0; j < k; j++ {
+			imatch[j] = j
+		}
+		for ; j < n; j++ {
+			imatch[j] = -1
+		}
+		return (cs_idone(jimatch, nil, nil, 1))
+	}
+	for i = 0; i < m; i++ {
+		m2 += w[i]
+	}
+	// transpose if needed
+	C = func() []cs {
+		if m2 < n2 {
+			return cs_transpose(A, 0)
+		}
+		return (A)
+	}()
+	if C == nil {
+		return (cs_idone(jimatch, func() []cs {
+			if m2 < n2 {
+				return C
+			}
+			return nil
+		}(), nil, 0))
+	}
+	n = noarch.PtrdiffT(C[0].n)
+	m = noarch.PtrdiffT(C[0].m)
+	Cp = C[0].p
+	jmatch = func() []noarch.PtrdiffT {
+		if m2 < n2 {
+			return (*(*[1000000000]noarch.PtrdiffT)(unsafe.Pointer(uintptr(unsafe.Pointer(&jimatch[0])) + (uintptr)(int(n))*unsafe.Sizeof(jimatch[0]))))[:]
+		}
+		return jimatch
+	}()
+	imatch = func() []noarch.PtrdiffT {
+		if m2 < n2 {
+			return jimatch
+		}
+		return (*(*[1000000000]noarch.PtrdiffT)(unsafe.Pointer(uintptr(unsafe.Pointer(&jimatch[0])) + (uintptr)(int(m))*unsafe.Sizeof(jimatch[0]))))[:]
+	}()
+	// get workspace
+	w = cs_malloc(noarch.PtrdiffT(5*int32(n)/8), uint(0)).([]noarch.PtrdiffT)
+	if w == nil {
+		return (cs_idone(jimatch, func() []cs {
+			if m2 < n2 {
+				return C
+			}
+			return nil
+		}(), w, 0))
+	}
+	cheap = (*(*[1000000000]noarch.PtrdiffT)(unsafe.Pointer(uintptr(unsafe.Pointer(&w[0])) + (uintptr)(int(n))*unsafe.Sizeof(w[0]))))[:]
+	js = (*(*[1000000000]noarch.PtrdiffT)(unsafe.Pointer(uintptr(unsafe.Pointer(&w[0])) + (uintptr)(int(2*int32(n)))*unsafe.Sizeof(w[0]))))[:]
+	is = (*(*[1000000000]noarch.PtrdiffT)(unsafe.Pointer(uintptr(unsafe.Pointer(&w[0])) + (uintptr)(int(3*int32(n)))*unsafe.Sizeof(w[0]))))[:]
+	ps = (*(*[1000000000]noarch.PtrdiffT)(unsafe.Pointer(uintptr(unsafe.Pointer(&w[0])) + (uintptr)(int(4*int32(n)))*unsafe.Sizeof(w[0]))))[:]
+	{
+		// for cheap assignment
+		for j = 0; j < n; j++ {
+			cheap[j] = Cp[j]
+		}
+	}
+	{
+		// all columns unflagged
+		for j = 0; j < n; j++ {
+			w[j] = -1
+		}
+	}
+	{
+		// nothing matched yet
+		for i = 0; i < m; i++ {
+			jmatch[i] = -1
+		}
+	}
+	// q = random permutation
+	q = cs_randperm(noarch.PtrdiffT(n), noarch.PtrdiffT(seed))
+	{
+		// augment, starting at column q[k]
+		for k = 0; k < n; k++ {
+			cs_augment(noarch.PtrdiffT(func() int32 {
+				if q != nil {
+					return int32(noarch.PtrdiffT(q[k]))
+				}
+				return int32(noarch.PtrdiffT(k))
+			}()/8), C, jmatch, cheap, w, js, is, ps)
+		}
+	}
+	cs_free(q)
+	{
+		// find row match
+		for j = 0; j < n; j++ {
+			imatch[j] = -1
+		}
+	}
+	for i = 0; i < m; i++ {
+		if jmatch[i] >= 0 {
+			imatch[jmatch[i]] = i
+		}
+	}
+	return (cs_idone(jimatch, func() []cs {
+		if m2 < n2 {
+			return C
+		}
+		return nil
+	}(), w, 1))
+}
 
 // cs_multiply - C = A*B
 func cs_multiply(A *cs, B *cs) *cs {
@@ -2849,98 +2845,96 @@ func cs_norm(A *cs) float64 {
 	return norm
 }
 
-//
-// // cs_permute - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_permute.c:3
-// // C = A(p,q) where p and q are permutations of 0..m-1 and 0..n-1.
-// func cs_permute(A []cs, pinv []noarch.PtrdiffT, q []noarch.PtrdiffT, values noarch.PtrdiffT) []cs {
-// 	var t noarch.PtrdiffT
-// 	var j noarch.PtrdiffT
-// 	var k noarch.PtrdiffT
-// 	var nz noarch.PtrdiffT
-// 	var m noarch.PtrdiffT
-// 	var n noarch.PtrdiffT
-// 	var Ap []noarch.PtrdiffT
-// 	var Ai []noarch.PtrdiffT
-// 	var Cp []noarch.PtrdiffT
-// 	var Ci []noarch.PtrdiffT
-// 	var Cx []float64
-// 	var Ax []float64
-// 	var C []cs
-// 	if !(A != nil && noarch.PtrdiffT(A[0].nz) == -1) {
-// 		// check inputs
-// 		return nil
-// 	}
-// 	m = noarch.PtrdiffT(A[0].m)
-// 	n = noarch.PtrdiffT(A[0].n)
-// 	Ap = A[0].p
-// 	Ai = A[0].i
-// 	Ax = A[0].x
-// 	// alloc result
-// 	C = cs_spalloc(m, noarch.PtrdiffT(n), noarch.PtrdiffT(Ap[n]), noarch.PtrdiffT(bool(values) && Ax != nil), 0)
-// 	if C == nil {
-// 		// out of memory
-// 		return (cs_done(C, nil, nil, 0))
-// 	}
-// 	Cp = C[0].p
-// 	Ci = C[0].i
-// 	Cx = C[0].x
-// 	for k = 0; k < n; k++ {
-// 		// column k of C is column q[k] of A
-// 		Cp[k] = nz
-// 		j = noarch.PtrdiffT(func() int32 {
-// 			if q != nil {
-// 				return int32(noarch.PtrdiffT((q[k])))
-// 			}
-// 			return int32(noarch.PtrdiffT(k))
-// 		}() / 8)
-// 		for t = Ap[j]; t < Ap[j+1]; t++ {
-// 			if Cx != nil {
-// 				// row i of A is row pinv[i] of C
-// 				Cx[nz] = Ax[t]
-// 			}
-// 			Ci[func() noarch.PtrdiffT {
-// 				defer func() {
-// 					nz++
-// 				}()
-// 				return nz
-// 			}()] = noarch.PtrdiffT(func() int32 {
-// 				if pinv != nil {
-// 					return int32(noarch.PtrdiffT((pinv[Ai[t]])))
-// 				}
-// 				return int32(noarch.PtrdiffT(Ai[t]))
-// 			}() / 8)
-// 		}
-// 	}
-// 	// finalize the last column of C
-// 	Cp[n] = nz
-// 	return (cs_done(C, nil, nil, 1))
-// }
-//
-// // cs_pinv - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_pinv.c:3
-// // pinv = p', or p = pinv'
-// func cs_pinv(p []noarch.PtrdiffT, n noarch.PtrdiffT) []noarch.PtrdiffT {
-// 	var k noarch.PtrdiffT
-// 	var pinv []noarch.PtrdiffT
-// 	if p == nil {
-// 		// p = NULL denotes identity
-// 		return nil
-// 	}
-// 	// allocate result
-// 	pinv = cs_malloc(noarch.PtrdiffT(n), uint(0)).([]noarch.PtrdiffT)
-// 	if pinv == nil {
-// 		// out of memory
-// 		return nil
-// 	}
-// 	{
-// 		// invert the permutation
-// 		for k = 0; k < n; k++ {
-// 			pinv[p[k]] = k
-// 		}
-// 	}
-// 	// return result
-// 	return (pinv)
-// }
-//
+// cs_permute - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_permute.c:3
+// C = A(p,q) where p and q are permutations of 0..m-1 and 0..n-1.
+func cs_permute(A *cs, pinv []int, q []int, values bool) *cs {
+	var t noarch.PtrdiffT
+	var j noarch.PtrdiffT
+	var k noarch.PtrdiffT
+	var nz noarch.PtrdiffT
+	var m noarch.PtrdiffT
+	var n noarch.PtrdiffT
+	var Ap []noarch.PtrdiffT
+	var Ai []noarch.PtrdiffT
+	var Cp []noarch.PtrdiffT
+	var Ci []noarch.PtrdiffT
+	var Cx []float64
+	var Ax []float64
+	var C []cs
+	if !(A != nil && noarch.PtrdiffT(A[0].nz) == -1) {
+		// check inputs
+		return nil
+	}
+	m = noarch.PtrdiffT(A[0].m)
+	n = noarch.PtrdiffT(A[0].n)
+	Ap = A[0].p
+	Ai = A[0].i
+	Ax = A[0].x
+	// alloc result
+	C = cs_spalloc(m, noarch.PtrdiffT(n), noarch.PtrdiffT(Ap[n]), noarch.PtrdiffT(bool(values) && Ax != nil), 0)
+	if C == nil {
+		// out of memory
+		return (cs_done(C, nil, nil, 0))
+	}
+	Cp = C[0].p
+	Ci = C[0].i
+	Cx = C[0].x
+	for k = 0; k < n; k++ {
+		// column k of C is column q[k] of A
+		Cp[k] = nz
+		j = noarch.PtrdiffT(func() int32 {
+			if q != nil {
+				return int32(noarch.PtrdiffT((q[k])))
+			}
+			return int32(noarch.PtrdiffT(k))
+		}() / 8)
+		for t = Ap[j]; t < Ap[j+1]; t++ {
+			if Cx != nil {
+				// row i of A is row pinv[i] of C
+				Cx[nz] = Ax[t]
+			}
+			Ci[func() noarch.PtrdiffT {
+				defer func() {
+					nz++
+				}()
+				return nz
+			}()] = noarch.PtrdiffT(func() int32 {
+				if pinv != nil {
+					return int32(noarch.PtrdiffT((pinv[Ai[t]])))
+				}
+				return int32(noarch.PtrdiffT(Ai[t]))
+			}() / 8)
+		}
+	}
+	// finalize the last column of C
+	Cp[n] = nz
+	return (cs_done(C, nil, nil, 1))
+}
+
+// cs_pinv - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_pinv.c:3
+// pinv = p', or p = pinv'
+func cs_pinv(p []int, n int) []int {
+	var pinv []int
+	if p == nil {
+		// p = NULL denotes identity
+		return nil
+	}
+	// allocate result
+	pinv = make([]int, n) // cs_malloc(noarch.PtrdiffT(n), uint(0)).([]noarch.PtrdiffT)
+	if pinv == nil {
+		// out of memory
+		return nil
+	}
+
+	// invert the permutation
+	for k := 0; k < n; k++ {
+		pinv[p[k]] = k
+	}
+
+	// return result
+	return (pinv)
+}
+
 // // cs_post - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_post.c:3
 // // post order a forest
 // func cs_post(parent []noarch.PtrdiffT, n noarch.PtrdiffT) []noarch.PtrdiffT {
@@ -3474,113 +3468,114 @@ func cs_scatter(A *cs, j int, beta float64, w []int, x []float64, mark int, C *c
 	return nz
 }
 
-// // cs_scc - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_scc.c:3
-// // find the strongly connected components of a square matrix
-// // matrix A temporarily modified, then restored
-// func cs_scc(A []cs) []csd {
-// 	var n noarch.PtrdiffT
-// 	var i noarch.PtrdiffT
-// 	var k noarch.PtrdiffT
-// 	var b noarch.PtrdiffT
-// 	var nb noarch.PtrdiffT
-// 	var top noarch.PtrdiffT
-// 	var xi []noarch.PtrdiffT
-// 	var pstack []noarch.PtrdiffT
-// 	var p []noarch.PtrdiffT
-// 	var r []noarch.PtrdiffT
-// 	var Ap []noarch.PtrdiffT
-// 	var ATp []noarch.PtrdiffT
-// 	var rcopy []noarch.PtrdiffT
-// 	var Blk []noarch.PtrdiffT
-// 	var AT []cs
-// 	var D []csd
-// 	if !(A != nil && noarch.PtrdiffT(A[0].nz) == -1) {
-// 		// check inputs
-// 		return nil
-// 	}
-// 	n = noarch.PtrdiffT(A[0].n)
-// 	Ap = A[0].p
-// 	// allocate result
-// 	D = cs_dalloc(noarch.PtrdiffT(n), 0)
-// 	// AT = A'
-// 	AT = cs_transpose(A, 0)
-// 	// get workspace
-// 	xi = cs_malloc(noarch.PtrdiffT((2*int32(n)+1)/8), uint(0)).([]noarch.PtrdiffT)
-// 	if D == nil || AT == nil || xi == nil {
-// 		return (cs_ddone(D, AT, xi, 0))
-// 	}
-// 	Blk = xi
-// 	pstack = (*(*[1000000000]noarch.PtrdiffT)(unsafe.Pointer(uintptr(unsafe.Pointer(&xi[0])) + (uintptr)(int(n))*unsafe.Sizeof(xi[0]))))[:]
-// 	rcopy = pstack
-// 	p = D[0].p
-// 	r = D[0].r
-// 	ATp = AT[0].p
-// 	top = n
-// 	{
-// 		// first dfs(A) to find finish times (xi)
-// 		for i = 0; i < n; i++ {
-// 			if !(Ap[i] < 0) {
-// 				top = cs_dfs(noarch.PtrdiffT(i), A, noarch.PtrdiffT(top), xi, pstack, nil)
-// 			}
-// 		}
-// 	}
-// 	{
-// 		// restore A; unmark all nodes
-// 		for i = 0; i < n; i++ {
-// 			Ap[i] = -noarch.PtrdiffT((Ap[i])) - 2
-// 		}
-// 	}
-// 	top = n
-// 	nb = n
-// 	{
-// 		// dfs(A') to find strongly connnected comp
-// 		for k = 0; k < n; k++ {
-// 			// get i in reverse order of finish times
-// 			i = xi[k]
-// 			if ATp[i] < 0 {
-// 				// skip node i if already ordered
-// 				continue
-// 			}
-// 			// node i is the start of a component in p
-// 			r[func() noarch.PtrdiffT {
-// 				defer func() {
-// 					nb--
-// 				}()
-// 				return nb
-// 			}()] = top
-// 			top = cs_dfs(noarch.PtrdiffT(i), AT, noarch.PtrdiffT(top), p, pstack, nil)
-// 		}
-// 	}
-// 	// first block starts at zero; shift r up
-// 	r[nb] = 0
-// 	for k = nb; k <= n; k++ {
-// 		r[k-nb] = r[k]
-// 	}
-// 	nb = n - nb
-// 	// nb = # of strongly connected components
-// 	D[0].nb = nb
-// 	{
-// 		// sort each block in natural order
-// 		for b = 0; b < nb; b++ {
-// 			for k = r[b]; k < r[b+1]; k++ {
-// 				Blk[p[k]] = b
-// 			}
-// 		}
-// 	}
-// 	for b = 0; b <= nb; b++ {
-// 		rcopy[b] = r[b]
-// 	}
-// 	for i = 0; i < n; i++ {
-// 		p[func() noarch.PtrdiffT {
-// 			tempVar := &rcopy[Blk[i]]
-// 			defer func() {
-// 				*tempVar++
-// 			}()
-// 			return *tempVar
-// 		}()] = i
-// 	}
-// 	return (cs_ddone(D, AT, xi, 1))
-// }
+// cs_scc - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_scc.c:3
+// find the strongly connected components of a square matrix
+// matrix A temporarily modified, then restored
+func cs_scc(A *cs) *csd {
+	var n noarch.PtrdiffT
+	var i noarch.PtrdiffT
+	var k noarch.PtrdiffT
+	var b noarch.PtrdiffT
+	var nb noarch.PtrdiffT
+	var top noarch.PtrdiffT
+	var xi []noarch.PtrdiffT
+	var pstack []noarch.PtrdiffT
+	var p []noarch.PtrdiffT
+	var r []noarch.PtrdiffT
+	var Ap []noarch.PtrdiffT
+	var ATp []noarch.PtrdiffT
+	var rcopy []noarch.PtrdiffT
+	var Blk []noarch.PtrdiffT
+	var AT []cs
+	var D []csd
+	if !(A != nil && noarch.PtrdiffT(A[0].nz) == -1) {
+		// check inputs
+		return nil
+	}
+	n = noarch.PtrdiffT(A[0].n)
+	Ap = A[0].p
+	// allocate result
+	D = cs_dalloc(noarch.PtrdiffT(n), 0)
+	// AT = A'
+	AT = cs_transpose(A, 0)
+	// get workspace
+	xi = cs_malloc(noarch.PtrdiffT((2*int32(n)+1)/8), uint(0)).([]noarch.PtrdiffT)
+	if D == nil || AT == nil || xi == nil {
+		return (cs_ddone(D, AT, xi, 0))
+	}
+	Blk = xi
+	pstack = (*(*[1000000000]noarch.PtrdiffT)(unsafe.Pointer(uintptr(unsafe.Pointer(&xi[0])) + (uintptr)(int(n))*unsafe.Sizeof(xi[0]))))[:]
+	rcopy = pstack
+	p = D[0].p
+	r = D[0].r
+	ATp = AT[0].p
+	top = n
+	{
+		// first dfs(A) to find finish times (xi)
+		for i = 0; i < n; i++ {
+			if !(Ap[i] < 0) {
+				top = cs_dfs(noarch.PtrdiffT(i), A, noarch.PtrdiffT(top), xi, pstack, nil)
+			}
+		}
+	}
+	{
+		// restore A; unmark all nodes
+		for i = 0; i < n; i++ {
+			Ap[i] = -noarch.PtrdiffT((Ap[i])) - 2
+		}
+	}
+	top = n
+	nb = n
+	{
+		// dfs(A') to find strongly connnected comp
+		for k = 0; k < n; k++ {
+			// get i in reverse order of finish times
+			i = xi[k]
+			if ATp[i] < 0 {
+				// skip node i if already ordered
+				continue
+			}
+			// node i is the start of a component in p
+			r[func() noarch.PtrdiffT {
+				defer func() {
+					nb--
+				}()
+				return nb
+			}()] = top
+			top = cs_dfs(noarch.PtrdiffT(i), AT, noarch.PtrdiffT(top), p, pstack, nil)
+		}
+	}
+	// first block starts at zero; shift r up
+	r[nb] = 0
+	for k = nb; k <= n; k++ {
+		r[k-nb] = r[k]
+	}
+	nb = n - nb
+	// nb = # of strongly connected components
+	D[0].nb = nb
+	{
+		// sort each block in natural order
+		for b = 0; b < nb; b++ {
+			for k = r[b]; k < r[b+1]; k++ {
+				Blk[p[k]] = b
+			}
+		}
+	}
+	for b = 0; b <= nb; b++ {
+		rcopy[b] = r[b]
+	}
+	for i = 0; i < n; i++ {
+		p[func() noarch.PtrdiffT {
+			tempVar := &rcopy[Blk[i]]
+			defer func() {
+				*tempVar++
+			}()
+			return *tempVar
+		}()] = i
+	}
+	return (cs_ddone(D, AT, xi, 1))
+}
+
 //
 // // cs_schol - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_schol.c:3
 // // ordering and symbolic analysis for a Cholesky factorization
@@ -4425,11 +4420,11 @@ func cs_dalloc(m, n int) *csd {
 	}())
 }
 
-// // cs_dfree - free a cs_dmperm or cs_scc result
-// func cs_dfree(D *csd) *csd {
-// 	// free the csd struct and return NULL
-// 	return nil
-// }
+// cs_dfree - free a cs_dmperm or cs_scc result
+func cs_dfree(D *csd) *csd {
+	// free the csd struct and return NULL
+	return nil
+}
 
 // cs_done - free workspace and return a sparse matrix result
 func cs_done(C *cs, w []int, x []float64, ok bool) *cs {
@@ -4444,20 +4439,20 @@ func cs_done(C *cs, w []int, x []float64, ok bool) *cs {
 	return nil
 }
 
-// // cs_idone - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_util.c:98
-// // free workspace and return csi array result
-// func cs_idone(p *cs, C *cs, w interface{}, ok bool) *cs {
-// 	//
-// 	// TODO (KI) : remove C, w
-// 	//
-//
-// 	// return result, or free it
-// 	if ok {
-// 		return p
-// 	}
-// 	return nil
-// }
-//
+// cs_idone - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_util.c:98
+// free workspace and return csi array result
+func cs_idone(p *cs, C *cs, w interface{}, ok bool) *cs {
+	//
+	// TODO (KI) : remove C, w
+	//
+
+	// return result, or free it
+	if ok {
+		return p
+	}
+	return nil
+}
+
 // // cs_ndone - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_util.c:106
 // // free workspace and return a numeric factorization (Cholesky, LU, or QR)
 // func cs_ndone(N *csn, C *cs, w interface{}, x interface{}, ok bool) *csn {
@@ -4467,17 +4462,17 @@ func cs_done(C *cs, w []int, x []float64, ok bool) *cs {
 // 	}
 // 	return nil
 // }
-//
-// // cs_ddone - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_util.c:115
-// // free workspace and return a csd result
-// func cs_ddone(D *csd, C *cs, w interface{}, ok bool) *csd {
-// 	// return result if OK, else free it
-// 	if ok {
-// 		return D
-// 	}
-// 	return nil
-// }
-//
+
+// cs_ddone - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_util.c:115
+// free workspace and return a csd result
+func cs_ddone(D *csd, C *cs, w interface{}, ok bool) *csd {
+	// return result if OK, else free it
+	if ok {
+		return D
+	}
+	return nil
+}
+
 // // cs_utsolve - solve U'x=b where x and b are dense.  x=b on input, solution on output.
 // func cs_utsolve(U *cs, x []float64) bool {
 // 	if !(U != nil && U.nz == -1) || x == nil {
