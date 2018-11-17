@@ -2510,13 +2510,13 @@ func cs_augment(k int,
 	is []int,
 	ps []int) {
 
-	var found bool
-	var p noarch.PtrdiffT
-	var i noarch.PtrdiffT = -1
-	var Ap []noarch.PtrdiffT = A[0].p
-	var Ai []noarch.PtrdiffT = A[0].i
-	var head noarch.PtrdiffT
-	var j noarch.PtrdiffT
+	var found bool = false
+	var p int
+	var i int = -1
+	Ap := A.p
+	Ai := A.i
+	var head int
+	var j int
 	// start with just node k in jstack
 	js[0] = k
 	for head >= 0 {
@@ -2527,14 +2527,14 @@ func cs_augment(k int,
 			// 1st time j visited for kth path
 			// mark j as visited for kth path
 			w[j] = k
-			for p = cheap[j]; p < Ap[j+1] && bool(noarch.NotNoarch.PtrdiffT(noarch.PtrdiffT(found))); p++ {
+			for p = cheap[j]; p < Ap[j+1] && !found; p++ {
 				// try a cheap assignment (i,j)
 				i = Ai[p]
-				found = noarch.PtrdiffT(jmatch[i] == -1)
+				found = (jmatch[i] == -1)
 			}
 			// start here next time j is traversed
 			cheap[j] = p
-			if bool(noarch.PtrdiffT(found)) {
+			if found {
 				// column j matched with row i
 				is[head] = i
 				// end of augmenting path
@@ -2723,12 +2723,12 @@ func cs_maxtrans(A *cs, seed int) []int {
 
 	// augment, starting at column q[k]
 	for k = 0; k < n; k++ {
-		cs_augment(noarch.PtrdiffT(func() int32 {
+		cs_augment(func() int {
 			if q != nil {
-				return int32(noarch.PtrdiffT(q[k]))
+				return q[k]
 			}
-			return int32(noarch.PtrdiffT(k))
-		}()/8), C, jmatch, cheap, w, js, is, ps)
+			return k
+		}(), C, jmatch, cheap, w, js, is, ps)
 	}
 
 	cs_free(q)
@@ -2743,12 +2743,12 @@ func cs_maxtrans(A *cs, seed int) []int {
 			imatch[jmatch[i]] = i
 		}
 	}
-	return (cs_idone(jimatch, func() []cs {
+	return (cs_idone(jimatch, func() *cs {
 		if m2 < n2 {
 			return C
 		}
 		return nil
-	}(), w, 1))
+	}(), w, true))
 }
 
 // cs_multiply - C = A*B
