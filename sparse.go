@@ -4,6 +4,10 @@ import (
 	"fmt"
 	"io"
 	"math"
+	"unsafe"
+
+	"github.com/Konstantin8105/c4go/noarch"
+	"golang.org/x/exp/rand"
 )
 
 // matrix in compressed-column or triplet form
@@ -3356,21 +3360,17 @@ func cs_print(A *cs, brief bool) bool {
 // * seed = -1 means p = n-1:-1:0.  seed = 0 means p = identity.  otherwise
 // * p = random permutation.
 func cs_randperm(n int, seed int) []int {
-	var p []noarch.PtrdiffT
-	var k noarch.PtrdiffT
-	var j noarch.PtrdiffT
-	var t noarch.PtrdiffT
 	if seed == 0 {
 		// return p = NULL (identity)
 		return nil
 	}
 	// allocate result
-	p = cs_malloc(noarch.PtrdiffT(n), uint(0)).([]noarch.PtrdiffT)
+	p := make([]int, n)
 	if p == nil {
 		// out of memory
 		return nil
 	}
-	for k = 0; k < n; k++ {
+	for k := 0; k < n; k++ {
 		p[k] = n - k - 1
 	}
 	if seed == -1 {
@@ -3378,16 +3378,14 @@ func cs_randperm(n int, seed int) []int {
 		return (p)
 	}
 	// get new random number seed
-	rand.Seed(int64(uint32(noarch.PtrdiffT(seed))))
-	for k = 0; k < n; k++ {
+	rand.Seed(uint64(seed))
+	for k := 0; k < n; k++ {
 		// j = rand integer in range k to n-1
-		j = k + noarch.PtrdiffT(int32(rand.Int())%int32(n-k)/8)
+		j := k + (rand.Int() % (n - k))
 		// swap p[k] and p[j]
-		t = p[j]
-		p[j] = p[k]
-		p[k] = t
+		p[k], p[j] = p[j], p[k]
 	}
-	return (p)
+	return p
 }
 
 // // cs_reach - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_reach.c:4
