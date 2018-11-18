@@ -23,7 +23,7 @@ type cs struct { // struct cs_sparse
 type css struct { // struct cs_symbolic
 	pinv     *int  // inverse row perm. for QR, fill red. perm for Chol
 	q        []int // fill-reducing column permutation for LU and QR
-	parent   *int  // elimination tree for Cholesky and QR
+	parent   []int // elimination tree for Cholesky and QR
 	cp       []int // column pointers for Cholesky, row counts for QR
 	leftmost *int  // TODO
 	m2       int   // # of rows for QR, after adding fictitious rows
@@ -1864,81 +1864,81 @@ func cs_entry(T *cs, i, j int, x float64) bool {
 // 	// s [top..n-1] contains pattern of L(k,:)
 // 	return PtrdiffT((top))
 // }
-//
-// // cs_etree - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_etree.c:3
-// // compute the etree of A (using triu(A), or A'A without forming A'A
-// func cs_etree(A []cs, ata PtrdiffT) []PtrdiffT {
-// 	var i PtrdiffT
-// 	var k PtrdiffT
-// 	var p PtrdiffT
-// 	var m PtrdiffT
-// 	var n PtrdiffT
-// 	var inext PtrdiffT
-// 	var Ap []PtrdiffT
-// 	var Ai []PtrdiffT
-// 	var w []PtrdiffT
-// 	var parent []PtrdiffT
-// 	var ancestor []PtrdiffT
-// 	var prev []PtrdiffT
-// 	if !(A != nil && A.nz == -1) {
-// 		// check inputs
-// 		return nil
-// 	}
-// 	m = A.m
-// 	n = A.n
-// 	Ap = A.p
-// 	Ai = A.i
-// 	// allocate result
-// 	parent = cs_malloc(n, uint(0)).([]PtrdiffT)
-// 	// get workspace
-// 	w = cs_malloc(n+PtrdiffT(func() int {
-// 		if bool(PtrdiffT(ata)) {
-// 			return int(m)
-// 		}
-// 		return 0
-// 	}()/8), uint(0)).([]PtrdiffT)
-// 	if w == nil || parent == nil {
-// 		return (cs_idone(parent, nil, w, 0))
-// 	}
-// 	ancestor = w
-// 	prev = (*(*[1000000000]PtrdiffT)(unsafe.Pointer(uintptr(unsafe.Pointer(&w[0])) + (uintptr)(int(n))*unsafe.Sizeof(w[0]))))[:]
-// 	if bool(PtrdiffT(ata)) {
-// 		for i = 0; i < m; i++ {
-// 			prev[i] = -1
-// 		}
-// 	}
-// 	for k = 0; k < n; k++ {
-// 		// node k has no parent yet
-// 		parent[k] = -1
-// 		// nor does k have an ancestor
-// 		ancestor[k] = -1
-// 		for p = Ap[k]; p < Ap[k+1]; p++ {
-// 			i = PtrdiffT(func() int {
-// 				if bool(PtrdiffT(ata)) {
-// 					return (((prev[Ai[p]])))
-// 				}
-// 				return (((Ai[p])))
-// 			}() / 8)
-// 			{
-// 				// traverse from i to k
-// 				for ; i != -1 && i < k; i = inext {
-// 					// inext = ancestor of i
-// 					inext = ancestor[i]
-// 					// path compression
-// 					ancestor[i] = k
-// 					if inext == -1 {
-// 						// no anc., parent is k
-// 						parent[i] = k
-// 					}
-// 				}
-// 			}
-// 			if bool(PtrdiffT(ata)) {
-// 				prev[Ai[p]] = k
-// 			}
-// 		}
-// 	}
-// 	return (cs_idone(parent, nil, w, 1))
-// }
+
+// cs_etree - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_etree.c:3
+// compute the etree of A (using triu(A), or A'A without forming A'A
+func cs_etree(A *cs, ata bool) []int {
+	var i PtrdiffT
+	var k PtrdiffT
+	var p PtrdiffT
+	var m PtrdiffT
+	var n PtrdiffT
+	var inext PtrdiffT
+	var Ap []PtrdiffT
+	var Ai []PtrdiffT
+	var w []PtrdiffT
+	var parent []PtrdiffT
+	var ancestor []PtrdiffT
+	var prev []PtrdiffT
+	if !(A != nil && A.nz == -1) {
+		// check inputs
+		return nil
+	}
+	m = A.m
+	n = A.n
+	Ap = A.p
+	Ai = A.i
+	// allocate result
+	parent = make([]int, n)
+	// get workspace
+	w = cs_malloc(n+(func() int {
+		if ata {
+			return int(m)
+		}
+		return 0
+	}()), uint(0)).([]PtrdiffT)
+	if w == nil || parent == nil {
+		return (cs_idone(parent, nil, w, false))
+	}
+	ancestor = w
+	prev = w[n:]
+	if ata {
+		for i = 0; i < m; i++ {
+			prev[i] = -1
+		}
+	}
+	for k = 0; k < n; k++ {
+		// node k has no parent yet
+		parent[k] = -1
+		// nor does k have an ancestor
+		ancestor[k] = -1
+		for p = Ap[k]; p < Ap[k+1]; p++ {
+			i = PtrdiffT(func() int {
+				if ata {
+					return (prev[Ai[p]])
+				}
+				return (Ai[p])
+			}() / 8)
+			{
+				// traverse from i to k
+				for ; i != -1 && i < k; i = inext {
+					// inext = ancestor of i
+					inext = ancestor[i]
+					// path compression
+					ancestor[i] = k
+					if inext == -1 {
+						// no anc., parent is k
+						parent[i] = k
+					}
+				}
+			}
+			if ata {
+				prev[Ai[p]] = k
+			}
+		}
+	}
+	return (cs_idone(parent, nil, w, true))
+}
 
 // cs_fkeep - drop entries for which fkeep(A(i,j)) is false; return nz if OK, else -1
 func cs_fkeep(A *cs, fkeep func(int, int, float64, interface{}) bool, other interface{}) int {
@@ -2920,58 +2920,58 @@ func cs_pinv(p []int, n int) []int {
 	return (pinv)
 }
 
-// // cs_post - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_post.c:3
-// // post order a forest
-// func cs_post(parent []PtrdiffT, n PtrdiffT) []PtrdiffT {
-// 	var j PtrdiffT
-// 	var k PtrdiffT
-// 	var post []PtrdiffT
-// 	var w []PtrdiffT
-// 	var head []PtrdiffT
-// 	var next []PtrdiffT
-// 	var stack []PtrdiffT
-// 	if parent == nil {
-// 		// check inputs
-// 		return nil
-// 	}
-// 	// allocate result
-// 	post = cs_malloc(n, uint(0)).([]PtrdiffT)
-// 	// get workspace
-// 	w = cs_malloc(PtrdiffT(3*int(n)/8), uint(0)).([]PtrdiffT)
-// 	if w == nil || post == nil {
-// 		return (cs_idone(post, nil, w, 0))
-// 	}
-// 	head = w
-// 	next = (*(*[1000000000]PtrdiffT)(unsafe.Pointer(uintptr(unsafe.Pointer(&w[0])) + (uintptr)(int(n))*unsafe.Sizeof(w[0]))))[:]
-// 	stack = (*(*[1000000000]PtrdiffT)(unsafe.Pointer(uintptr(unsafe.Pointer(&w[0])) + (uintptr)(int(2*int(n)))*unsafe.Sizeof(w[0]))))[:]
-// 	{
-// 		// empty linked lists
-// 		for j = 0; j < n; j++ {
-// 			head[j] = -1
-// 		}
-// 	}
-// 	{
-// 		// traverse nodes in reverse order
-// 		for j = n - 1; j >= 0; j-- {
-// 			if parent[j] == -1 {
-// 				// j is a root
-// 				continue
-// 			}
-// 			// add j to list of its parent
-// 			next[j] = head[parent[j]]
-// 			head[parent[j]] = j
-// 		}
-// 	}
-// 	for j = 0; j < n; j++ {
-// 		if parent[j] != -1 {
-// 			// skip j if it is not a root
-// 			continue
-// 		}
-// 		k = cs_tdfs(PtrdiffT(j), PtrdiffT(k), head, next, post, stack)
-// 	}
-// 	// success; free w, return post
-// 	return (cs_idone(post, nil, w, 1))
-// }
+// cs_post - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_post.c:3
+// post order a forest
+func cs_post(parent []int, n int) []int {
+	var j PtrdiffT
+	var k PtrdiffT
+	var post []PtrdiffT
+	var w []PtrdiffT
+	var head []PtrdiffT
+	var next []PtrdiffT
+	var stack []PtrdiffT
+	if parent == nil {
+		// check inputs
+		return nil
+	}
+	// allocate result
+	post = make([]int, n)
+	// get workspace
+	w = make([]int, 3*n)
+	if w == nil || post == nil {
+		return (cs_idone(post, nil, w, false))
+	}
+	head = w
+	next = w[n:]
+	stack = w[2*n:]
+	{
+		// empty linked lists
+		for j = 0; j < n; j++ {
+			head[j] = -1
+		}
+	}
+	{
+		// traverse nodes in reverse order
+		for j = n - 1; j >= 0; j-- {
+			if parent[j] == -1 {
+				// j is a root
+				continue
+			}
+			// add j to list of its parent
+			next[j] = head[parent[j]]
+			head[parent[j]] = j
+		}
+	}
+	for j = 0; j < n; j++ {
+		if parent[j] != -1 {
+			// skip j if it is not a root
+			continue
+		}
+		k = cs_tdfs(PtrdiffT(j), PtrdiffT(k), head, next, post, stack)
+	}
+	// success; free w, return post
+	return (cs_idone(post, nil, w, true))
+}
 
 // cs_print - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_print.c:3
 // print a sparse matrix; use %g for integers to avoid differences with csi
@@ -3850,7 +3850,7 @@ func cs_sqr(order int, A *cs, qr bool) *css {
 		}()
 		// QR symbolic analysis
 		// etree of C'*C, where C=A(:,q)
-		S.parent = cs_etree(C, 1)
+		S.parent = cs_etree(C, true)
 		post = cs_post(S.parent, n)
 		// col counts chol(C'*C)
 		S.cp = cs_counts(C, S.parent, post, 1)
