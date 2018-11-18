@@ -328,8 +328,32 @@ func demo2(Prob *problem) bool {
 	// randomized dmperm analysis
 	D = cs_dmperm(C, 1)
 	if D == nil {
+		fmt.Println("D is nil")
 		return false
 	}
+
+	// (KI): debug information
+	fmt.Println("Matrix D from function cs_dmperm: ", D)
+	{
+		fmt.Printf("Vector p\n")
+		for i := range D.p {
+			fmt.Printf("p[%d] = %d\n", i, D.p[i])
+		}
+		fmt.Printf("Vector q\n")
+		for i := range D.q {
+			fmt.Printf("q[%d] = %d\n", i, D.q[i])
+		}
+		fmt.Printf("nb = %d\n", D.nb)
+		fmt.Printf("Vector rr\n")
+		for i := 0; i < 5; i++ {
+			fmt.Printf("rr[%d] = %d\n", i, D.rr[i])
+		}
+		fmt.Printf("Vector cc\n")
+		for i := 0; i < 5; i++ {
+			fmt.Printf("cc[%d] = %d\n", i, D.cc[i])
+		}
+	}
+
 	nb := D.nb
 	r := D.r
 	s := D.s

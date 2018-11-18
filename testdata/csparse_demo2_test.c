@@ -149,7 +149,22 @@ csi demo2 (problem *Prob)
     m = A->m ; n = A->n ;
     tol = Prob->sym ? 0.001 : 1 ;               /* partial pivoting tolerance */
     D = cs_dmperm (C, 1) ;                      /* randomized dmperm analysis */
-    if (!D) return (0) ;
+    if (!D) {
+		printf("D is nil\n");
+		return (0) ;
+	}
+	
+	// (KI): debug information
+	printf("Matrix D from function cs_dmperm\n");
+	{
+		printf("Vector p\n"); for(int i=0;i<m;i++) printf("p[%d] = %d\n",i,D.p[i]);
+		printf("Vector q\n"); for(int i=0;i<n;i++) printf("q[%d] = %d\n",i,D.q[i]);
+		printf("nb = %d\n",D.nb);
+		printf("Vector rr\n"); for(int i=0;i<5;i++) printf("rr[%d] = %d\n",i,D.rr[i]);
+		printf("Vector cc\n"); for(int i=0;i<5;i++) printf("cc[%d] = %d\n",i,D.cc[i]);
+	}
+
+
     nb = D->nb ; r = D->r ; s = D->s ; rr = D->rr ;
     sprank = rr [3] ;
     for (ns = 0, k = 0 ; k < nb ; k++)
