@@ -344,7 +344,7 @@ func demo2(Prob *problem) bool {
 		}
 	}
 
-	fmt.Printf("blocks: %g singletons: %g structural rank: %g\n", nb, ns, sprank)
+	fmt.Printf("blocks: %d singletons: %d structural rank: %d\n", nb, ns, sprank)
 	cs_dfree(D)
 
 	// natural and amd(A'*A)

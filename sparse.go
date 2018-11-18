@@ -111,28 +111,27 @@ func cs_add(A *cs, B *cs, alpha float64, beta float64) *cs {
 	return cs_done(C, w, x, true)
 }
 
-//
-// // cs_wclear - clear w
-// func cs_wclear(mark, lemax int, w []int, n int) int {
-// 	if mark < 2 || mark+lemax < 0 {
-// 		for k := 0; k < n; k++ {
-// 			if w[k] != 0 {
-// 				w[k] = 1
-// 			}
-// 		}
-// 		mark = 2
-// 	}
-// 	// at this point, w [0..n-1] < mark holds
-// 	return mark
-// }
-//
-// // cs_diag - keep off-diagonal entries; drop diagonal entries
-// func cs_diag(i, j int, aij float64, other interface{}) bool {
-//
-// 	// TODO (KI) : remove arguments aij, other
-//
-// 	return (i != j)
-// }
+// cs_wclear - clear w
+func cs_wclear(mark, lemax int, w []int, n int) int {
+	if mark < 2 || mark+lemax < 0 {
+		for k := 0; k < n; k++ {
+			if w[k] != 0 {
+				w[k] = 1
+			}
+		}
+		mark = 2
+	}
+	// at this point, w [0..n-1] < mark holds
+	return mark
+}
+
+// cs_diag - keep off-diagonal entries; drop diagonal entries
+func cs_diag(i, j int, aij float64, other interface{}) bool {
+
+	// TODO (KI) : remove arguments aij, other
+
+	return (i != j)
+}
 
 const (
 	Natural int = iota
@@ -143,722 +142,723 @@ const (
 
 type PtrdiffT = int
 
-// // cs_amd - p = amd(A+A') if symmetric is true, or amd(A'A) otherwise
-// // order 0:natural, 1:Chol, 2:LU, 3:QR
-// func cs_amd(order Order, A *cs) *cs {
-// 	var C *cs
-// 	var A2 *cs
-// 	// var AT []cs
-// 	// var Cp []int
-// 	// var Ci []PtrdiffT
-// 	// var last []PtrdiffT
-// 	// var W []PtrdiffT
-// 	// var len []PtrdiffT
-// 	// var nv []PtrdiffT
-// 	// var next []PtrdiffT
-// 	// var P []PtrdiffT
-// 	// var head []PtrdiffT
-// 	// var elen []PtrdiffT
-// 	// var degree []PtrdiffT
-// 	// var w []PtrdiffT
-// 	// var hhead []PtrdiffT
-// 	var ATp []int
-// 	var ATi []int
-// 	var d int     // PtrdiffT
-// 	var dk int    // PtrdiffT
-// 	var dext int  // PtrdiffT
-// 	var lemax int // PtrdiffT
-// 	var e int     // PtrdiffT
-// 	// var elenk PtrdiffT
-// 	var eln int // PtrdiffT
-// 	var i int   // PtrdiffT
-// 	var j int
-// 	// var k PtrdiffT
-// 	var k1 int // PtrdiffT
-// 	var k2 int // PtrdiffT
-// 	// var k3 PtrdiffT
-// 	var jlast int // PtrdiffT
-// 	var ln int    // PtrdiffT
-// 	// var dense PtrdiffT
-// 	// var nzmax PtrdiffT
-// 	// var mindeg PtrdiffT
-// 	var nvi int // PtrdiffT
-// 	var nvj int // PtrdiffT
-// 	// var nvk PtrdiffT
-// 	var mark int //  PtrdiffT
-// 	var wnvi int // PtrdiffT
-// 	var ok bool  // PtrdiffT
-// 	// var cnz PtrdiffT
-// 	var nel int // PtrdiffT
-// 	var p int
-// 	var p1 int // PtrdiffT
-// 	var p2 int
-// 	var p3 int  // PtrdiffT
-// 	var p4 int  // PtrdiffT
-// 	var pj int  // PtrdiffT
-// 	var pk int  // PtrdiffT
-// 	var pk1 int // PtrdiffT
-// 	var pk2 int // PtrdiffT
-// 	var pn int  // PtrdiffT
-// 	// var q PtrdiffT
-// 	// var n PtrdiffT
-// 	// var m PtrdiffT
-// 	// var t PtrdiffT
-// 	var h int // PtrdiffT
-// 	if !(A != nil && A.nz == -1) || order <= 0 || order > 3 {
-// 		// --- Construct matrix C -----------------------------------------------
-// 		// check
-// 		return nil
-// 	}
-// 	// compute A'
-// 	AT := cs_transpose(A, false)
-// 	if AT == nil {
-// 		return nil
-// 	}
-// 	var (
-// 		m = A.m
-// 		n = A.n
-// 	)
-// 	// find dense threshold
-// 	dense := 16
-// 	if val := int(10.0 * math.Sqrt(float64(n))); dense < val {
-// 		dense = val
-// 	}
-// 	if n-2 < dense {
-// 		dense = n - 2
-// 	}
-//
-// 	if order == 1 && n == m {
-// 		// C = A+A'
-// 		C = cs_add(A, AT, 0, 0)
-// 	} else if order == 2 {
-// 		// drop dense columns from AT
-// 		ATp = AT.p
-// 		ATi = AT.i
-//
-// 		for p2, j = 0, 0; j < m; j++ {
-// 			// column j of AT starts here
-// 			p = ATp[j]
-// 			// new column j starts here
-// 			ATp[j] = p2
-// 			if ATp[j+1]-p > dense {
-// 				// skip dense col j
-// 				continue
-// 			}
-// 			for ; p < ATp[j+1]; p++ {
-// 				ATi[p2] = ATi[p]
-// 				p2++
-// 			}
-// 		}
-//
-// 		// finalize AT
-// 		ATp[m] = p2
-// 		// A2 = AT'
-// 		A2 = cs_transpose(AT, false)
-// 		// C=A'*A with no dense rows
-// 		if A2 != nil {
-// 			C = cs_multiply(AT, A2)
-// 		} else {
-// 			C = nil
-// 		}
-// 		cs_spfree(A2) // TODO (KI) : remove
-// 	} else {
-// 		// C=A'*A
-// 		C = cs_multiply(AT, A)
-// 	}
-// 	cs_spfree(AT) // TODO (KI) : remove
-// 	if C == nil {
-// 		return nil
-// 	}
-// 	// drop diagonal entries
-// 	cs_fkeep(C, cs_diag, nil)
-// 	Cp := C.p
-// 	cnz := Cp[n]
-// 	// allocate result
-// 	P := make([]int, n+1)
-// 	// get workspace
-// 	var W [8][]int
-// 	for i := 0; i < 8; i++ {
-// 		W[i] = make([]int, n+1)
-// 	}
-// 	// add elbow room to C
-// 	t := cnz + cnz/5 + 2*n/8
-// 	if P == nil || cs_sprealloc(C, t) { //  || W == nil
-// 		return cs_idone(P, C, W, false)
-// 	}
-// 	var (
-// 		len    = W[0]
-// 		nv     = W[1*(n+1)] //(*(*[1000000000]PtrdiffT)(unsafe.Pointer(uintptr(unsafe.Pointer(&W[0])) + (uintptr)(int(n+1))*unsafe.Sizeof(W[0]))))[:]
-// 		next   = W[2*(n+1)] // (*(*[1000000000]PtrdiffT)(unsafe.Pointer(uintptr(unsafe.Pointer(&W[0])) + (uintptr)(int(2*int(n+1)))*unsafe.Sizeof(W[0]))))[:]
-// 		head   = W[3*(n+1)] // (*(*[1000000000]PtrdiffT)(unsafe.Pointer(uintptr(unsafe.Pointer(&W[0])) + (uintptr)(int(3*int(n+1)))*unsafe.Sizeof(W[0]))))[:]
-// 		elen   = W[4*(n+1)] // (*(*[1000000000]PtrdiffT)(unsafe.Pointer(uintptr(unsafe.Pointer(&W[0])) + (uintptr)(int(4*int(n+1)))*unsafe.Sizeof(W[0]))))[:]
-// 		degree = W[5*(n+1)] // (*(*[1000000000]PtrdiffT)(unsafe.Pointer(uintptr(unsafe.Pointer(&W[0])) + (uintptr)(int(5*int(n+1)))*unsafe.Sizeof(W[0]))))[:]
-// 		w      = W[6*(n+1)] // (*(*[1000000000]PtrdiffT)(unsafe.Pointer(uintptr(unsafe.Pointer(&W[0])) + (uintptr)(int(6*int(n+1)))*unsafe.Sizeof(W[0]))))[:]
-// 		hhead  = W[7*(n+1)] // (*(*[1000000000]PtrdiffT)(unsafe.Pointer(uintptr(unsafe.Pointer(&W[0])) + (uintptr)(int(7*int(n+1)))*unsafe.Sizeof(W[0]))))[:]
-//
-// 		// use P as workspace for last
-// 		last = P
-// 	)
-//
-// 	// --- Initialize quotient graph ----------------------------------------
-// 	for k := 0; k < n; k++ {
-// 		len[k] = Cp[k+1] - Cp[k]
-// 	}
-//
-// 	len[n] = 0
-// 	nzmax := C.nzmax
-// 	Ci := C.i
-//
-// 	// type graph struct { // TODO (KI) : I think struct is look like that
-// 	// 	head   int
-// 	// 	last   int
-// 	// 	hhead  int
-// 	// 	nv     int
-// 	// 	elen   int
-// 	// 	degree int
-// 	// }
-//
-// 	for i := 0; i <= n; i++ {
-// 		// degree list i is empty
-// 		head[i] = -1
-// 		last[i] = -1
-// 		next[i] = -1
-// 		// hash list i is empty
-// 		hhead[i] = -1
-// 		// node i is just one node
-// 		nv[i] = 1
-// 		// node i is alive
-// 		w[i] = 1
-// 		// Ek of node i is empty
-// 		elen[i] = 0
-// 		// degree of node i
-// 		degree[i] = len[i]
-// 	}
-// 	// clear w
-// 	mark = cs_wclear(0, 0, w, n)
-// 	// n is a dead element
-// 	elen[n] = -2
-// 	// n is a root of assembly tree
-// 	Cp[n] = -1
-// 	// n is a dead element
-// 	w[n] = 0
-//
-// 	// --- Initialize degree lists ------------------------------------------
-// 	for i := 0; i < n; i++ {
-// 		d := degree[i]
-// 		if d == 0 {
-// 			// node i is empty
-// 			// element i is dead
-// 			elen[i] = -2
-// 			nel++
-// 			// i is a root of assembly tree
-// 			Cp[i] = -1
-// 			w[i] = 0
-// 		} else if d > dense {
-// 			// node i is dense
-// 			// absorb i into element n
-// 			nv[i] = 0
-// 			// node i is dead
-// 			elen[i] = -1
-// 			nel++
-// 			Cp[i] = -n - 2
-// 			nv[n]++
-// 		} else {
-// 			if head[d] != -1 {
-// 				last[head[d]] = i
-// 			}
-// 			// put node i in degree list d
-// 			next[i] = head[d]
-// 			head[d] = i
-// 		}
-// 	}
-//
-// 	var (
-// 		mindeg int
-// 		k      int
-// 		elenk  int
-// 		nvk    int
-// 	)
-//
-// 	// while (selecting pivots) do
-// 	for nel < n {
-//
-// 		// --- Select node of minimum approximate degree --------------------
-// 		for k = -1; mindeg < n && (func() int {
-// 			k = head[mindeg]
-// 			return k
-// 		}()) == -1; mindeg++ {
-// 		}
-//
-// 		if next[k] != -1 {
-// 			last[next[k]] = -1
-// 		}
-// 		// remove k from degree list
-// 		head[mindeg] = next[k]
-// 		// elenk = |Ek|
-// 		elenk = elen[k]
-// 		// # of nodes k represents
-// 		nvk = nv[k]
-// 		// nv[k] nodes of A eliminated
-// 		nel += nvk
-// 		if elenk > 0 && cnz+mindeg >= nzmax {
-//
-// 			// --- Garbage collection -------------------------------------------
-// 			for j = 0; j < n; j++ {
-// 				if (func() int {
-// 					p = Cp[j]
-// 					return p
-// 				}()) >= 0 {
-// 					// j is a live node or element
-// 					// save first entry of object
-// 					Cp[j] = Ci[p]
-// 					// first entry is now CS_FLIP(j)
-// 					Ci[p] = -j - 2
-// 				}
-// 			}
-//
-// 			// scan all of memory
-// 			var (
-// 				q, p int
-// 			)
-// 			for p = 0; p < cnz; {
-// 				if (func() int {
-// 					j = -(Ci[func() int {
-// 						defer func() {
-// 							p++
-// 						}()
-// 						return p
-// 					}()]) - 2
-// 					return j
-// 				}()) >= 0 {
-// 					// found object j
-// 					// restore first entry of object
-// 					Ci[q] = Cp[j]
-// 					// new pointer to object j
-// 					Cp[j] = q
-// 					q++
-// 					for k3 := 0; k3 < len[j]-1; k3++ {
-// 						Ci[func() int {
-// 							defer func() {
-// 								q++
-// 							}()
-// 							return q
-// 						}()] = Ci[func() int {
-// 							defer func() {
-// 								p++
-// 							}()
-// 							return p
-// 						}()]
-// 					}
-// 				}
-// 			}
-//
-// 			// Ci [cnz...nzmax-1] now free
-// 			cnz = q
-// 		}
-// 		// --- Construct new element ----------------------------------------
-// 		dk = 0
-// 		// flag k as in Lk
-// 		nv[k] = -nvk
-// 		p = Cp[k]
-// 		// do in place if elen[k] == 0
-// 		pk1 = func() int {
-// 			if elenk == 0 {
-// 				return p
-// 			}
-// 			return cnz
-// 		}()
-// 		pk2 = pk1
-// 		for k1 := 1; k1 <= elenk+1; k1++ {
-// 			if k1 > elenk {
-// 				// search the nodes in k
-// 				e = k
-// 				// list of nodes starts at Ci[pj]
-// 				pj = p
-// 				// length of list of nodes in k
-// 				ln = len[k] - elenk
-// 			} else {
-// 				// search the nodes in e
-// 				e = Ci[func() int {
-// 					defer func() {
-// 						p++
-// 					}()
-// 					return p
-// 				}()]
-// 				pj = Cp[e]
-// 				// length of list of nodes in e
-// 				ln = len[e]
-// 			}
-// 			for k2 := 1; k2 <= ln; k2++ {
-// 				i := Ci[func() int {
-// 					defer func() {
-// 						pj++
-// 					}()
-// 					return pj
-// 				}()]
-// 				if (func() int {
-// 					nvi = nv[i]
-// 					return nvi
-// 				}()) <= 0 {
-// 					// node i dead, or seen
-// 					continue
-// 				}
-// 				// degree[Lk] += size of node i
-// 				dk += nvi
-// 				// negate nv[i] to denote i in Lk
-// 				nv[i] = -nvi
-// 				// place i in Lk
-// 				Ci[func() int {
-// 					defer func() {
-// 						pk2++
-// 					}()
-// 					return pk2
-// 				}()] = i
-// 				if next[i] != -1 {
-// 					last[next[i]] = last[i]
-// 				}
-// 				if last[i] != -1 {
-// 					// remove i from degree list
-// 					next[last[i]] = next[i]
-// 				} else {
-// 					head[degree[i]] = next[i]
-// 				}
-// 			}
-// 			if e != k {
-// 				// absorb e into k
-// 				Cp[e] = -k - 2
-// 				// e is now a dead element
-// 				w[e] = 0
-// 			}
-// 		}
-// 		if elenk != 0 {
-// 			// Ci [cnz...nzmax] is free
-// 			cnz = pk2
-// 		}
-// 		// external degree of k - |Lk\i|
-// 		degree[k] = dk
-// 		// element k is in Ci[pk1..pk2-1]
-// 		Cp[k] = pk1
-// 		len[k] = pk2 - pk1
-// 		// k is now an element
-// 		elen[k] = -2
-// 		// --- Find set differences -----------------------------------------
-// 		// clear w if necessary
-// 		mark = cs_wclear(mark, lemax, w, n)
-//
-// 		// scan 1: find |Le\Lk|
-// 		for pk = pk1; pk < pk2; pk++ {
-// 			i = Ci[pk]
-// 			if (func() int {
-// 				eln = elen[i]
-// 				return eln
-// 			}()) <= 0 {
-// 				// skip if elen[i] empty
-// 				continue
-// 			}
-// 			// nv [i] was negated
-// 			nvi = -nv[i]
-// 			wnvi = mark - nvi
-// 			{
-// 				// scan Ei
-// 				for p = Cp[i]; p <= Cp[i]+eln-1; p++ {
-// 					e = Ci[p]
-// 					if w[e] >= mark {
-// 						// decrement |Le\Lk|
-// 						w[e] -= nvi
-// 					} else if w[e] != 0 {
-// 						// ensure e is a live element
-// 						// 1st time e seen in scan 1
-// 						w[e] = degree[e] + wnvi
-// 					}
-// 				}
-// 			}
-// 		}
-//
-// 		// --- Degree update ------------------------------------------------
-// 		// scan2: degree update
-// 		for pk = pk1; pk < pk2; pk++ {
-// 			// consider node i in Lk
-// 			i = Ci[pk]
-// 			p1 = Cp[i]
-// 			p2 = p1 + elen[i] - 1
-// 			pn = p1
-// 			{
-// 				// scan Ei
-// 				h = 0
-// 				d = 0
-// 				p = p1
-// 				for p = p1; p <= p2; p++ {
-// 					e = Ci[p]
-// 					if w[e] != 0 {
-// 						// e is an unabsorbed element
-// 						// dext = |Le\Lk|
-// 						dext = w[e] - mark
-// 						if dext > 0 {
-// 							// sum up the set differences
-// 							d += dext
-// 							// keep e in Ei
-// 							Ci[func() int {
-// 								defer func() {
-// 									pn++
-// 								}()
-// 								return pn
-// 							}()] = e
-// 							// compute the hash of node i
-// 							h += e
-// 						} else {
-// 							// aggressive absorb. e->k
-// 							Cp[e] = -k - 2
-// 							// e is a dead element
-// 							w[e] = 0
-// 						}
-// 					}
-// 				}
-// 			}
-// 			// elen[i] = |Ei|
-// 			elen[i] = pn - p1 + 1
-// 			p3 = pn
-// 			p4 = p1 + len[i]
-// 			{
-// 				// prune edges in Ai
-// 				for p = p2 + 1; p < p4; p++ {
-// 					j = Ci[p]
-// 					if (func() int {
-// 						nvj = nv[j]
-// 						return nvj
-// 					}()) <= 0 {
-// 						// node j dead or in Lk
-// 						continue
-// 					}
-// 					// degree(i) += |j|
-// 					d += nvj
-// 					// place j in node list of i
-// 					Ci[func() int {
-// 						defer func() {
-// 							pn++
-// 						}()
-// 						return pn
-// 					}()] = j
-// 					// compute hash for node i
-// 					h += j
-// 				}
-// 			}
-// 			if d == 0 {
-// 				// check for mass elimination
-// 				// absorb i into k
-// 				Cp[i] = -k - 2
-// 				nvi = -nv[i]
-// 				// |Lk| -= |i|
-// 				dk -= nvi
-// 				// |k| += nv[i]
-// 				nvk += nvi
-// 				nel += nvi
-// 				nv[i] = 0
-// 				// node i is dead
-// 				elen[i] = -1
-// 			} else {
-// 				// update degree(i)
-// 				degree[i] = func() int {
-// 					if degree[i] < d {
-// 						return degree[i]
-// 					}
-// 					return d
-// 				}()
-// 				// move first node to end
-// 				Ci[pn] = Ci[p3]
-// 				// move 1st el. to end of Ei
-// 				Ci[p3] = Ci[p1]
-// 				// add k as 1st element in of Ei
-// 				Ci[p1] = k
-// 				// new len of adj. list of node i
-// 				len[i] = pn - p1 + 1
-// 				// finalize hash of i
-// 				h = func() int {
-// 					if h < 0 {
-// 						return -h
-// 					}
-// 					return h
-// 				}() % int(n)
-// 				// place i in hash bucket
-// 				next[i] = hhead[h]
-// 				hhead[h] = i
-// 				// save hash of i in last[i]
-// 				last[i] = h
-// 			}
-// 		}
-//
-// 		// scan2 is done
-// 		// finalize |Lk|
-// 		degree[k] = dk
-// 		lemax = func() int {
-// 			if lemax > dk {
-// 				return lemax
-// 			}
-// 			return dk
-// 		}()
-// 		// clear w
-// 		mark = cs_wclear(mark+lemax, lemax, w, n)
-//
-// 		// --- Supernode detection ------------------------------------------
-// 		for pk = pk1; pk < pk2; pk++ {
-// 			i = Ci[pk]
-// 			if nv[i] >= 0 {
-// 				// skip if i is dead
-// 				continue
-// 			}
-// 			// scan hash bucket of node i
-// 			h = last[i]
-// 			i = hhead[h]
-// 			// hash bucket will be empty
-// 			hhead[h] = -1
-// 			for i != -1 && next[i] != -1 {
-// 				ln = len[i]
-// 				eln = elen[i]
-// 				for p = Cp[i] + 1; p <= Cp[i]+ln-1; p++ {
-// 					w[Ci[p]] = mark
-// 				}
-// 				jlast = i
-// 				{
-// 					// compare i with all j
-// 					for j = next[i]; j != -1; {
-// 						ok = (len[j] == ln && elen[j] == eln)
-// 						for p = Cp[j] + 1; bool(ok) && p <= Cp[j]+ln-1; p++ {
-// 							if w[Ci[p]] != mark {
-// 								// compare i and j
-// 								ok = false
-// 							}
-// 						}
-// 						if bool(ok) {
-// 							// i and j are identical
-// 							// absorb j into i
-// 							Cp[j] = -i - 2
-// 							nv[i] += nv[j]
-// 							nv[j] = 0
-// 							// node j is dead
-// 							elen[j] = -1
-// 							// delete j from hash bucket
-// 							j = next[j]
-// 							next[jlast] = j
-// 						} else {
-// 							// j and i are different
-// 							jlast = j
-// 							j = next[j]
-// 						}
-// 					}
-// 				}
-// 				i = next[i]
-// 				mark++
-// 			}
-// 		}
-//
-// 		// --- Finalize new element------------------------------------------
-// 		// finalize Lk
-// 		p = pk1
-// 		pk = pk1
-// 		for pk = pk1; pk < pk2; pk++ {
-// 			i = Ci[pk]
-// 			if (func() int {
-// 				nvi = -nv[i]
-// 				return nvi
-// 			}()) <= 0 {
-// 				// skip if i is dead
-// 				continue
-// 			}
-// 			// restore nv[i]
-// 			nv[i] = nvi
-// 			// compute external degree(i)
-// 			d = degree[i] + dk - nvi
-// 			d = func() int {
-// 				if d < n-nel-nvi {
-// 					return d
-// 				}
-// 				return n - nel - nvi
-// 			}()
-// 			if head[d] != -1 {
-// 				last[head[d]] = i
-// 			}
-// 			// put i back in degree list
-// 			next[i] = head[d]
-// 			last[i] = -1
-// 			head[d] = i
-// 			// find new minimum degree
-// 			mindeg = func() int {
-// 				if mindeg < d {
-// 					return mindeg
-// 				}
-// 				return d
-// 			}()
-// 			degree[i] = d
-// 			// place i in Lk
-// 			Ci[func() int {
-// 				defer func() {
-// 					p++
-// 				}()
-// 				return p
-// 			}()] = i
-// 		}
-//
-// 		// # nodes absorbed into k
-// 		nv[k] = nvk
-// 		if (func() int {
-// 			len[k] = p - pk1
-// 			return len[k]
-// 		}()) == 0 {
-// 			// length of adj list of element k
-// 			// k is a root of the tree
-// 			Cp[k] = -1
-// 			// k is now a dead element
-// 			w[k] = 0
-// 		}
-// 		if elenk != 0 {
-// 			// free unused space in Lk
-// 			cnz = p
-// 		}
-// 	}
-//
-// 	// --- Postordering -----------------------------------------------------
-// 	// fix assembly tree
-// 	for i = 0; i < n; i++ {
-// 		Cp[i] = -Cp[i] - 2
-// 	}
-//
-// 	for j = 0; j <= n; j++ {
-// 		head[j] = -1
-// 	}
-//
-// 	// place unordered nodes in lists
-// 	for j = n; j >= 0; j-- {
-// 		if nv[j] > 0 {
-// 			// skip if j is an element
-// 			continue
-// 		}
-// 		// place j in list of its parent
-// 		next[j] = head[Cp[j]]
-// 		head[Cp[j]] = j
-// 	}
-//
-// 	// place elements in lists
-// 	for e = n; e >= 0; e-- {
-// 		if nv[e] <= 0 {
-// 			// skip unless e is an element
-// 			continue
-// 		}
-// 		if Cp[e] != -1 {
-// 			// place e in list of its parent
-// 			next[e] = head[Cp[e]]
-// 			head[Cp[e]] = e
-// 		}
-// 	}
-//
-// 	// postorder the assembly tree
-// 	for i, k := 0, 0; i <= n; i++ {
-// 		if Cp[i] == -1 {
-// 			k = cs_tdfs(i, k, head, next, P, w)
-// 		}
-// 	}
-//
-// 	return cs_idone(P, C, W, true)
-// }
+// cs_amd - p = amd(A+A') if symmetric is true, or amd(A'A) otherwise
+// order 0:natural, 1:Chol, 2:LU, 3:QR
+func cs_amd(order int, A *cs) []int {
+	var C *cs
+	var A2 *cs
+	// var AT []cs
+	// var Cp []int
+	// var Ci []PtrdiffT
+	// var last []PtrdiffT
+	// var W []PtrdiffT
+	// var len []PtrdiffT
+	// var nv []PtrdiffT
+	// var next []PtrdiffT
+	// var P []PtrdiffT
+	// var head []PtrdiffT
+	// var elen []PtrdiffT
+	// var degree []PtrdiffT
+	// var w []PtrdiffT
+	// var hhead []PtrdiffT
+	var ATp []int
+	var ATi []int
+	var d int     // PtrdiffT
+	var dk int    // PtrdiffT
+	var dext int  // PtrdiffT
+	var lemax int // PtrdiffT
+	var e int     // PtrdiffT
+	// var elenk PtrdiffT
+	var eln int // PtrdiffT
+	var i int   // PtrdiffT
+	var j int
+	// var k PtrdiffT
+	// var k1 int // PtrdiffT
+	// var k2 int // PtrdiffT
+	// var k3 PtrdiffT
+	var jlast int // PtrdiffT
+	var ln int    // PtrdiffT
+	// var dense PtrdiffT
+	// var nzmax PtrdiffT
+	// var mindeg PtrdiffT
+	var nvi int // PtrdiffT
+	var nvj int // PtrdiffT
+	// var nvk PtrdiffT
+	var mark int //  PtrdiffT
+	var wnvi int // PtrdiffT
+	var ok bool  // PtrdiffT
+	// var cnz PtrdiffT
+	var nel int // PtrdiffT
+	var p int
+	var p1 int // PtrdiffT
+	var p2 int
+	var p3 int  // PtrdiffT
+	var p4 int  // PtrdiffT
+	var pj int  // PtrdiffT
+	var pk int  // PtrdiffT
+	var pk1 int // PtrdiffT
+	var pk2 int // PtrdiffT
+	var pn int  // PtrdiffT
+	// var q PtrdiffT
+	// var n PtrdiffT
+	// var m PtrdiffT
+	// var t PtrdiffT
+	var h int // PtrdiffT
+	if !(A != nil && A.nz == -1) || order <= 0 || order > 3 {
+		// --- Construct matrix C -----------------------------------------------
+		// check
+		return nil
+	}
+	// compute A'
+	AT := cs_transpose(A, false)
+	if AT == nil {
+		return nil
+	}
+	var (
+		m = A.m
+		n = A.n
+	)
+	// find dense threshold
+	dense := 16
+	if val := int(10.0 * math.Sqrt(float64(n))); dense < val {
+		dense = val
+	}
+	if n-2 < dense {
+		dense = n - 2
+	}
+
+	if order == 1 && n == m {
+		// C = A+A'
+		C = cs_add(A, AT, 0, 0)
+	} else if order == 2 {
+		// drop dense columns from AT
+		ATp = AT.p
+		ATi = AT.i
+
+		for p2, j = 0, 0; j < m; j++ {
+			// column j of AT starts here
+			p = ATp[j]
+			// new column j starts here
+			ATp[j] = p2
+			if ATp[j+1]-p > dense {
+				// skip dense col j
+				continue
+			}
+			for ; p < ATp[j+1]; p++ {
+				ATi[p2] = ATi[p]
+				p2++
+			}
+		}
+
+		// finalize AT
+		ATp[m] = p2
+		// A2 = AT'
+		A2 = cs_transpose(AT, false)
+		// C=A'*A with no dense rows
+		if A2 != nil {
+			C = cs_multiply(AT, A2)
+		} else {
+			C = nil
+		}
+		cs_spfree(A2) // TODO (KI) : remove
+	} else {
+		// C=A'*A
+		C = cs_multiply(AT, A)
+	}
+	cs_spfree(AT) // TODO (KI) : remove
+	if C == nil {
+		return nil
+	}
+	// drop diagonal entries
+	cs_fkeep(C, cs_diag, nil)
+	Cp := C.p
+	cnz := Cp[n]
+	// allocate result
+	P := make([]int, n+1)
+	// get workspace
+	var W [8][]int
+	for i := 0; i < 8; i++ {
+		W[i] = make([]int, n+1)
+	}
+	// add elbow room to C
+	t := cnz + cnz/5 + 2*n/8
+	if P == nil || cs_sprealloc(C, t) { //  || W == nil
+		return cs_idone(P, C, W, false)
+	}
+	var (
+		len    = W[0]
+		nv     = W[1*(n+1)] //(*(*[1000000000]PtrdiffT)(unsafe.Pointer(uintptr(unsafe.Pointer(&W[0])) + (uintptr)(int(n+1))*unsafe.Sizeof(W[0]))))[:]
+		next   = W[2*(n+1)] // (*(*[1000000000]PtrdiffT)(unsafe.Pointer(uintptr(unsafe.Pointer(&W[0])) + (uintptr)(int(2*int(n+1)))*unsafe.Sizeof(W[0]))))[:]
+		head   = W[3*(n+1)] // (*(*[1000000000]PtrdiffT)(unsafe.Pointer(uintptr(unsafe.Pointer(&W[0])) + (uintptr)(int(3*int(n+1)))*unsafe.Sizeof(W[0]))))[:]
+		elen   = W[4*(n+1)] // (*(*[1000000000]PtrdiffT)(unsafe.Pointer(uintptr(unsafe.Pointer(&W[0])) + (uintptr)(int(4*int(n+1)))*unsafe.Sizeof(W[0]))))[:]
+		degree = W[5*(n+1)] // (*(*[1000000000]PtrdiffT)(unsafe.Pointer(uintptr(unsafe.Pointer(&W[0])) + (uintptr)(int(5*int(n+1)))*unsafe.Sizeof(W[0]))))[:]
+		w      = W[6*(n+1)] // (*(*[1000000000]PtrdiffT)(unsafe.Pointer(uintptr(unsafe.Pointer(&W[0])) + (uintptr)(int(6*int(n+1)))*unsafe.Sizeof(W[0]))))[:]
+		hhead  = W[7*(n+1)] // (*(*[1000000000]PtrdiffT)(unsafe.Pointer(uintptr(unsafe.Pointer(&W[0])) + (uintptr)(int(7*int(n+1)))*unsafe.Sizeof(W[0]))))[:]
+
+		// use P as workspace for last
+		last = P
+	)
+
+	// --- Initialize quotient graph ----------------------------------------
+	for k := 0; k < n; k++ {
+		len[k] = Cp[k+1] - Cp[k]
+	}
+
+	len[n] = 0
+	nzmax := C.nzmax
+	Ci := C.i
+
+	// type graph struct { // TODO (KI) : I think struct is look like that
+	// 	head   int
+	// 	last   int
+	// 	hhead  int
+	// 	nv     int
+	// 	elen   int
+	// 	degree int
+	// }
+
+	for i := 0; i <= n; i++ {
+		// degree list i is empty
+		head[i] = -1
+		last[i] = -1
+		next[i] = -1
+		// hash list i is empty
+		hhead[i] = -1
+		// node i is just one node
+		nv[i] = 1
+		// node i is alive
+		w[i] = 1
+		// Ek of node i is empty
+		elen[i] = 0
+		// degree of node i
+		degree[i] = len[i]
+	}
+	// clear w
+	mark = cs_wclear(0, 0, w, n)
+	// n is a dead element
+	elen[n] = -2
+	// n is a root of assembly tree
+	Cp[n] = -1
+	// n is a dead element
+	w[n] = 0
+
+	// --- Initialize degree lists ------------------------------------------
+	for i := 0; i < n; i++ {
+		d := degree[i]
+		if d == 0 {
+			// node i is empty
+			// element i is dead
+			elen[i] = -2
+			nel++
+			// i is a root of assembly tree
+			Cp[i] = -1
+			w[i] = 0
+		} else if d > dense {
+			// node i is dense
+			// absorb i into element n
+			nv[i] = 0
+			// node i is dead
+			elen[i] = -1
+			nel++
+			Cp[i] = -n - 2
+			nv[n]++
+		} else {
+			if head[d] != -1 {
+				last[head[d]] = i
+			}
+			// put node i in degree list d
+			next[i] = head[d]
+			head[d] = i
+		}
+	}
+
+	var (
+		mindeg int
+		k      int
+		elenk  int
+		nvk    int
+	)
+
+	// while (selecting pivots) do
+	for nel < n {
+
+		// --- Select node of minimum approximate degree --------------------
+		for k = -1; mindeg < n && (func() int {
+			k = head[mindeg]
+			return k
+		}()) == -1; mindeg++ {
+		}
+
+		if next[k] != -1 {
+			last[next[k]] = -1
+		}
+		// remove k from degree list
+		head[mindeg] = next[k]
+		// elenk = |Ek|
+		elenk = elen[k]
+		// # of nodes k represents
+		nvk = nv[k]
+		// nv[k] nodes of A eliminated
+		nel += nvk
+		if elenk > 0 && cnz+mindeg >= nzmax {
+
+			// --- Garbage collection -------------------------------------------
+			for j = 0; j < n; j++ {
+				if (func() int {
+					p = Cp[j]
+					return p
+				}()) >= 0 {
+					// j is a live node or element
+					// save first entry of object
+					Cp[j] = Ci[p]
+					// first entry is now CS_FLIP(j)
+					Ci[p] = -j - 2
+				}
+			}
+
+			// scan all of memory
+			var (
+				q, p int
+			)
+			for p = 0; p < cnz; {
+				if (func() int {
+					j = -(Ci[func() int {
+						defer func() {
+							p++
+						}()
+						return p
+					}()]) - 2
+					return j
+				}()) >= 0 {
+					// found object j
+					// restore first entry of object
+					Ci[q] = Cp[j]
+					// new pointer to object j
+					Cp[j] = q
+					q++
+					for k3 := 0; k3 < len[j]-1; k3++ {
+						Ci[func() int {
+							defer func() {
+								q++
+							}()
+							return q
+						}()] = Ci[func() int {
+							defer func() {
+								p++
+							}()
+							return p
+						}()]
+					}
+				}
+			}
+
+			// Ci [cnz...nzmax-1] now free
+			cnz = q
+		}
+		// --- Construct new element ----------------------------------------
+		dk = 0
+		// flag k as in Lk
+		nv[k] = -nvk
+		p = Cp[k]
+		// do in place if elen[k] == 0
+		pk1 = func() int {
+			if elenk == 0 {
+				return p
+			}
+			return cnz
+		}()
+		pk2 = pk1
+		for k1 := 1; k1 <= elenk+1; k1++ {
+			if k1 > elenk {
+				// search the nodes in k
+				e = k
+				// list of nodes starts at Ci[pj]
+				pj = p
+				// length of list of nodes in k
+				ln = len[k] - elenk
+			} else {
+				// search the nodes in e
+				e = Ci[func() int {
+					defer func() {
+						p++
+					}()
+					return p
+				}()]
+				pj = Cp[e]
+				// length of list of nodes in e
+				ln = len[e]
+			}
+			for k2 := 1; k2 <= ln; k2++ {
+				i := Ci[func() int {
+					defer func() {
+						pj++
+					}()
+					return pj
+				}()]
+				if (func() int {
+					nvi = nv[i]
+					return nvi
+				}()) <= 0 {
+					// node i dead, or seen
+					continue
+				}
+				// degree[Lk] += size of node i
+				dk += nvi
+				// negate nv[i] to denote i in Lk
+				nv[i] = -nvi
+				// place i in Lk
+				Ci[func() int {
+					defer func() {
+						pk2++
+					}()
+					return pk2
+				}()] = i
+				if next[i] != -1 {
+					last[next[i]] = last[i]
+				}
+				if last[i] != -1 {
+					// remove i from degree list
+					next[last[i]] = next[i]
+				} else {
+					head[degree[i]] = next[i]
+				}
+			}
+			if e != k {
+				// absorb e into k
+				Cp[e] = -k - 2
+				// e is now a dead element
+				w[e] = 0
+			}
+		}
+		if elenk != 0 {
+			// Ci [cnz...nzmax] is free
+			cnz = pk2
+		}
+		// external degree of k - |Lk\i|
+		degree[k] = dk
+		// element k is in Ci[pk1..pk2-1]
+		Cp[k] = pk1
+		len[k] = pk2 - pk1
+		// k is now an element
+		elen[k] = -2
+		// --- Find set differences -----------------------------------------
+		// clear w if necessary
+		mark = cs_wclear(mark, lemax, w, n)
+
+		// scan 1: find |Le\Lk|
+		for pk = pk1; pk < pk2; pk++ {
+			i = Ci[pk]
+			if (func() int {
+				eln = elen[i]
+				return eln
+			}()) <= 0 {
+				// skip if elen[i] empty
+				continue
+			}
+			// nv [i] was negated
+			nvi = -nv[i]
+			wnvi = mark - nvi
+			{
+				// scan Ei
+				for p = Cp[i]; p <= Cp[i]+eln-1; p++ {
+					e = Ci[p]
+					if w[e] >= mark {
+						// decrement |Le\Lk|
+						w[e] -= nvi
+					} else if w[e] != 0 {
+						// ensure e is a live element
+						// 1st time e seen in scan 1
+						w[e] = degree[e] + wnvi
+					}
+				}
+			}
+		}
+
+		// --- Degree update ------------------------------------------------
+		// scan2: degree update
+		for pk = pk1; pk < pk2; pk++ {
+			// consider node i in Lk
+			i = Ci[pk]
+			p1 = Cp[i]
+			p2 = p1 + elen[i] - 1
+			pn = p1
+			{
+				// scan Ei
+				h = 0
+				d = 0
+				p = p1
+				for p = p1; p <= p2; p++ {
+					e = Ci[p]
+					if w[e] != 0 {
+						// e is an unabsorbed element
+						// dext = |Le\Lk|
+						dext = w[e] - mark
+						if dext > 0 {
+							// sum up the set differences
+							d += dext
+							// keep e in Ei
+							Ci[func() int {
+								defer func() {
+									pn++
+								}()
+								return pn
+							}()] = e
+							// compute the hash of node i
+							h += e
+						} else {
+							// aggressive absorb. e->k
+							Cp[e] = -k - 2
+							// e is a dead element
+							w[e] = 0
+						}
+					}
+				}
+			}
+			// elen[i] = |Ei|
+			elen[i] = pn - p1 + 1
+			p3 = pn
+			p4 = p1 + len[i]
+			{
+				// prune edges in Ai
+				for p = p2 + 1; p < p4; p++ {
+					j = Ci[p]
+					if (func() int {
+						nvj = nv[j]
+						return nvj
+					}()) <= 0 {
+						// node j dead or in Lk
+						continue
+					}
+					// degree(i) += |j|
+					d += nvj
+					// place j in node list of i
+					Ci[func() int {
+						defer func() {
+							pn++
+						}()
+						return pn
+					}()] = j
+					// compute hash for node i
+					h += j
+				}
+			}
+			if d == 0 {
+				// check for mass elimination
+				// absorb i into k
+				Cp[i] = -k - 2
+				nvi = -nv[i]
+				// |Lk| -= |i|
+				dk -= nvi
+				// |k| += nv[i]
+				nvk += nvi
+				nel += nvi
+				nv[i] = 0
+				// node i is dead
+				elen[i] = -1
+			} else {
+				// update degree(i)
+				degree[i] = func() int {
+					if degree[i] < d {
+						return degree[i]
+					}
+					return d
+				}()
+				// move first node to end
+				Ci[pn] = Ci[p3]
+				// move 1st el. to end of Ei
+				Ci[p3] = Ci[p1]
+				// add k as 1st element in of Ei
+				Ci[p1] = k
+				// new len of adj. list of node i
+				len[i] = pn - p1 + 1
+				// finalize hash of i
+				h = func() int {
+					if h < 0 {
+						return -h
+					}
+					return h
+				}() % int(n)
+				// place i in hash bucket
+				next[i] = hhead[h]
+				hhead[h] = i
+				// save hash of i in last[i]
+				last[i] = h
+			}
+		}
+
+		// scan2 is done
+		// finalize |Lk|
+		degree[k] = dk
+		lemax = func() int {
+			if lemax > dk {
+				return lemax
+			}
+			return dk
+		}()
+		// clear w
+		mark = cs_wclear(mark+lemax, lemax, w, n)
+
+		// --- Supernode detection ------------------------------------------
+		for pk = pk1; pk < pk2; pk++ {
+			i = Ci[pk]
+			if nv[i] >= 0 {
+				// skip if i is dead
+				continue
+			}
+			// scan hash bucket of node i
+			h = last[i]
+			i = hhead[h]
+			// hash bucket will be empty
+			hhead[h] = -1
+			for i != -1 && next[i] != -1 {
+				ln = len[i]
+				eln = elen[i]
+				for p = Cp[i] + 1; p <= Cp[i]+ln-1; p++ {
+					w[Ci[p]] = mark
+				}
+				jlast = i
+				{
+					// compare i with all j
+					for j = next[i]; j != -1; {
+						ok = (len[j] == ln && elen[j] == eln)
+						for p = Cp[j] + 1; bool(ok) && p <= Cp[j]+ln-1; p++ {
+							if w[Ci[p]] != mark {
+								// compare i and j
+								ok = false
+							}
+						}
+						if bool(ok) {
+							// i and j are identical
+							// absorb j into i
+							Cp[j] = -i - 2
+							nv[i] += nv[j]
+							nv[j] = 0
+							// node j is dead
+							elen[j] = -1
+							// delete j from hash bucket
+							j = next[j]
+							next[jlast] = j
+						} else {
+							// j and i are different
+							jlast = j
+							j = next[j]
+						}
+					}
+				}
+				i = next[i]
+				mark++
+			}
+		}
+
+		// --- Finalize new element------------------------------------------
+		// finalize Lk
+		p = pk1
+		pk = pk1
+		for pk = pk1; pk < pk2; pk++ {
+			i = Ci[pk]
+			if (func() int {
+				nvi = -nv[i]
+				return nvi
+			}()) <= 0 {
+				// skip if i is dead
+				continue
+			}
+			// restore nv[i]
+			nv[i] = nvi
+			// compute external degree(i)
+			d = degree[i] + dk - nvi
+			d = func() int {
+				if d < n-nel-nvi {
+					return d
+				}
+				return n - nel - nvi
+			}()
+			if head[d] != -1 {
+				last[head[d]] = i
+			}
+			// put i back in degree list
+			next[i] = head[d]
+			last[i] = -1
+			head[d] = i
+			// find new minimum degree
+			mindeg = func() int {
+				if mindeg < d {
+					return mindeg
+				}
+				return d
+			}()
+			degree[i] = d
+			// place i in Lk
+			Ci[func() int {
+				defer func() {
+					p++
+				}()
+				return p
+			}()] = i
+		}
+
+		// # nodes absorbed into k
+		nv[k] = nvk
+		if (func() int {
+			len[k] = p - pk1
+			return len[k]
+		}()) == 0 {
+			// length of adj list of element k
+			// k is a root of the tree
+			Cp[k] = -1
+			// k is now a dead element
+			w[k] = 0
+		}
+		if elenk != 0 {
+			// free unused space in Lk
+			cnz = p
+		}
+	}
+
+	// --- Postordering -----------------------------------------------------
+	// fix assembly tree
+	for i = 0; i < n; i++ {
+		Cp[i] = -Cp[i] - 2
+	}
+
+	for j = 0; j <= n; j++ {
+		head[j] = -1
+	}
+
+	// place unordered nodes in lists
+	for j = n; j >= 0; j-- {
+		if nv[j] > 0 {
+			// skip if j is an element
+			continue
+		}
+		// place j in list of its parent
+		next[j] = head[Cp[j]]
+		head[Cp[j]] = j
+	}
+
+	// place elements in lists
+	for e = n; e >= 0; e-- {
+		if nv[e] <= 0 {
+			// skip unless e is an element
+			continue
+		}
+		if Cp[e] != -1 {
+			// place e in list of its parent
+			next[e] = head[Cp[e]]
+			head[Cp[e]] = e
+		}
+	}
+
+	// postorder the assembly tree
+	for i, k := 0, 0; i <= n; i++ {
+		if Cp[i] == -1 {
+			k = cs_tdfs(i, k, head, next, P, w)
+		}
+	}
+
+	return cs_idone(P, C, W, true)
+}
+
 //
 // // cs_chol - L = chol (A, [pinv parent cp]), pinv is optional
 // func cs_chol(A []cs, S []css) []csn {
@@ -999,41 +999,47 @@ type PtrdiffT = int
 // 	return (cs_ndone(N, E, c, x, 1))
 // }
 //
-// // cs_cholsol - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_cholsol.c:3
-// // x=A\b where A is symmetric positive definite; b overwritten with solution
-// func cs_cholsol(order PtrdiffT, A []cs, b []float64) PtrdiffT {
-// 	var x []float64
-// 	var S []css
-// 	var N []csn
-// 	var n PtrdiffT
-// 	var ok PtrdiffT
-// 	if !(A != nil && A.nz == -1) || b == nil {
-// 		// check inputs
-// 		return 0
-// 	}
-// 	n = A.n
-// 	// ordering and symbolic analysis
-// 	S = cs_schol(PtrdiffT(order), A)
-// 	// numeric Cholesky factorization
-// 	N = cs_chol(A, S)
-// 	// get workspace
-// 	x = cs_malloc(n, uint(8)).([]float64)
-// 	ok = PtrdiffT(S != nil && N != nil && x != nil)
-// 	if bool(ok) {
-// 		// x = P*b
-// 		cs_ipvec(S.pinv, b, x, n)
-// 		// x = L\x
-// 		cs_lsolve(N.L, x)
-// 		// x = L'\x
-// 		cs_ltsolve(N.L, x)
-// 		// b = P'*x
-// 		cs_pvec(S.pinv, x, b, n)
-// 	}
-// 	cs_free(x)
-// 	cs_sfree(S)
-// 	cs_nfree(N)
-// 	return PtrdiffT((ok))
-// }
+// cs_cholsol - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_cholsol.c:3
+// x=A\b where A is symmetric positive definite; b overwritten with solution
+func cs_cholsol(order PtrdiffT, A *cs, b []float64) bool {
+
+	//
+	// TODO (KI): create
+	//
+	return false
+
+	// 	var x []float64
+	// 	var S []css
+	// 	var N []csn
+	// 	var n PtrdiffT
+	// 	var ok PtrdiffT
+	// 	if !(A != nil && A.nz == -1) || b == nil {
+	// 		// check inputs
+	// 		return 0
+	// 	}
+	// 	n = A.n
+	// 	// ordering and symbolic analysis
+	// 	S = cs_schol(PtrdiffT(order), A)
+	// 	// numeric Cholesky factorization
+	// 	N = cs_chol(A, S)
+	// 	// get workspace
+	// 	x = cs_malloc(n, uint(8)).([]float64)
+	// 	ok = PtrdiffT(S != nil && N != nil && x != nil)
+	// 	if bool(ok) {
+	// 		// x = P*b
+	// 		cs_ipvec(S.pinv, b, x, n)
+	// 		// x = L\x
+	// 		cs_lsolve(N.L, x)
+	// 		// x = L'\x
+	// 		cs_ltsolve(N.L, x)
+	// 		// b = P'*x
+	// 		cs_pvec(S.pinv, x, b, n)
+	// 	}
+	// 	cs_free(x)
+	// 	cs_sfree(S)
+	// 	cs_nfree(N)
+	// 	return PtrdiffT((ok))
+}
 
 // cs_compress - C = compressed-column form of a triplet matrix T
 func cs_compress(T *cs) *cs {
@@ -3257,86 +3263,92 @@ func cs_print(A *cs, brief bool) bool {
 // 	return (cs_ndone(N, nil, w, x, 1))
 // }
 //
-// // cs_qrsol - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_qrsol.c:3
-// // x=A\b where A can be rectangular; b overwritten with solution
-// func cs_qrsol(order PtrdiffT, A []cs, b []float64) PtrdiffT {
-// 	var x []float64
-// 	var S []css
-// 	var N []csn
-// 	var AT []cs
-// 	var k PtrdiffT
-// 	var m PtrdiffT
-// 	var n PtrdiffT
-// 	var ok PtrdiffT
-// 	if !(A != nil && A.nz == -1) || b == nil {
-// 		// check inputs
-// 		return 0
-// 	}
-// 	n = A.n
-// 	m = A.m
-// 	if m >= n {
-// 		// ordering and symbolic analysis
-// 		S = cs_sqr(PtrdiffT(order), A, 1)
-// 		// numeric QR factorization
-// 		N = cs_qr(A, S)
-// 		// get workspace
-// 		x = cs_calloc(PtrdiffT(func() int {
-// 			if S != nil {
-// 				return ((S.m2))
-// 			}
-// 			return 1
-// 		}()/8), uint(8)).([]float64)
-// 		ok = PtrdiffT(S != nil && N != nil && x != nil)
-// 		if bool(ok) {
-// 			// x(0:m-1) = b(p(0:m-1)
-// 			cs_ipvec(S.pinv, b, x, m)
-// 			{
-// 				// apply Householder refl. to x
-// 				for k = 0; k < n; k++ {
-// 					cs_happly(N.L, PtrdiffT(k), N.B[k], x)
-// 				}
-// 			}
-// 			// x = R\x
-// 			cs_usolve(N.U, x)
-// 			// b(q(0:n-1)) = x(0:n-1)
-// 			cs_ipvec(S.q, x, b, n)
-// 		}
-// 	} else {
-// 		// Ax=b is underdetermined
-// 		AT = cs_transpose(A, 1)
-// 		// ordering and symbolic analysis
-// 		S = cs_sqr(PtrdiffT(order), AT, 1)
-// 		// numeric QR factorization of A'
-// 		N = cs_qr(AT, S)
-// 		// get workspace
-// 		x = cs_calloc(PtrdiffT(func() int {
-// 			if S != nil {
-// 				return ((S.m2))
-// 			}
-// 			return 1
-// 		}()/8), uint(8)).([]float64)
-// 		ok = PtrdiffT(AT != nil && S != nil && N != nil && x != nil)
-// 		if bool(ok) {
-// 			// x(q(0:m-1)) = b(0:m-1)
-// 			cs_pvec(S.q, b, x, m)
-// 			// x = R'\x
-// 			cs_utsolve(N.U, x)
-// 			{
-// 				// apply Householder refl. to x
-// 				for k = m - 1; k >= 0; k-- {
-// 					cs_happly(N.L, PtrdiffT(k), N.B[k], x)
-// 				}
-// 			}
-// 			// b(0:n-1) = x(p(0:n-1))
-// 			cs_pvec(S.pinv, x, b, n)
-// 		}
-// 	}
-// 	cs_free(x)
-// 	cs_sfree(S)
-// 	cs_nfree(N)
-// 	cs_spfree(AT) // TODO (KI) : remove
-// 	return PtrdiffT((ok))
-// }
+// cs_qrsol - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_qrsol.c:3
+// x=A\b where A can be rectangular; b overwritten with solution
+func cs_qrsol(order PtrdiffT, A *cs, b []float64) bool {
+
+	//
+	// TODO (KI) : create
+	//
+	return false
+
+	// 	var x []float64
+	// 	var S []css
+	// 	var N []csn
+	// 	var AT []cs
+	// 	var k PtrdiffT
+	// 	var m PtrdiffT
+	// 	var n PtrdiffT
+	// 	var ok PtrdiffT
+	// 	if !(A != nil && A.nz == -1) || b == nil {
+	// 		// check inputs
+	// 		return 0
+	// 	}
+	// 	n = A.n
+	// 	m = A.m
+	// 	if m >= n {
+	// 		// ordering and symbolic analysis
+	// 		S = cs_sqr(PtrdiffT(order), A, 1)
+	// 		// numeric QR factorization
+	// 		N = cs_qr(A, S)
+	// 		// get workspace
+	// 		x = cs_calloc(PtrdiffT(func() int {
+	// 			if S != nil {
+	// 				return ((S.m2))
+	// 			}
+	// 			return 1
+	// 		}()/8), uint(8)).([]float64)
+	// 		ok = PtrdiffT(S != nil && N != nil && x != nil)
+	// 		if bool(ok) {
+	// 			// x(0:m-1) = b(p(0:m-1)
+	// 			cs_ipvec(S.pinv, b, x, m)
+	// 			{
+	// 				// apply Householder refl. to x
+	// 				for k = 0; k < n; k++ {
+	// 					cs_happly(N.L, PtrdiffT(k), N.B[k], x)
+	// 				}
+	// 			}
+	// 			// x = R\x
+	// 			cs_usolve(N.U, x)
+	// 			// b(q(0:n-1)) = x(0:n-1)
+	// 			cs_ipvec(S.q, x, b, n)
+	// 		}
+	// 	} else {
+	// 		// Ax=b is underdetermined
+	// 		AT = cs_transpose(A, 1)
+	// 		// ordering and symbolic analysis
+	// 		S = cs_sqr(PtrdiffT(order), AT, 1)
+	// 		// numeric QR factorization of A'
+	// 		N = cs_qr(AT, S)
+	// 		// get workspace
+	// 		x = cs_calloc(PtrdiffT(func() int {
+	// 			if S != nil {
+	// 				return ((S.m2))
+	// 			}
+	// 			return 1
+	// 		}()/8), uint(8)).([]float64)
+	// 		ok = PtrdiffT(AT != nil && S != nil && N != nil && x != nil)
+	// 		if bool(ok) {
+	// 			// x(q(0:m-1)) = b(0:m-1)
+	// 			cs_pvec(S.q, b, x, m)
+	// 			// x = R'\x
+	// 			cs_utsolve(N.U, x)
+	// 			{
+	// 				// apply Householder refl. to x
+	// 				for k = m - 1; k >= 0; k-- {
+	// 					cs_happly(N.L, PtrdiffT(k), N.B[k], x)
+	// 				}
+	// 			}
+	// 			// b(0:n-1) = x(p(0:n-1))
+	// 			cs_pvec(S.pinv, x, b, n)
+	// 		}
+	// 	}
+	// 	cs_free(x)
+	// 	cs_sfree(S)
+	// 	cs_nfree(N)
+	// 	cs_spfree(AT) // TODO (KI) : remove
+	// 	return PtrdiffT((ok))
+}
 
 // cs_randperm - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_randperm.c:5
 // return a random permutation vector, the identity perm, or p = n-1:-1:0.
