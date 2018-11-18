@@ -2857,67 +2857,55 @@ func cs_norm(A *cs) float64 {
 // cs_permute - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_permute.c:3
 // C = A(p,q) where p and q are permutations of 0..m-1 and 0..n-1.
 func cs_permute(A *cs, pinv []int, q []int, values bool) *cs {
-	var t noarch.PtrdiffT
-	var j noarch.PtrdiffT
-	var k noarch.PtrdiffT
-	var nz noarch.PtrdiffT
-	var m noarch.PtrdiffT
-	var n noarch.PtrdiffT
-	var Ap []noarch.PtrdiffT
-	var Ai []noarch.PtrdiffT
-	var Cp []noarch.PtrdiffT
-	var Ci []noarch.PtrdiffT
-	var Cx []float64
-	var Ax []float64
-	var C []cs
-	if !(A != nil && noarch.PtrdiffT(A[0].nz) == -1) {
+	nz := 0
+	if !(A != nil && A.nz == -1) {
 		// check inputs
 		return nil
 	}
-	m = noarch.PtrdiffT(A[0].m)
-	n = noarch.PtrdiffT(A[0].n)
-	Ap = A[0].p
-	Ai = A[0].i
-	Ax = A[0].x
+	m := A.m
+	n := A.n
+	Ap := A.p
+	Ai := A.i
+	Ax := A.x
 	// alloc result
-	C = cs_spalloc(m, noarch.PtrdiffT(n), noarch.PtrdiffT(Ap[n]), noarch.PtrdiffT(bool(values) && Ax != nil), 0)
+	C := cs_spalloc(m, n, Ap[n], values && Ax != nil, false)
 	if C == nil {
 		// out of memory
-		return (cs_done(C, nil, nil, 0))
+		return cs_done(C, nil, nil, false)
 	}
-	Cp = C[0].p
-	Ci = C[0].i
-	Cx = C[0].x
-	for k = 0; k < n; k++ {
+	Cp := C.p
+	Ci := C.i
+	Cx := C.x
+	for k := 0; k < n; k++ {
 		// column k of C is column q[k] of A
 		Cp[k] = nz
-		j = noarch.PtrdiffT(func() int32 {
+		j := func() int {
 			if q != nil {
-				return int32(noarch.PtrdiffT((q[k])))
+				return q[k]
 			}
-			return int32(noarch.PtrdiffT(k))
-		}() / 8)
-		for t = Ap[j]; t < Ap[j+1]; t++ {
+			return k
+		}()
+		for t := Ap[j]; t < Ap[j+1]; t++ {
 			if Cx != nil {
 				// row i of A is row pinv[i] of C
 				Cx[nz] = Ax[t]
 			}
-			Ci[func() noarch.PtrdiffT {
+			Ci[func() int {
 				defer func() {
 					nz++
 				}()
 				return nz
-			}()] = noarch.PtrdiffT(func() int32 {
+			}()] = func() int {
 				if pinv != nil {
-					return int32(noarch.PtrdiffT((pinv[Ai[t]])))
+					return pinv[Ai[t]]
 				}
-				return int32(noarch.PtrdiffT(Ai[t]))
-			}() / 8)
+				return Ai[t]
+			}()
 		}
 	}
 	// finalize the last column of C
 	Cp[n] = nz
-	return (cs_done(C, nil, nil, 1))
+	return cs_done(C, nil, nil, true)
 }
 
 // cs_pinv - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_pinv.c:3
