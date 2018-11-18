@@ -386,7 +386,7 @@ func demo2(Prob *problem) bool {
 		print_resid(ok, C, x, b, resid)
 	}
 
-	if !Prob.sym {
+	if Prob.sym != 0 {
 		return true
 	}
 
@@ -455,7 +455,7 @@ func toc(t float64) float64 {
 
 // print_resid - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/testdata/csparse_demo2_test.c:80
 // compute residual, norm(A*x-b,inf) / (norm(A,1)*norm(x,inf) + norm(b,inf))
-func print_resid(ok bool, A []cs, x []float64, b []float64, resid []float64) {
+func print_resid(ok bool, A *cs, x []float64, b []float64, resid []float64) {
 	if !ok {
 		fmt.Printf("    (failed)\n")
 		return
