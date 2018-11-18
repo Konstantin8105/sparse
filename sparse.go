@@ -139,6 +139,8 @@ const (
 	QR
 )
 
+type PtrdiffT = int
+
 // // cs_amd - p = amd(A+A') if symmetric is true, or amd(A'A) otherwise
 // // order 0:natural, 1:Chol, 2:LU, 3:QR
 // func cs_amd(order Order, A *cs) *cs {
@@ -146,61 +148,61 @@ const (
 // 	var A2 *cs
 // 	// var AT []cs
 // 	// var Cp []int
-// 	// var Ci []noarch.PtrdiffT
-// 	// var last []noarch.PtrdiffT
-// 	// var W []noarch.PtrdiffT
-// 	// var len []noarch.PtrdiffT
-// 	// var nv []noarch.PtrdiffT
-// 	// var next []noarch.PtrdiffT
-// 	// var P []noarch.PtrdiffT
-// 	// var head []noarch.PtrdiffT
-// 	// var elen []noarch.PtrdiffT
-// 	// var degree []noarch.PtrdiffT
-// 	// var w []noarch.PtrdiffT
-// 	// var hhead []noarch.PtrdiffT
+// 	// var Ci []PtrdiffT
+// 	// var last []PtrdiffT
+// 	// var W []PtrdiffT
+// 	// var len []PtrdiffT
+// 	// var nv []PtrdiffT
+// 	// var next []PtrdiffT
+// 	// var P []PtrdiffT
+// 	// var head []PtrdiffT
+// 	// var elen []PtrdiffT
+// 	// var degree []PtrdiffT
+// 	// var w []PtrdiffT
+// 	// var hhead []PtrdiffT
 // 	var ATp []int
 // 	var ATi []int
-// 	var d int     // noarch.PtrdiffT
-// 	var dk int    // noarch.PtrdiffT
-// 	var dext int  // noarch.PtrdiffT
-// 	var lemax int // noarch.PtrdiffT
-// 	var e int     // noarch.PtrdiffT
-// 	// var elenk noarch.PtrdiffT
-// 	var eln int // noarch.PtrdiffT
-// 	var i int   // noarch.PtrdiffT
+// 	var d int     // PtrdiffT
+// 	var dk int    // PtrdiffT
+// 	var dext int  // PtrdiffT
+// 	var lemax int // PtrdiffT
+// 	var e int     // PtrdiffT
+// 	// var elenk PtrdiffT
+// 	var eln int // PtrdiffT
+// 	var i int   // PtrdiffT
 // 	var j int
-// 	// var k noarch.PtrdiffT
-// 	var k1 int // noarch.PtrdiffT
-// 	var k2 int // noarch.PtrdiffT
-// 	// var k3 noarch.PtrdiffT
-// 	var jlast int // noarch.PtrdiffT
-// 	var ln int    // noarch.PtrdiffT
-// 	// var dense noarch.PtrdiffT
-// 	// var nzmax noarch.PtrdiffT
-// 	// var mindeg noarch.PtrdiffT
-// 	var nvi int // noarch.PtrdiffT
-// 	var nvj int // noarch.PtrdiffT
-// 	// var nvk noarch.PtrdiffT
-// 	var mark int //  noarch.PtrdiffT
-// 	var wnvi int // noarch.PtrdiffT
-// 	var ok bool  // noarch.PtrdiffT
-// 	// var cnz noarch.PtrdiffT
-// 	var nel int // noarch.PtrdiffT
+// 	// var k PtrdiffT
+// 	var k1 int // PtrdiffT
+// 	var k2 int // PtrdiffT
+// 	// var k3 PtrdiffT
+// 	var jlast int // PtrdiffT
+// 	var ln int    // PtrdiffT
+// 	// var dense PtrdiffT
+// 	// var nzmax PtrdiffT
+// 	// var mindeg PtrdiffT
+// 	var nvi int // PtrdiffT
+// 	var nvj int // PtrdiffT
+// 	// var nvk PtrdiffT
+// 	var mark int //  PtrdiffT
+// 	var wnvi int // PtrdiffT
+// 	var ok bool  // PtrdiffT
+// 	// var cnz PtrdiffT
+// 	var nel int // PtrdiffT
 // 	var p int
-// 	var p1 int // noarch.PtrdiffT
+// 	var p1 int // PtrdiffT
 // 	var p2 int
-// 	var p3 int  // noarch.PtrdiffT
-// 	var p4 int  // noarch.PtrdiffT
-// 	var pj int  // noarch.PtrdiffT
-// 	var pk int  // noarch.PtrdiffT
-// 	var pk1 int // noarch.PtrdiffT
-// 	var pk2 int // noarch.PtrdiffT
-// 	var pn int  // noarch.PtrdiffT
-// 	// var q noarch.PtrdiffT
-// 	// var n noarch.PtrdiffT
-// 	// var m noarch.PtrdiffT
-// 	// var t noarch.PtrdiffT
-// 	var h int // noarch.PtrdiffT
+// 	var p3 int  // PtrdiffT
+// 	var p4 int  // PtrdiffT
+// 	var pj int  // PtrdiffT
+// 	var pk int  // PtrdiffT
+// 	var pk1 int // PtrdiffT
+// 	var pk2 int // PtrdiffT
+// 	var pn int  // PtrdiffT
+// 	// var q PtrdiffT
+// 	// var n PtrdiffT
+// 	// var m PtrdiffT
+// 	// var t PtrdiffT
+// 	var h int // PtrdiffT
 // 	if !(A != nil && A.nz == -1) || order <= 0 || order > 3 {
 // 		// --- Construct matrix C -----------------------------------------------
 // 		// check
@@ -284,13 +286,13 @@ const (
 // 	}
 // 	var (
 // 		len    = W[0]
-// 		nv     = W[1*(n+1)] //(*(*[1000000000]noarch.PtrdiffT)(unsafe.Pointer(uintptr(unsafe.Pointer(&W[0])) + (uintptr)(int(n+1))*unsafe.Sizeof(W[0]))))[:]
-// 		next   = W[2*(n+1)] // (*(*[1000000000]noarch.PtrdiffT)(unsafe.Pointer(uintptr(unsafe.Pointer(&W[0])) + (uintptr)(int(2*int32(n+1)))*unsafe.Sizeof(W[0]))))[:]
-// 		head   = W[3*(n+1)] // (*(*[1000000000]noarch.PtrdiffT)(unsafe.Pointer(uintptr(unsafe.Pointer(&W[0])) + (uintptr)(int(3*int32(n+1)))*unsafe.Sizeof(W[0]))))[:]
-// 		elen   = W[4*(n+1)] // (*(*[1000000000]noarch.PtrdiffT)(unsafe.Pointer(uintptr(unsafe.Pointer(&W[0])) + (uintptr)(int(4*int32(n+1)))*unsafe.Sizeof(W[0]))))[:]
-// 		degree = W[5*(n+1)] // (*(*[1000000000]noarch.PtrdiffT)(unsafe.Pointer(uintptr(unsafe.Pointer(&W[0])) + (uintptr)(int(5*int32(n+1)))*unsafe.Sizeof(W[0]))))[:]
-// 		w      = W[6*(n+1)] // (*(*[1000000000]noarch.PtrdiffT)(unsafe.Pointer(uintptr(unsafe.Pointer(&W[0])) + (uintptr)(int(6*int32(n+1)))*unsafe.Sizeof(W[0]))))[:]
-// 		hhead  = W[7*(n+1)] // (*(*[1000000000]noarch.PtrdiffT)(unsafe.Pointer(uintptr(unsafe.Pointer(&W[0])) + (uintptr)(int(7*int32(n+1)))*unsafe.Sizeof(W[0]))))[:]
+// 		nv     = W[1*(n+1)] //(*(*[1000000000]PtrdiffT)(unsafe.Pointer(uintptr(unsafe.Pointer(&W[0])) + (uintptr)(int(n+1))*unsafe.Sizeof(W[0]))))[:]
+// 		next   = W[2*(n+1)] // (*(*[1000000000]PtrdiffT)(unsafe.Pointer(uintptr(unsafe.Pointer(&W[0])) + (uintptr)(int(2*int32(n+1)))*unsafe.Sizeof(W[0]))))[:]
+// 		head   = W[3*(n+1)] // (*(*[1000000000]PtrdiffT)(unsafe.Pointer(uintptr(unsafe.Pointer(&W[0])) + (uintptr)(int(3*int32(n+1)))*unsafe.Sizeof(W[0]))))[:]
+// 		elen   = W[4*(n+1)] // (*(*[1000000000]PtrdiffT)(unsafe.Pointer(uintptr(unsafe.Pointer(&W[0])) + (uintptr)(int(4*int32(n+1)))*unsafe.Sizeof(W[0]))))[:]
+// 		degree = W[5*(n+1)] // (*(*[1000000000]PtrdiffT)(unsafe.Pointer(uintptr(unsafe.Pointer(&W[0])) + (uintptr)(int(5*int32(n+1)))*unsafe.Sizeof(W[0]))))[:]
+// 		w      = W[6*(n+1)] // (*(*[1000000000]PtrdiffT)(unsafe.Pointer(uintptr(unsafe.Pointer(&W[0])) + (uintptr)(int(6*int32(n+1)))*unsafe.Sizeof(W[0]))))[:]
+// 		hhead  = W[7*(n+1)] // (*(*[1000000000]PtrdiffT)(unsafe.Pointer(uintptr(unsafe.Pointer(&W[0])) + (uintptr)(int(7*int32(n+1)))*unsafe.Sizeof(W[0]))))[:]
 //
 // 		// use P as workspace for last
 // 		last = P
@@ -888,7 +890,7 @@ const (
 // 	// allocate result
 // 	N = new(*csn) // cs_calloc(1, uint(32)).([]csn)
 // 	// get csi workspace
-// 	c = cs_malloc(noarch.PtrdiffT(2*int32(n)/8), uint(0)).([]noarch.PtrdiffT)
+// 	c = cs_malloc(PtrdiffT(2*int32(n)/8), uint(0)).([]PtrdiffT)
 // 	// get double workspace
 // 	x = cs_malloc(n, uint(8)).([]float64)
 // 	cp = S[0].cp
@@ -910,11 +912,11 @@ const (
 // 	if N == nil || c == nil || x == nil || C == nil {
 // 		return (cs_ndone(N, E, c, x, 0))
 // 	}
-// 	s = (*(*[1000000000]noarch.PtrdiffT)(unsafe.Pointer(uintptr(unsafe.Pointer(&c[0])) + (uintptr)(int(n))*unsafe.Sizeof(c[0]))))[:]
+// 	s = (*(*[1000000000]PtrdiffT)(unsafe.Pointer(uintptr(unsafe.Pointer(&c[0])) + (uintptr)(int(n))*unsafe.Sizeof(c[0]))))[:]
 // 	Cp = C.p
 // 	Ci = C.i
 // 	Cx = C.x
-// 	L = cs_spalloc(n, n, noarch.PtrdiffT(cp[n]), 1, 0)
+// 	L = cs_spalloc(n, n, PtrdiffT(cp[n]), 1, 0)
 // 	// allocate result
 // 	N.L = L
 // 	if L == nil {
@@ -932,7 +934,7 @@ const (
 // 		for k = 0; k < n; k++ {
 // 			// --- Nonzero pattern of L(k,:) ------------------------------------
 // 			// find pattern of L(k,:)
-// 			top = cs_ereach(C, noarch.PtrdiffT(k), parent, s, c)
+// 			top = cs_ereach(C, PtrdiffT(k), parent, s, c)
 // 			// x (0:k) is now zero
 // 			x[k] = 0
 // 			{
@@ -997,24 +999,24 @@ const (
 //
 // // cs_cholsol - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_cholsol.c:3
 // // x=A\b where A is symmetric positive definite; b overwritten with solution
-// func cs_cholsol(order noarch.PtrdiffT, A []cs, b []float64) noarch.PtrdiffT {
+// func cs_cholsol(order PtrdiffT, A []cs, b []float64) PtrdiffT {
 // 	var x []float64
 // 	var S []css
 // 	var N []csn
-// 	var n noarch.PtrdiffT
-// 	var ok noarch.PtrdiffT
+// 	var n PtrdiffT
+// 	var ok PtrdiffT
 // 	if !(A != nil && A.nz == -1) || b == nil {
 // 		// check inputs
 // 		return 0
 // 	}
 // 	n = A.n
 // 	// ordering and symbolic analysis
-// 	S = cs_schol(noarch.PtrdiffT(order), A)
+// 	S = cs_schol(PtrdiffT(order), A)
 // 	// numeric Cholesky factorization
 // 	N = cs_chol(A, S)
 // 	// get workspace
 // 	x = cs_malloc(n, uint(8)).([]float64)
-// 	ok = noarch.PtrdiffT(S != nil && N != nil && x != nil)
+// 	ok = PtrdiffT(S != nil && N != nil && x != nil)
 // 	if bool(ok) {
 // 		// x = P*b
 // 		cs_ipvec(S[0].pinv, b, x, n)
@@ -1028,7 +1030,7 @@ const (
 // 	cs_free(x)
 // 	cs_sfree(S)
 // 	cs_nfree(N)
-// 	return noarch.PtrdiffT((ok))
+// 	return PtrdiffT((ok))
 // }
 
 // cs_compress - C = compressed-column form of a triplet matrix T
@@ -1097,16 +1099,16 @@ func cs_compress(T *cs) *cs {
 
 // // init_ata - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_counts.c:5
 // // column counts of LL'=A or LL'=A'A, given parent & post ordering
-// func init_ata(AT []cs, post []noarch.PtrdiffT, w []noarch.PtrdiffT, head [][]noarch.PtrdiffT, next [][]noarch.PtrdiffT) {
-// 	var i noarch.PtrdiffT
-// 	var k noarch.PtrdiffT
-// 	var p noarch.PtrdiffT
-// 	var m noarch.PtrdiffT = noarch.PtrdiffT(AT[0].n)
-// 	var n noarch.PtrdiffT = noarch.PtrdiffT(AT[0].m)
-// 	var ATp []noarch.PtrdiffT = AT[0].p
-// 	var ATi []noarch.PtrdiffT = AT[0].i
-// 	head[0] = (*(*[1000000000]noarch.PtrdiffT)(unsafe.Pointer(uintptr(unsafe.Pointer(&w[0])) + (uintptr)(int(4*int32(n)))*unsafe.Sizeof(w[0]))))[:]
-// 	next[0] = (*(*[1000000000]noarch.PtrdiffT)(unsafe.Pointer(uintptr(unsafe.Pointer(&w[0])) + (uintptr)(int(5*int32(n)))*unsafe.Sizeof(w[0]))))[:][1:]
+// func init_ata(AT []cs, post []PtrdiffT, w []PtrdiffT, head [][]PtrdiffT, next [][]PtrdiffT) {
+// 	var i PtrdiffT
+// 	var k PtrdiffT
+// 	var p PtrdiffT
+// 	var m PtrdiffT = PtrdiffT(AT[0].n)
+// 	var n PtrdiffT = PtrdiffT(AT[0].m)
+// 	var ATp []PtrdiffT = AT[0].p
+// 	var ATi []PtrdiffT = AT[0].i
+// 	head[0] = (*(*[1000000000]PtrdiffT)(unsafe.Pointer(uintptr(unsafe.Pointer(&w[0])) + (uintptr)(int(4*int32(n)))*unsafe.Sizeof(w[0]))))[:]
+// 	next[0] = (*(*[1000000000]PtrdiffT)(unsafe.Pointer(uintptr(unsafe.Pointer(&w[0])) + (uintptr)(int(5*int32(n)))*unsafe.Sizeof(w[0]))))[:][1:]
 // 	{
 // 		// invert post
 // 		for k = 0; k < n; k++ {
@@ -1118,11 +1120,11 @@ func cs_compress(T *cs) *cs {
 // 			k = n
 // 			p = ATp[i]
 // 			for p = ATp[i]; p < ATp[i+1]; p++ {
-// 				k = noarch.PtrdiffT(func() int32 {
+// 				k = PtrdiffT(func() int32 {
 // 					if k < w[ATi[p]] {
-// 						return int32(noarch.PtrdiffT((k)))
+// 						return int32(PtrdiffT((k)))
 // 					}
-// 					return int32(noarch.PtrdiffT((w[ATi[p]])))
+// 					return int32(PtrdiffT((w[ATi[p]])))
 // 				}() / 8)
 // 			}
 // 		}
@@ -1133,28 +1135,28 @@ func cs_compress(T *cs) *cs {
 // }
 //
 // // cs_counts - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_counts.c:17
-// func cs_counts(A []cs, parent []noarch.PtrdiffT, post []noarch.PtrdiffT, ata noarch.PtrdiffT) []noarch.PtrdiffT {
-// 	var i noarch.PtrdiffT
-// 	var j noarch.PtrdiffT
-// 	var k noarch.PtrdiffT
-// 	var n noarch.PtrdiffT
-// 	var m noarch.PtrdiffT
-// 	var J noarch.PtrdiffT
-// 	var s noarch.PtrdiffT
-// 	var p noarch.PtrdiffT
-// 	var q noarch.PtrdiffT
-// 	var jleaf noarch.PtrdiffT
-// 	var ATp []noarch.PtrdiffT
-// 	var ATi []noarch.PtrdiffT
-// 	var maxfirst []noarch.PtrdiffT
-// 	var prevleaf []noarch.PtrdiffT
-// 	var ancestor []noarch.PtrdiffT
-// 	var head []noarch.PtrdiffT
-// 	var next []noarch.PtrdiffT
-// 	var colcount []noarch.PtrdiffT
-// 	var w []noarch.PtrdiffT
-// 	var first []noarch.PtrdiffT
-// 	var delta []noarch.PtrdiffT
+// func cs_counts(A []cs, parent []PtrdiffT, post []PtrdiffT, ata PtrdiffT) []PtrdiffT {
+// 	var i PtrdiffT
+// 	var j PtrdiffT
+// 	var k PtrdiffT
+// 	var n PtrdiffT
+// 	var m PtrdiffT
+// 	var J PtrdiffT
+// 	var s PtrdiffT
+// 	var p PtrdiffT
+// 	var q PtrdiffT
+// 	var jleaf PtrdiffT
+// 	var ATp []PtrdiffT
+// 	var ATi []PtrdiffT
+// 	var maxfirst []PtrdiffT
+// 	var prevleaf []PtrdiffT
+// 	var ancestor []PtrdiffT
+// 	var head []PtrdiffT
+// 	var next []PtrdiffT
+// 	var colcount []PtrdiffT
+// 	var w []PtrdiffT
+// 	var first []PtrdiffT
+// 	var delta []PtrdiffT
 // 	var AT []cs
 // 	if !(A != nil && A.nz == -1) || parent == nil || post == nil {
 // 		// check inputs
@@ -1162,26 +1164,26 @@ func cs_compress(T *cs) *cs {
 // 	}
 // 	m = A.m
 // 	n = A.n
-// 	s = noarch.PtrdiffT((4*int32(n) + func() int32 {
-// 		if bool(noarch.PtrdiffT(ata)) {
+// 	s = PtrdiffT((4*int32(n) + func() int32 {
+// 		if bool(PtrdiffT(ata)) {
 // 			return (int32(n + m + 1))
 // 		}
 // 		return 0
 // 	}()) / 8)
-// 	colcount = cs_malloc(n, uint(0)).([]noarch.PtrdiffT)
+// 	colcount = cs_malloc(n, uint(0)).([]PtrdiffT)
 // 	// allocate result
 // 	delta = colcount
 // 	// get workspace
-// 	w = cs_malloc(noarch.PtrdiffT(s), uint(0)).([]noarch.PtrdiffT)
+// 	w = cs_malloc(PtrdiffT(s), uint(0)).([]PtrdiffT)
 // 	// AT = A'
 // 	AT = cs_transpose(A, 0)
 // 	if AT == nil || colcount == nil || w == nil {
 // 		return (cs_idone(colcount, AT, w, 0))
 // 	}
 // 	ancestor = w
-// 	maxfirst = (*(*[1000000000]noarch.PtrdiffT)(unsafe.Pointer(uintptr(unsafe.Pointer(&w[0])) + (uintptr)(int(n))*unsafe.Sizeof(w[0]))))[:]
-// 	prevleaf = (*(*[1000000000]noarch.PtrdiffT)(unsafe.Pointer(uintptr(unsafe.Pointer(&w[0])) + (uintptr)(int(2*int32(n)))*unsafe.Sizeof(w[0]))))[:]
-// 	first = (*(*[1000000000]noarch.PtrdiffT)(unsafe.Pointer(uintptr(unsafe.Pointer(&w[0])) + (uintptr)(int(3*int32(n)))*unsafe.Sizeof(w[0]))))[:]
+// 	maxfirst = (*(*[1000000000]PtrdiffT)(unsafe.Pointer(uintptr(unsafe.Pointer(&w[0])) + (uintptr)(int(n))*unsafe.Sizeof(w[0]))))[:]
+// 	prevleaf = (*(*[1000000000]PtrdiffT)(unsafe.Pointer(uintptr(unsafe.Pointer(&w[0])) + (uintptr)(int(2*int32(n)))*unsafe.Sizeof(w[0]))))[:]
+// 	first = (*(*[1000000000]PtrdiffT)(unsafe.Pointer(uintptr(unsafe.Pointer(&w[0])) + (uintptr)(int(3*int32(n)))*unsafe.Sizeof(w[0]))))[:]
 // 	{
 // 		// clear workspace w [0..s-1]
 // 		for k = 0; k < s; k++ {
@@ -1193,7 +1195,7 @@ func cs_compress(T *cs) *cs {
 // 		for k = 0; k < n; k++ {
 // 			j = post[k]
 // 			// delta[j]=1 if j is a leaf
-// 			delta[j] = noarch.PtrdiffT(func() int {
+// 			delta[j] = PtrdiffT(func() int {
 // 				if first[j] == -1 {
 // 					return 1
 // 				}
@@ -1206,8 +1208,8 @@ func cs_compress(T *cs) *cs {
 // 	}
 // 	ATp = AT[0].p
 // 	ATi = AT[0].i
-// 	if bool(noarch.PtrdiffT(ata)) {
-// 		init_ata(AT, post, w, (*[100000000][]noarch.PtrdiffT)(unsafe.Pointer(&head))[:], (*[100000000][]noarch.PtrdiffT)(unsafe.Pointer(&next))[:])
+// 	if bool(PtrdiffT(ata)) {
+// 		init_ata(AT, post, w, (*[100000000][]PtrdiffT)(unsafe.Pointer(&head))[:], (*[100000000][]PtrdiffT)(unsafe.Pointer(&next))[:])
 // 	}
 // 	{
 // 		// each node in its own set
@@ -1224,20 +1226,20 @@ func cs_compress(T *cs) *cs {
 // 		}
 // 		{
 // 			// J=j for LL'=A case
-// 			for J = noarch.PtrdiffT(func() int32 {
-// 				if bool(noarch.PtrdiffT(ata)) {
-// 					return int32(noarch.PtrdiffT(head[k]))
+// 			for J = PtrdiffT(func() int32 {
+// 				if bool(PtrdiffT(ata)) {
+// 					return int32(PtrdiffT(head[k]))
 // 				}
-// 				return int32(noarch.PtrdiffT(j))
-// 			}() / 8); J != -1; J = noarch.PtrdiffT(func() int32 {
-// 				if bool(noarch.PtrdiffT(ata)) {
-// 					return int32(noarch.PtrdiffT(next[J]))
+// 				return int32(PtrdiffT(j))
+// 			}() / 8); J != -1; J = PtrdiffT(func() int32 {
+// 				if bool(PtrdiffT(ata)) {
+// 					return int32(PtrdiffT(next[J]))
 // 				}
 // 				return int32(-1)
 // 			}() / 8) {
 // 				for p = ATp[J]; p < ATp[J+1]; p++ {
 // 					i = ATi[p]
-// 					q = cs_leaf(noarch.PtrdiffT(i), noarch.PtrdiffT(j), first, maxfirst, prevleaf, ancestor, (*[100000000]noarch.PtrdiffT)(unsafe.Pointer(&jleaf))[:])
+// 					q = cs_leaf(PtrdiffT(i), PtrdiffT(j), first, maxfirst, prevleaf, ancestor, (*[100000000]PtrdiffT)(unsafe.Pointer(&jleaf))[:])
 // 					if jleaf >= 1 {
 // 						// A(i,j) is in skeleton
 // 						delta[j]++
@@ -1533,14 +1535,14 @@ func cs_rprune(i, j int, aij float64, other interface{}) bool {
 // Given A, compute coarse and then fine dmperm
 func cs_dmperm(A *cs, seed int) *csd {
 	var cnz int
-	// var nc noarch.PtrdiffT
-	// var pinv []noarch.PtrdiffT
-	// var Cp []noarch.PtrdiffT
-	// var Ci []noarch.PtrdiffT
-	// var ps []noarch.PtrdiffT
-	// var rs []noarch.PtrdiffT
-	// var nb1 noarch.PtrdiffT
-	// var nb2 noarch.PtrdiffT
+	// var nc PtrdiffT
+	// var pinv []PtrdiffT
+	// var Cp []PtrdiffT
+	// var Ci []PtrdiffT
+	// var ps []PtrdiffT
+	// var rs []PtrdiffT
+	// var nb1 PtrdiffT
+	// var nb2 PtrdiffT
 	// var C []cs
 	// var scc []csd
 	if !(A != nil && A.nz == -1) {
@@ -1793,14 +1795,14 @@ func cs_entry(T *cs, i, j int, x float64) bool {
 
 // // cs_ereach - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_ereach.c:3
 // // find nonzero pattern of Cholesky L(k,1:k-1) using etree and triu(A(:,k))
-// func cs_ereach(A []cs, k noarch.PtrdiffT, parent []noarch.PtrdiffT, s []noarch.PtrdiffT, w []noarch.PtrdiffT) noarch.PtrdiffT {
-// 	var i noarch.PtrdiffT
-// 	var p noarch.PtrdiffT
-// 	var n noarch.PtrdiffT
-// 	var len noarch.PtrdiffT
-// 	var top noarch.PtrdiffT
-// 	var Ap []noarch.PtrdiffT
-// 	var Ai []noarch.PtrdiffT
+// func cs_ereach(A []cs, k PtrdiffT, parent []PtrdiffT, s []PtrdiffT, w []PtrdiffT) PtrdiffT {
+// 	var i PtrdiffT
+// 	var p PtrdiffT
+// 	var n PtrdiffT
+// 	var len PtrdiffT
+// 	var top PtrdiffT
+// 	var Ap []PtrdiffT
+// 	var Ai []PtrdiffT
 // 	if !(A != nil && A.nz == -1) || parent == nil || s == nil || w == nil {
 // 		// check inputs
 // 		return -1
@@ -1811,7 +1813,7 @@ func cs_entry(T *cs, i, j int, x float64) bool {
 // 	Ai = A[0].i
 // 	{
 // 		// mark node k as visited
-// 		w[k] = -noarch.PtrdiffT((w[k])) - 2
+// 		w[k] = -PtrdiffT((w[k])) - 2
 // 	}
 // 	for p = Ap[k]; p < Ap[k+1]; p++ {
 // 		// A(i,k) is nonzero
@@ -1832,7 +1834,7 @@ func cs_entry(T *cs, i, j int, x float64) bool {
 // 				}()] = i
 // 				{
 // 					// mark i as visited
-// 					w[i] = -noarch.PtrdiffT((w[i])) - 2
+// 					w[i] = -PtrdiffT((w[i])) - 2
 // 				}
 // 			}
 // 		}
@@ -1850,32 +1852,32 @@ func cs_entry(T *cs, i, j int, x float64) bool {
 // 	{
 // 		// unmark all nodes
 // 		for p = top; p < n; p++ {
-// 			w[s[p]] = -noarch.PtrdiffT((w[s[p]])) - 2
+// 			w[s[p]] = -PtrdiffT((w[s[p]])) - 2
 // 		}
 // 	}
 // 	{
 // 		// unmark node k
-// 		w[k] = -noarch.PtrdiffT((w[k])) - 2
+// 		w[k] = -PtrdiffT((w[k])) - 2
 // 	}
 // 	// s [top..n-1] contains pattern of L(k,:)
-// 	return noarch.PtrdiffT((top))
+// 	return PtrdiffT((top))
 // }
 //
 // // cs_etree - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_etree.c:3
 // // compute the etree of A (using triu(A), or A'A without forming A'A
-// func cs_etree(A []cs, ata noarch.PtrdiffT) []noarch.PtrdiffT {
-// 	var i noarch.PtrdiffT
-// 	var k noarch.PtrdiffT
-// 	var p noarch.PtrdiffT
-// 	var m noarch.PtrdiffT
-// 	var n noarch.PtrdiffT
-// 	var inext noarch.PtrdiffT
-// 	var Ap []noarch.PtrdiffT
-// 	var Ai []noarch.PtrdiffT
-// 	var w []noarch.PtrdiffT
-// 	var parent []noarch.PtrdiffT
-// 	var ancestor []noarch.PtrdiffT
-// 	var prev []noarch.PtrdiffT
+// func cs_etree(A []cs, ata PtrdiffT) []PtrdiffT {
+// 	var i PtrdiffT
+// 	var k PtrdiffT
+// 	var p PtrdiffT
+// 	var m PtrdiffT
+// 	var n PtrdiffT
+// 	var inext PtrdiffT
+// 	var Ap []PtrdiffT
+// 	var Ai []PtrdiffT
+// 	var w []PtrdiffT
+// 	var parent []PtrdiffT
+// 	var ancestor []PtrdiffT
+// 	var prev []PtrdiffT
 // 	if !(A != nil && A.nz == -1) {
 // 		// check inputs
 // 		return nil
@@ -1885,20 +1887,20 @@ func cs_entry(T *cs, i, j int, x float64) bool {
 // 	Ap = A[0].p
 // 	Ai = A[0].i
 // 	// allocate result
-// 	parent = cs_malloc(n, uint(0)).([]noarch.PtrdiffT)
+// 	parent = cs_malloc(n, uint(0)).([]PtrdiffT)
 // 	// get workspace
-// 	w = cs_malloc(n+noarch.PtrdiffT(func() int32 {
-// 		if bool(noarch.PtrdiffT(ata)) {
+// 	w = cs_malloc(n+PtrdiffT(func() int32 {
+// 		if bool(PtrdiffT(ata)) {
 // 			return int32(m)
 // 		}
 // 		return 0
-// 	}()/8), uint(0)).([]noarch.PtrdiffT)
+// 	}()/8), uint(0)).([]PtrdiffT)
 // 	if w == nil || parent == nil {
 // 		return (cs_idone(parent, nil, w, 0))
 // 	}
 // 	ancestor = w
-// 	prev = (*(*[1000000000]noarch.PtrdiffT)(unsafe.Pointer(uintptr(unsafe.Pointer(&w[0])) + (uintptr)(int(n))*unsafe.Sizeof(w[0]))))[:]
-// 	if bool(noarch.PtrdiffT(ata)) {
+// 	prev = (*(*[1000000000]PtrdiffT)(unsafe.Pointer(uintptr(unsafe.Pointer(&w[0])) + (uintptr)(int(n))*unsafe.Sizeof(w[0]))))[:]
+// 	if bool(PtrdiffT(ata)) {
 // 		for i = 0; i < m; i++ {
 // 			prev[i] = -1
 // 		}
@@ -1909,11 +1911,11 @@ func cs_entry(T *cs, i, j int, x float64) bool {
 // 		// nor does k have an ancestor
 // 		ancestor[k] = -1
 // 		for p = Ap[k]; p < Ap[k+1]; p++ {
-// 			i = noarch.PtrdiffT(func() int32 {
-// 				if bool(noarch.PtrdiffT(ata)) {
-// 					return int32(noarch.PtrdiffT((prev[Ai[p]])))
+// 			i = PtrdiffT(func() int32 {
+// 				if bool(PtrdiffT(ata)) {
+// 					return int32(PtrdiffT((prev[Ai[p]])))
 // 				}
-// 				return int32(noarch.PtrdiffT((Ai[p])))
+// 				return int32(PtrdiffT((Ai[p])))
 // 			}() / 8)
 // 			{
 // 				// traverse from i to k
@@ -1928,7 +1930,7 @@ func cs_entry(T *cs, i, j int, x float64) bool {
 // 					}
 // 				}
 // 			}
-// 			if bool(noarch.PtrdiffT(ata)) {
+// 			if bool(PtrdiffT(ata)) {
 // 				prev[Ai[p]] = k
 // 			}
 // 		}
@@ -1999,13 +2001,13 @@ func cs_gaxpy(A *cs, x []float64, y []float64) bool {
 
 // // cs_happly - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_happly.c:3
 // // apply the ith Householder vector to x
-// func cs_happly(V []cs, i noarch.PtrdiffT, beta float64, x []float64) noarch.PtrdiffT {
-// 	var p noarch.PtrdiffT
-// 	var Vp []noarch.PtrdiffT
-// 	var Vi []noarch.PtrdiffT
+// func cs_happly(V []cs, i PtrdiffT, beta float64, x []float64) PtrdiffT {
+// 	var p PtrdiffT
+// 	var Vp []PtrdiffT
+// 	var Vi []PtrdiffT
 // 	var Vx []float64
 // 	var tau float64
-// 	if !(V != nil && noarch.PtrdiffT(V[0].nz) == -1) || x == nil {
+// 	if !(V != nil && PtrdiffT(V[0].nz) == -1) || x == nil {
 // 		// check inputs
 // 		return 0
 // 	}
@@ -2032,10 +2034,10 @@ func cs_gaxpy(A *cs, x []float64, y []float64) bool {
 // // cs_house - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_house.c:4
 // // create a Householder reflection [v,beta,s]=house(x), overwrite x with v,
 // // * where (I-beta*v*v')*x = s*e1.  See Algo 5.1.1, Golub & Van Loan, 3rd ed.
-// func cs_house(x []float64, beta []float64, n noarch.PtrdiffT) float64 {
+// func cs_house(x []float64, beta []float64, n PtrdiffT) float64 {
 // 	var s float64
 // 	var sigma float64
-// 	var i noarch.PtrdiffT
+// 	var i PtrdiffT
 // 	if x == nil || beta == nil {
 // 		// check inputs
 // 		return float64((-1))
@@ -2087,11 +2089,11 @@ func cs_ipvec(p []int, b []float64, x []float64, n int) bool {
 
 // // cs_leaf - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_leaf.c:3
 // // consider A(i,j), node j in ith row subtree and return lca(jprev,j)
-// func cs_leaf(i noarch.PtrdiffT, j noarch.PtrdiffT, first []noarch.PtrdiffT, maxfirst []noarch.PtrdiffT, prevleaf []noarch.PtrdiffT, ancestor []noarch.PtrdiffT, jleaf []noarch.PtrdiffT) noarch.PtrdiffT {
-// 	var q noarch.PtrdiffT
-// 	var s noarch.PtrdiffT
-// 	var sparent noarch.PtrdiffT
-// 	var jprev noarch.PtrdiffT
+// func cs_leaf(i PtrdiffT, j PtrdiffT, first []PtrdiffT, maxfirst []PtrdiffT, prevleaf []PtrdiffT, ancestor []PtrdiffT, jleaf []PtrdiffT) PtrdiffT {
+// 	var q PtrdiffT
+// 	var s PtrdiffT
+// 	var sparent PtrdiffT
+// 	var jprev PtrdiffT
 // 	if first == nil || maxfirst == nil || prevleaf == nil || ancestor == nil || jleaf == nil {
 // 		return -1
 // 	}
@@ -2106,7 +2108,7 @@ func cs_ipvec(p []int, b []float64, x []float64, n int) bool {
 // 	jprev = prevleaf[i]
 // 	prevleaf[i] = j
 // 	// j is first or subsequent leaf
-// 	jleaf[0] = noarch.PtrdiffT(func() int {
+// 	jleaf[0] = PtrdiffT(func() int {
 // 		if jprev == -1 {
 // 			return 1
 // 		}
@@ -2114,7 +2116,7 @@ func cs_ipvec(p []int, b []float64, x []float64, n int) bool {
 // 	}())
 // 	if jleaf[0] == 1 {
 // 		// if 1st leaf, q = root of ith subtree
-// 		return noarch.PtrdiffT((i))
+// 		return PtrdiffT((i))
 // 	}
 // 	for q = jprev; q != ancestor[q]; q = ancestor[q] {
 // 	}
@@ -2124,7 +2126,7 @@ func cs_ipvec(p []int, b []float64, x []float64, n int) bool {
 // 		ancestor[s] = q
 // 	}
 // 	// q = least common ancester (jprev,j)
-// 	return noarch.PtrdiffT((q))
+// 	return PtrdiffT((q))
 // }
 //
 
@@ -2159,14 +2161,14 @@ func cs_load(f io.Reader) *cs {
 //
 // // cs_lsolve - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_lsolve.c:3
 // // solve Lx=b where x and b are dense.  x=b on input, solution on output.
-// func cs_lsolve(L []cs, x []float64) noarch.PtrdiffT {
-// 	var p noarch.PtrdiffT
-// 	var j noarch.PtrdiffT
-// 	var n noarch.PtrdiffT
-// 	var Lp []noarch.PtrdiffT
-// 	var Li []noarch.PtrdiffT
+// func cs_lsolve(L []cs, x []float64) PtrdiffT {
+// 	var p PtrdiffT
+// 	var j PtrdiffT
+// 	var n PtrdiffT
+// 	var Lp []PtrdiffT
+// 	var Li []PtrdiffT
 // 	var Lx []float64
-// 	if !(L != nil && noarch.PtrdiffT(L[0].nz) == -1) || x == nil {
+// 	if !(L != nil && PtrdiffT(L[0].nz) == -1) || x == nil {
 // 		// check inputs
 // 		return 0
 // 	}
@@ -2185,14 +2187,14 @@ func cs_load(f io.Reader) *cs {
 //
 // // cs_ltsolve - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_ltsolve.c:3
 // // solve L'x=b where x and b are dense.  x=b on input, solution on output.
-// func cs_ltsolve(L []cs, x []float64) noarch.PtrdiffT {
-// 	var p noarch.PtrdiffT
-// 	var j noarch.PtrdiffT
-// 	var n noarch.PtrdiffT
-// 	var Lp []noarch.PtrdiffT
-// 	var Li []noarch.PtrdiffT
+// func cs_ltsolve(L []cs, x []float64) PtrdiffT {
+// 	var p PtrdiffT
+// 	var j PtrdiffT
+// 	var n PtrdiffT
+// 	var Lp []PtrdiffT
+// 	var Li []PtrdiffT
 // 	var Lx []float64
-// 	if !(L != nil && noarch.PtrdiffT(L[0].nz) == -1) || x == nil {
+// 	if !(L != nil && PtrdiffT(L[0].nz) == -1) || x == nil {
 // 		// check inputs
 // 		return 0
 // 	}
@@ -2221,22 +2223,22 @@ func cs_lu(A *cs, S *css, tol float64) *csn {
 	var x []float64
 	var a float64
 	var t float64
-	var Lp []noarch.PtrdiffT
-	var Li []noarch.PtrdiffT
-	var Up []noarch.PtrdiffT
-	var Ui []noarch.PtrdiffT
-	var pinv []noarch.PtrdiffT
-	var xi []noarch.PtrdiffT
-	var q []noarch.PtrdiffT
-	var n noarch.PtrdiffT
-	var ipiv noarch.PtrdiffT
-	var k noarch.PtrdiffT
-	var top noarch.PtrdiffT
-	var p noarch.PtrdiffT
-	var i noarch.PtrdiffT
-	var col noarch.PtrdiffT
-	var lnz noarch.PtrdiffT
-	var unz noarch.PtrdiffT
+	var Lp []PtrdiffT
+	var Li []PtrdiffT
+	var Up []PtrdiffT
+	var Ui []PtrdiffT
+	var pinv []PtrdiffT
+	var xi []PtrdiffT
+	var q []PtrdiffT
+	var n PtrdiffT
+	var ipiv PtrdiffT
+	var k PtrdiffT
+	var top PtrdiffT
+	var p PtrdiffT
+	var i PtrdiffT
+	var col PtrdiffT
+	var lnz PtrdiffT
+	var unz PtrdiffT
 	if !(A != nil && A.nz == -1) || S == nil {
 		// check inputs
 		return nil
@@ -2248,19 +2250,19 @@ func cs_lu(A *cs, S *css, tol float64) *csn {
 	// get double workspace
 	x = cs_malloc(n, uint(8)).([]float64)
 	// get csi workspace
-	xi = cs_malloc(noarch.PtrdiffT(2*int32(n)/8), uint(0)).([]noarch.PtrdiffT)
+	xi = cs_malloc(PtrdiffT(2*int32(n)/8), uint(0)).([]PtrdiffT)
 	// allocate result
 	N = cs_calloc(1, uint(32)).([]csn)
 	if x == nil || xi == nil || N == nil {
 		return (cs_ndone(N, nil, xi, x, 0))
 	}
-	L = cs_spalloc(n, n, noarch.PtrdiffT(lnz), 1, 0)
+	L = cs_spalloc(n, n, PtrdiffT(lnz), 1, 0)
 	// allocate result L
 	N.L = L
-	U = cs_spalloc(n, n, noarch.PtrdiffT(unz), 1, 0)
+	U = cs_spalloc(n, n, PtrdiffT(unz), 1, 0)
 	// allocate result U
 	N.U = U
-	pinv = cs_malloc(n, uint(0)).([]noarch.PtrdiffT)
+	pinv = cs_malloc(n, uint(0)).([]PtrdiffT)
 	// allocate result pinv
 	N.pinv = pinv
 	if L == nil || U == nil || pinv == nil {
@@ -2294,21 +2296,21 @@ func cs_lu(A *cs, S *css, tol float64) *csn {
 		Lp[k] = lnz
 		// U(:,k) starts here
 		Up[k] = unz
-		if lnz+n > noarch.PtrdiffT(L[0].nzmax) && bool(noarch.NotNoarch.PtrdiffT(cs_sprealloc(L, noarch.PtrdiffT((2*int32(noarch.PtrdiffT(L[0].nzmax))+int32(n))/8)))) || unz+n > noarch.PtrdiffT(U[0].nzmax) && bool(noarch.NotNoarch.PtrdiffT(cs_sprealloc(U, noarch.PtrdiffT((2*int32(noarch.PtrdiffT(U[0].nzmax))+int32(n))/8)))) {
+		if lnz+n > PtrdiffT(L[0].nzmax) && bool(noarch.NotNoarch.PtrdiffT(cs_sprealloc(L, PtrdiffT((2*int32(PtrdiffT(L[0].nzmax))+int32(n))/8)))) || unz+n > PtrdiffT(U[0].nzmax) && bool(noarch.NotNoarch.PtrdiffT(cs_sprealloc(U, PtrdiffT((2*int32(PtrdiffT(U[0].nzmax))+int32(n))/8)))) {
 			return (cs_ndone(N, nil, xi, x, 0))
 		}
 		Li = L.i
 		Lx = L.x
 		Ui = U.i
 		Ux = U.x
-		col = noarch.PtrdiffT(func() int32 {
+		col = PtrdiffT(func() int32 {
 			if q != nil {
-				return int32(noarch.PtrdiffT((q[k])))
+				return int32(PtrdiffT((q[k])))
 			}
-			return int32(noarch.PtrdiffT(k))
+			return int32(PtrdiffT(k))
 		}() / 8)
 		// x = L\A(:,col)
-		top = cs_spsolve(L, A, noarch.PtrdiffT(col), xi, x, pinv, 1)
+		top = cs_spsolve(L, A, PtrdiffT(col), xi, x, pinv, 1)
 		// --- Find pivot ---------------------------------------------------
 		ipiv = -1
 		a = float64(-1)
@@ -2434,10 +2436,10 @@ func cs_lusol(order int, A *cs, b []float64, tol float64) bool {
 
 // // cs_malloc - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_malloc.c:10
 // // wrapper for malloc
-// func cs_malloc(n noarch.PtrdiffT, size uint) interface{} {
+// func cs_malloc(n PtrdiffT, size uint) interface{} {
 // 	return (make([]byte, uint32(func() int32 {
 // 		if n > 1 {
-// 			return int32(noarch.PtrdiffT((n)))
+// 			return int32(PtrdiffT((n)))
 // 		}
 // 		return 1
 // 	}())*uint32(size)))
@@ -2445,10 +2447,10 @@ func cs_lusol(order int, A *cs, b []float64, tol float64) bool {
 //
 // // cs_calloc - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_malloc.c:16
 // // wrapper for calloc
-// func cs_calloc(n noarch.PtrdiffT, size uint) interface{} {
+// func cs_calloc(n PtrdiffT, size uint) interface{} {
 // 	return (make([]byte, (size)*(uint(uint32((func() int32 {
 // 		if n > 1 {
-// 			return int32(noarch.PtrdiffT((n)))
+// 			return int32(PtrdiffT((n)))
 // 		}
 // 		return 1
 // 	}()))))))
@@ -2574,19 +2576,19 @@ func cs_maxtrans(A *cs, seed int) []int {
 	var i int
 	var j int
 	var k int
-	// var n noarch.PtrdiffT
-	// var m noarch.PtrdiffT
+	// var n PtrdiffT
+	// var m PtrdiffT
 	var p int
 	// var n2 int
 	var m2 int
-	// var Ap []noarch.PtrdiffT
+	// var Ap []PtrdiffT
 	// var jimatch []int
-	// var w []noarch.PtrdiffT
+	// var w []PtrdiffT
 	var cheap []int
 	var js []int
 	var is []int
 	var ps []int
-	// var Ai []noarch.PtrdiffT
+	// var Ai []PtrdiffT
 	var Cp []int
 	var jmatch []int
 	var imatch []int
@@ -2600,7 +2602,7 @@ func cs_maxtrans(A *cs, seed int) []int {
 	m := A.m
 	Ap := A.p
 	Ai := A.i
-	jimatch := make([]int, m+n) // cs_calloc(m+n, uint(0)).([]noarch.PtrdiffT)
+	jimatch := make([]int, m+n) // cs_calloc(m+n, uint(0)).([]PtrdiffT)
 	// allocate result
 	w := jimatch
 	if jimatch == nil {
@@ -2679,7 +2681,7 @@ func cs_maxtrans(A *cs, seed int) []int {
 		return jimatch[m:]
 	}()
 	// get workspace
-	w = make([]int, 5*n) // cs_malloc(noarch.PtrdiffT(5*int32(n)/8), uint(0)).([]noarch.PtrdiffT)
+	w = make([]int, 5*n) // cs_malloc(PtrdiffT(5*int32(n)/8), uint(0)).([]PtrdiffT)
 	if w == nil {
 		return (cs_idone(jimatch, func() *cs {
 			if m2 < n2 {
@@ -2907,7 +2909,7 @@ func cs_pinv(p []int, n int) []int {
 		return nil
 	}
 	// allocate result
-	pinv = make([]int, n) // cs_malloc(n, uint(0)).([]noarch.PtrdiffT)
+	pinv = make([]int, n) // cs_malloc(n, uint(0)).([]PtrdiffT)
 	if pinv == nil {
 		// out of memory
 		return nil
@@ -2924,28 +2926,28 @@ func cs_pinv(p []int, n int) []int {
 
 // // cs_post - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_post.c:3
 // // post order a forest
-// func cs_post(parent []noarch.PtrdiffT, n noarch.PtrdiffT) []noarch.PtrdiffT {
-// 	var j noarch.PtrdiffT
-// 	var k noarch.PtrdiffT
-// 	var post []noarch.PtrdiffT
-// 	var w []noarch.PtrdiffT
-// 	var head []noarch.PtrdiffT
-// 	var next []noarch.PtrdiffT
-// 	var stack []noarch.PtrdiffT
+// func cs_post(parent []PtrdiffT, n PtrdiffT) []PtrdiffT {
+// 	var j PtrdiffT
+// 	var k PtrdiffT
+// 	var post []PtrdiffT
+// 	var w []PtrdiffT
+// 	var head []PtrdiffT
+// 	var next []PtrdiffT
+// 	var stack []PtrdiffT
 // 	if parent == nil {
 // 		// check inputs
 // 		return nil
 // 	}
 // 	// allocate result
-// 	post = cs_malloc(n, uint(0)).([]noarch.PtrdiffT)
+// 	post = cs_malloc(n, uint(0)).([]PtrdiffT)
 // 	// get workspace
-// 	w = cs_malloc(noarch.PtrdiffT(3*int32(n)/8), uint(0)).([]noarch.PtrdiffT)
+// 	w = cs_malloc(PtrdiffT(3*int32(n)/8), uint(0)).([]PtrdiffT)
 // 	if w == nil || post == nil {
 // 		return (cs_idone(post, nil, w, 0))
 // 	}
 // 	head = w
-// 	next = (*(*[1000000000]noarch.PtrdiffT)(unsafe.Pointer(uintptr(unsafe.Pointer(&w[0])) + (uintptr)(int(n))*unsafe.Sizeof(w[0]))))[:]
-// 	stack = (*(*[1000000000]noarch.PtrdiffT)(unsafe.Pointer(uintptr(unsafe.Pointer(&w[0])) + (uintptr)(int(2*int32(n)))*unsafe.Sizeof(w[0]))))[:]
+// 	next = (*(*[1000000000]PtrdiffT)(unsafe.Pointer(uintptr(unsafe.Pointer(&w[0])) + (uintptr)(int(n))*unsafe.Sizeof(w[0]))))[:]
+// 	stack = (*(*[1000000000]PtrdiffT)(unsafe.Pointer(uintptr(unsafe.Pointer(&w[0])) + (uintptr)(int(2*int32(n)))*unsafe.Sizeof(w[0]))))[:]
 // 	{
 // 		// empty linked lists
 // 		for j = 0; j < n; j++ {
@@ -2969,7 +2971,7 @@ func cs_pinv(p []int, n int) []int {
 // 			// skip j if it is not a root
 // 			continue
 // 		}
-// 		k = cs_tdfs(noarch.PtrdiffT(j), noarch.PtrdiffT(k), head, next, post, stack)
+// 		k = cs_tdfs(PtrdiffT(j), PtrdiffT(k), head, next, post, stack)
 // 	}
 // 	// success; free w, return post
 // 	return (cs_idone(post, nil, w, 1))
@@ -3036,8 +3038,8 @@ func cs_print(A *cs, brief bool) bool {
 //
 // // cs_pvec - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_pvec.c:3
 // // x = b(p), for dense vectors x and b; p=NULL denotes identity
-// func cs_pvec(p []noarch.PtrdiffT, b []float64, x []float64, n noarch.PtrdiffT) noarch.PtrdiffT {
-// 	var k noarch.PtrdiffT
+// func cs_pvec(p []PtrdiffT, b []float64, x []float64, n PtrdiffT) PtrdiffT {
+// 	var k PtrdiffT
 // 	if x == nil || b == nil {
 // 		// check inputs
 // 		return 0
@@ -3045,9 +3047,9 @@ func cs_print(A *cs, brief bool) bool {
 // 	for k = 0; k < n; k++ {
 // 		x[k] = b[func() int32 {
 // 			if p != nil {
-// 				return int32(noarch.PtrdiffT(p[k]))
+// 				return int32(PtrdiffT(p[k]))
 // 			}
-// 			return int32(noarch.PtrdiffT(k))
+// 			return int32(PtrdiffT(k))
 // 		}()]
 // 	}
 // 	return 1
@@ -3061,30 +3063,30 @@ func cs_print(A *cs, brief bool) bool {
 // 	var Ax []float64
 // 	var x []float64
 // 	var Beta []float64
-// 	var i noarch.PtrdiffT
-// 	var k noarch.PtrdiffT
-// 	var p noarch.PtrdiffT
-// 	var m noarch.PtrdiffT
-// 	var n noarch.PtrdiffT
-// 	var vnz noarch.PtrdiffT
-// 	var p1 noarch.PtrdiffT
-// 	var top noarch.PtrdiffT
-// 	var m2 noarch.PtrdiffT
-// 	var len noarch.PtrdiffT
-// 	var col noarch.PtrdiffT
-// 	var rnz noarch.PtrdiffT
-// 	var s []noarch.PtrdiffT
-// 	var leftmost []noarch.PtrdiffT
-// 	var Ap []noarch.PtrdiffT
-// 	var Ai []noarch.PtrdiffT
-// 	var parent []noarch.PtrdiffT
-// 	var Rp []noarch.PtrdiffT
-// 	var Ri []noarch.PtrdiffT
-// 	var Vp []noarch.PtrdiffT
-// 	var Vi []noarch.PtrdiffT
-// 	var w []noarch.PtrdiffT
-// 	var pinv []noarch.PtrdiffT
-// 	var q []noarch.PtrdiffT
+// 	var i PtrdiffT
+// 	var k PtrdiffT
+// 	var p PtrdiffT
+// 	var m PtrdiffT
+// 	var n PtrdiffT
+// 	var vnz PtrdiffT
+// 	var p1 PtrdiffT
+// 	var top PtrdiffT
+// 	var m2 PtrdiffT
+// 	var len PtrdiffT
+// 	var col PtrdiffT
+// 	var rnz PtrdiffT
+// 	var s []PtrdiffT
+// 	var leftmost []PtrdiffT
+// 	var Ap []PtrdiffT
+// 	var Ai []PtrdiffT
+// 	var parent []PtrdiffT
+// 	var Rp []PtrdiffT
+// 	var Ri []PtrdiffT
+// 	var Vp []PtrdiffT
+// 	var Vi []PtrdiffT
+// 	var w []PtrdiffT
+// 	var pinv []PtrdiffT
+// 	var q []PtrdiffT
 // 	var R []cs
 // 	var V []cs
 // 	var N []csn
@@ -3099,31 +3101,31 @@ func cs_print(A *cs, brief bool) bool {
 // 	q = S[0].q
 // 	parent = S[0].parent
 // 	pinv = S[0].pinv
-// 	m2 = noarch.PtrdiffT(S[0].m2)
+// 	m2 = PtrdiffT(S[0].m2)
 // 	vnz = S.lnz
 // 	rnz = S.unz
 // 	leftmost = S[0].leftmost
 // 	// get csi workspace
-// 	w = cs_malloc(m2+n, uint(0)).([]noarch.PtrdiffT)
+// 	w = cs_malloc(m2+n, uint(0)).([]PtrdiffT)
 // 	// get double workspace
-// 	x = cs_malloc(noarch.PtrdiffT(m2), uint(8)).([]float64)
+// 	x = cs_malloc(PtrdiffT(m2), uint(8)).([]float64)
 // 	// allocate result
 // 	N = cs_calloc(1, uint(32)).([]csn)
 // 	if w == nil || x == nil || N == nil {
 // 		return (cs_ndone(N, nil, w, x, 0))
 // 	}
 // 	// s is size n
-// 	s = (*(*[1000000000]noarch.PtrdiffT)(unsafe.Pointer(uintptr(unsafe.Pointer(&w[0])) + (uintptr)(int(m2))*unsafe.Sizeof(w[0]))))[:]
+// 	s = (*(*[1000000000]PtrdiffT)(unsafe.Pointer(uintptr(unsafe.Pointer(&w[0])) + (uintptr)(int(m2))*unsafe.Sizeof(w[0]))))[:]
 // 	{
 // 		// clear workspace x
 // 		for k = 0; k < m2; k++ {
 // 			x[k] = 0
 // 		}
 // 	}
-// 	V = cs_spalloc(noarch.PtrdiffT(m2), n, noarch.PtrdiffT(vnz), 1, 0)
+// 	V = cs_spalloc(PtrdiffT(m2), n, PtrdiffT(vnz), 1, 0)
 // 	// allocate result V
 // 	N.L = V
-// 	R = cs_spalloc(noarch.PtrdiffT(m2), n, noarch.PtrdiffT(rnz), 1, 0)
+// 	R = cs_spalloc(PtrdiffT(m2), n, PtrdiffT(rnz), 1, 0)
 // 	// allocate result R
 // 	N.U = R
 // 	Beta = cs_malloc(n, uint(8)).([]float64)
@@ -3163,11 +3165,11 @@ func cs_print(A *cs, brief bool) bool {
 // 				return vnz
 // 			}()] = k
 // 			top = n
-// 			col = noarch.PtrdiffT(func() int32 {
+// 			col = PtrdiffT(func() int32 {
 // 				if q != nil {
-// 					return int32(noarch.PtrdiffT(q[k]))
+// 					return int32(PtrdiffT(q[k]))
 // 				}
-// 				return int32(noarch.PtrdiffT(k))
+// 				return int32(PtrdiffT(k))
 // 			}() / 8)
 // 			{
 // 				// find R(:,k) pattern
@@ -3219,7 +3221,7 @@ func cs_print(A *cs, brief bool) bool {
 // 					// R(i,k) is nonzero
 // 					i = s[p]
 // 					// apply (V(i),Beta(i)) to x
-// 					cs_happly(V, noarch.PtrdiffT(i), Beta[i], x)
+// 					cs_happly(V, PtrdiffT(i), Beta[i], x)
 // 					// R(i,k) = x(i)
 // 					Ri[rnz] = i
 // 					Rx[func() int {
@@ -3230,7 +3232,7 @@ func cs_print(A *cs, brief bool) bool {
 // 					}()] = x[i]
 // 					x[i] = 0
 // 					if parent[i] == k {
-// 						vnz = cs_scatter(V, noarch.PtrdiffT(i), 0, w, nil, noarch.PtrdiffT(k), V, noarch.PtrdiffT(vnz))
+// 						vnz = cs_scatter(V, PtrdiffT(i), 0, w, nil, PtrdiffT(k), V, PtrdiffT(vnz))
 // 					}
 // 				}
 // 			}
@@ -3262,15 +3264,15 @@ func cs_print(A *cs, brief bool) bool {
 //
 // // cs_qrsol - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_qrsol.c:3
 // // x=A\b where A can be rectangular; b overwritten with solution
-// func cs_qrsol(order noarch.PtrdiffT, A []cs, b []float64) noarch.PtrdiffT {
+// func cs_qrsol(order PtrdiffT, A []cs, b []float64) PtrdiffT {
 // 	var x []float64
 // 	var S []css
 // 	var N []csn
 // 	var AT []cs
-// 	var k noarch.PtrdiffT
-// 	var m noarch.PtrdiffT
-// 	var n noarch.PtrdiffT
-// 	var ok noarch.PtrdiffT
+// 	var k PtrdiffT
+// 	var m PtrdiffT
+// 	var n PtrdiffT
+// 	var ok PtrdiffT
 // 	if !(A != nil && A.nz == -1) || b == nil {
 // 		// check inputs
 // 		return 0
@@ -3279,24 +3281,24 @@ func cs_print(A *cs, brief bool) bool {
 // 	m = A.m
 // 	if m >= n {
 // 		// ordering and symbolic analysis
-// 		S = cs_sqr(noarch.PtrdiffT(order), A, 1)
+// 		S = cs_sqr(PtrdiffT(order), A, 1)
 // 		// numeric QR factorization
 // 		N = cs_qr(A, S)
 // 		// get workspace
-// 		x = cs_calloc(noarch.PtrdiffT(func() int32 {
+// 		x = cs_calloc(PtrdiffT(func() int32 {
 // 			if S != nil {
-// 				return int32(noarch.PtrdiffT(S[0].m2))
+// 				return int32(PtrdiffT(S[0].m2))
 // 			}
 // 			return 1
 // 		}()/8), uint(8)).([]float64)
-// 		ok = noarch.PtrdiffT(S != nil && N != nil && x != nil)
+// 		ok = PtrdiffT(S != nil && N != nil && x != nil)
 // 		if bool(ok) {
 // 			// x(0:m-1) = b(p(0:m-1)
 // 			cs_ipvec(S[0].pinv, b, x, m)
 // 			{
 // 				// apply Householder refl. to x
 // 				for k = 0; k < n; k++ {
-// 					cs_happly(N.L, noarch.PtrdiffT(k), N.B[k], x)
+// 					cs_happly(N.L, PtrdiffT(k), N.B[k], x)
 // 				}
 // 			}
 // 			// x = R\x
@@ -3308,17 +3310,17 @@ func cs_print(A *cs, brief bool) bool {
 // 		// Ax=b is underdetermined
 // 		AT = cs_transpose(A, 1)
 // 		// ordering and symbolic analysis
-// 		S = cs_sqr(noarch.PtrdiffT(order), AT, 1)
+// 		S = cs_sqr(PtrdiffT(order), AT, 1)
 // 		// numeric QR factorization of A'
 // 		N = cs_qr(AT, S)
 // 		// get workspace
-// 		x = cs_calloc(noarch.PtrdiffT(func() int32 {
+// 		x = cs_calloc(PtrdiffT(func() int32 {
 // 			if S != nil {
-// 				return int32(noarch.PtrdiffT(S[0].m2))
+// 				return int32(PtrdiffT(S[0].m2))
 // 			}
 // 			return 1
 // 		}()/8), uint(8)).([]float64)
-// 		ok = noarch.PtrdiffT(AT != nil && S != nil && N != nil && x != nil)
+// 		ok = PtrdiffT(AT != nil && S != nil && N != nil && x != nil)
 // 		if bool(ok) {
 // 			// x(q(0:m-1)) = b(0:m-1)
 // 			cs_pvec(S[0].q, b, x, m)
@@ -3327,7 +3329,7 @@ func cs_print(A *cs, brief bool) bool {
 // 			{
 // 				// apply Householder refl. to x
 // 				for k = m - 1; k >= 0; k-- {
-// 					cs_happly(N.L, noarch.PtrdiffT(k), N.B[k], x)
+// 					cs_happly(N.L, PtrdiffT(k), N.B[k], x)
 // 				}
 // 			}
 // 			// b(0:n-1) = x(p(0:n-1))
@@ -3338,7 +3340,7 @@ func cs_print(A *cs, brief bool) bool {
 // 	cs_sfree(S)
 // 	cs_nfree(N)
 // 	cs_spfree(AT) // TODO (KI) : remove
-// 	return noarch.PtrdiffT((ok))
+// 	return PtrdiffT((ok))
 // }
 
 // cs_randperm - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_randperm.c:5
@@ -3377,18 +3379,18 @@ func cs_randperm(n int, seed int) []int {
 // // cs_reach - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_reach.c:4
 // // xi [top...n-1] = nodes reachable from graph of G*P' via nodes in B(:,k).
 // // * xi [n...2n-1] used as workspace
-// func cs_reach(G []cs, B []cs, k noarch.PtrdiffT, xi []noarch.PtrdiffT, pinv []noarch.PtrdiffT) noarch.PtrdiffT {
-// 	var p noarch.PtrdiffT
-// 	var n noarch.PtrdiffT
-// 	var top noarch.PtrdiffT
-// 	var Bp []noarch.PtrdiffT
-// 	var Bi []noarch.PtrdiffT
-// 	var Gp []noarch.PtrdiffT
-// 	if !(G != nil && noarch.PtrdiffT(G[0].nz) == -1) || !(B != nil && noarch.PtrdiffT(B[0].nz) == -1) || xi == nil {
+// func cs_reach(G []cs, B []cs, k PtrdiffT, xi []PtrdiffT, pinv []PtrdiffT) PtrdiffT {
+// 	var p PtrdiffT
+// 	var n PtrdiffT
+// 	var top PtrdiffT
+// 	var Bp []PtrdiffT
+// 	var Bi []PtrdiffT
+// 	var Gp []PtrdiffT
+// 	if !(G != nil && PtrdiffT(G[0].nz) == -1) || !(B != nil && PtrdiffT(B[0].nz) == -1) || xi == nil {
 // 		// check inputs
 // 		return -1
 // 	}
-// 	n = noarch.PtrdiffT(G[0].n)
+// 	n = PtrdiffT(G[0].n)
 // 	Bp = B[0].p
 // 	Bi = B[0].i
 // 	Gp = G[0].p
@@ -3396,16 +3398,16 @@ func cs_randperm(n int, seed int) []int {
 // 	for p = Bp[k]; p < Bp[k+1]; p++ {
 // 		if !(Gp[Bi[p]] < 0) {
 // 			// start a dfs at unmarked node i
-// 			top = cs_dfs(noarch.PtrdiffT(Bi[p]), G, noarch.PtrdiffT(top), xi, (*(*[1000000000]noarch.PtrdiffT)(unsafe.Pointer(uintptr(unsafe.Pointer(&xi[0])) + (uintptr)(int(n))*unsafe.Sizeof(xi[0]))))[:], pinv)
+// 			top = cs_dfs(PtrdiffT(Bi[p]), G, PtrdiffT(top), xi, (*(*[1000000000]PtrdiffT)(unsafe.Pointer(uintptr(unsafe.Pointer(&xi[0])) + (uintptr)(int(n))*unsafe.Sizeof(xi[0]))))[:], pinv)
 // 		}
 // 	}
 // 	{
 // 		// restore G
 // 		for p = top; p < n; p++ {
-// 			Gp[xi[p]] = -noarch.PtrdiffT((Gp[xi[p]])) - 2
+// 			Gp[xi[p]] = -PtrdiffT((Gp[xi[p]])) - 2
 // 		}
 // 	}
-// 	return noarch.PtrdiffT((top))
+// 	return PtrdiffT((top))
 // }
 
 // cs_scatter - x = x + beta * A(:,j), where x is a dense vector and A(:,j) is sparse
@@ -3543,11 +3545,11 @@ func cs_scc(A *cs) *csd {
 //
 // // cs_schol - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_schol.c:3
 // // ordering and symbolic analysis for a Cholesky factorization
-// func cs_schol(order noarch.PtrdiffT, A []cs) []css {
-// 	var n noarch.PtrdiffT
-// 	var c []noarch.PtrdiffT
-// 	var post []noarch.PtrdiffT
-// 	var P []noarch.PtrdiffT
+// func cs_schol(order PtrdiffT, A []cs) []css {
+// 	var n PtrdiffT
+// 	var c []PtrdiffT
+// 	var post []PtrdiffT
+// 	var P []PtrdiffT
 // 	var C []cs
 // 	var S []css
 // 	if !(A != nil && A.nz == -1) {
@@ -3562,7 +3564,7 @@ func cs_scc(A *cs) *csd {
 // 		return nil
 // 	}
 // 	// P = amd(A+A'), or natural
-// 	P = cs_amd(noarch.PtrdiffT(order), A)
+// 	P = cs_amd(PtrdiffT(order), A)
 // 	// find inverse permutation
 // 	S[0].pinv = cs_pinv(P, n)
 // 	cs_free(P)
@@ -3580,7 +3582,7 @@ func cs_scc(A *cs) *csd {
 // 	cs_free(post)
 // 	cs_spfree(C) // TODO (KI) : remove
 // 	// allocate result S->cp
-// 	S[0].cp = cs_malloc(n+1, uint(0)).([]noarch.PtrdiffT)
+// 	S[0].cp = cs_malloc(n+1, uint(0)).([]PtrdiffT)
 // 	S[0].lnz = cs_cumsum(S[0].cp, c, n)
 // 	// find column pointers for L
 // 	S[0].unz = S[0].lnz
@@ -3595,32 +3597,32 @@ func cs_scc(A *cs) *csd {
 //
 // // cs_spsolve - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_spsolve.c:3
 // // solve Gx=b(:,k), where G is either upper (lo=0) or lower (lo=1) triangular
-// func cs_spsolve(G []cs, B []cs, k noarch.PtrdiffT, xi []noarch.PtrdiffT, x []float64, pinv []noarch.PtrdiffT, lo noarch.PtrdiffT) noarch.PtrdiffT {
-// 	var j noarch.PtrdiffT
-// 	var J noarch.PtrdiffT
-// 	var p noarch.PtrdiffT
-// 	var q noarch.PtrdiffT
-// 	var px noarch.PtrdiffT
-// 	var top noarch.PtrdiffT
-// 	var n noarch.PtrdiffT
-// 	var Gp []noarch.PtrdiffT
-// 	var Gi []noarch.PtrdiffT
-// 	var Bp []noarch.PtrdiffT
-// 	var Bi []noarch.PtrdiffT
+// func cs_spsolve(G []cs, B []cs, k PtrdiffT, xi []PtrdiffT, x []float64, pinv []PtrdiffT, lo PtrdiffT) PtrdiffT {
+// 	var j PtrdiffT
+// 	var J PtrdiffT
+// 	var p PtrdiffT
+// 	var q PtrdiffT
+// 	var px PtrdiffT
+// 	var top PtrdiffT
+// 	var n PtrdiffT
+// 	var Gp []PtrdiffT
+// 	var Gi []PtrdiffT
+// 	var Bp []PtrdiffT
+// 	var Bi []PtrdiffT
 // 	var Gx []float64
 // 	var Bx []float64
-// 	if !(G != nil && noarch.PtrdiffT(G[0].nz) == -1) || !(B != nil && noarch.PtrdiffT(B[0].nz) == -1) || xi == nil || x == nil {
+// 	if !(G != nil && PtrdiffT(G[0].nz) == -1) || !(B != nil && PtrdiffT(B[0].nz) == -1) || xi == nil || x == nil {
 // 		return -1
 // 	}
 // 	Gp = G[0].p
 // 	Gi = G[0].i
 // 	Gx = G[0].x
-// 	n = noarch.PtrdiffT(G[0].n)
+// 	n = PtrdiffT(G[0].n)
 // 	Bp = B[0].p
 // 	Bi = B[0].i
 // 	Bx = B[0].x
 // 	// xi[top..n-1]=Reach(B(:,k))
-// 	top = cs_reach(G, B, noarch.PtrdiffT(k), xi, pinv)
+// 	top = cs_reach(G, B, PtrdiffT(k), xi, pinv)
 // 	{
 // 		// clear x
 // 		for p = top; p < n; p++ {
@@ -3637,11 +3639,11 @@ func cs_scc(A *cs) *csd {
 // 		// x(j) is nonzero
 // 		j = xi[px]
 // 		// j maps to col J of G
-// 		J = noarch.PtrdiffT(func() int32 {
+// 		J = PtrdiffT(func() int32 {
 // 			if pinv != nil {
-// 				return int32(noarch.PtrdiffT((pinv[j])))
+// 				return int32(PtrdiffT((pinv[j])))
 // 			}
-// 			return int32(noarch.PtrdiffT(j))
+// 			return int32(PtrdiffT(j))
 // 		}() / 8)
 // 		if J < 0 {
 // 			// column J is empty
@@ -3649,22 +3651,22 @@ func cs_scc(A *cs) *csd {
 // 		}
 // 		// x(j) /= G(j,j)
 // 		x[j] /= Gx[func() int32 {
-// 			if bool(noarch.PtrdiffT(lo)) {
-// 				return int32(noarch.PtrdiffT((Gp[J])))
+// 			if bool(PtrdiffT(lo)) {
+// 				return int32(PtrdiffT((Gp[J])))
 // 			}
 // 			return (int32(Gp[J+1] - 1))
 // 		}()]
 // 		// lo: L(j,j) 1st entry
-// 		p = noarch.PtrdiffT(func() int32 {
-// 			if bool(noarch.PtrdiffT(lo)) {
+// 		p = PtrdiffT(func() int32 {
+// 			if bool(PtrdiffT(lo)) {
 // 				return (int32(Gp[J] + 1))
 // 			}
-// 			return int32(noarch.PtrdiffT((Gp[J])))
+// 			return int32(PtrdiffT((Gp[J])))
 // 		}() / 8)
 // 		// up: U(j,j) last entry
-// 		q = noarch.PtrdiffT(func() int32 {
-// 			if bool(noarch.PtrdiffT(lo)) {
-// 				return int32(noarch.PtrdiffT((Gp[J+1])))
+// 		q = PtrdiffT(func() int32 {
+// 			if bool(PtrdiffT(lo)) {
+// 				return int32(PtrdiffT((Gp[J+1])))
 // 			}
 // 			return (int32(Gp[J+1] - 1))
 // 		}() / 8)
@@ -3674,36 +3676,36 @@ func cs_scc(A *cs) *csd {
 // 		}
 // 	}
 // 	// return top of stack
-// 	return noarch.PtrdiffT((top))
+// 	return PtrdiffT((top))
 // }
 //
 // // cs_vcount - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_sqr.c:3
 // // compute nnz(V) = S->lnz, S->pinv, S->leftmost, S->m2 from A and S->parent
-// func cs_vcount(A []cs, S []css) noarch.PtrdiffT {
-// 	var i noarch.PtrdiffT
-// 	var k noarch.PtrdiffT
-// 	var p noarch.PtrdiffT
-// 	var pa noarch.PtrdiffT
-// 	var n noarch.PtrdiffT = A.n
-// 	var m noarch.PtrdiffT = A.m
-// 	var Ap []noarch.PtrdiffT = A[0].p
-// 	var Ai []noarch.PtrdiffT = A[0].i
-// 	var next []noarch.PtrdiffT
-// 	var head []noarch.PtrdiffT
-// 	var tail []noarch.PtrdiffT
-// 	var nque []noarch.PtrdiffT
-// 	var pinv []noarch.PtrdiffT
-// 	var leftmost []noarch.PtrdiffT
-// 	var w []noarch.PtrdiffT
-// 	var parent []noarch.PtrdiffT = S[0].parent
-// 	pinv = cs_malloc(m+n, uint(0)).([]noarch.PtrdiffT)
+// func cs_vcount(A []cs, S []css) PtrdiffT {
+// 	var i PtrdiffT
+// 	var k PtrdiffT
+// 	var p PtrdiffT
+// 	var pa PtrdiffT
+// 	var n PtrdiffT = A.n
+// 	var m PtrdiffT = A.m
+// 	var Ap []PtrdiffT = A[0].p
+// 	var Ai []PtrdiffT = A[0].i
+// 	var next []PtrdiffT
+// 	var head []PtrdiffT
+// 	var tail []PtrdiffT
+// 	var nque []PtrdiffT
+// 	var pinv []PtrdiffT
+// 	var leftmost []PtrdiffT
+// 	var w []PtrdiffT
+// 	var parent []PtrdiffT = S[0].parent
+// 	pinv = cs_malloc(m+n, uint(0)).([]PtrdiffT)
 // 	// allocate pinv,
 // 	S[0].pinv = pinv
-// 	leftmost = cs_malloc(m, uint(0)).([]noarch.PtrdiffT)
+// 	leftmost = cs_malloc(m, uint(0)).([]PtrdiffT)
 // 	// and leftmost
 // 	S[0].leftmost = leftmost
 // 	// get workspace
-// 	w = cs_malloc(m+noarch.PtrdiffT(3*int32(n)/8), uint(0)).([]noarch.PtrdiffT)
+// 	w = cs_malloc(m+PtrdiffT(3*int32(n)/8), uint(0)).([]PtrdiffT)
 // 	if pinv == nil || w == nil || leftmost == nil {
 // 		// pinv and leftmost freed later
 // 		cs_free(w)
@@ -3711,9 +3713,9 @@ func cs_scc(A *cs) *csd {
 // 		return 0
 // 	}
 // 	next = w
-// 	head = (*(*[1000000000]noarch.PtrdiffT)(unsafe.Pointer(uintptr(unsafe.Pointer(&w[0])) + (uintptr)(int(m))*unsafe.Sizeof(w[0]))))[:]
-// 	tail = (*(*[1000000000]noarch.PtrdiffT)(unsafe.Pointer(uintptr(unsafe.Pointer(&(*(*[1000000000]noarch.PtrdiffT)(unsafe.Pointer(uintptr(unsafe.Pointer(&w[0])) + (uintptr)(int(m))*unsafe.Sizeof(w[0]))))[:][0])) + (uintptr)(int(n))*unsafe.Sizeof((*(*[1000000000]noarch.PtrdiffT)(unsafe.Pointer(uintptr(unsafe.Pointer(&w[0])) + (uintptr)(int(m))*unsafe.Sizeof(w[0]))))[:][0]))))[:]
-// 	nque = (*(*[1000000000]noarch.PtrdiffT)(unsafe.Pointer(uintptr(unsafe.Pointer(&(*(*[1000000000]noarch.PtrdiffT)(unsafe.Pointer(uintptr(unsafe.Pointer(&w[0])) + (uintptr)(int(m))*unsafe.Sizeof(w[0]))))[:][0])) + (uintptr)(int(2*int32(n)))*unsafe.Sizeof((*(*[1000000000]noarch.PtrdiffT)(unsafe.Pointer(uintptr(unsafe.Pointer(&w[0])) + (uintptr)(int(m))*unsafe.Sizeof(w[0]))))[:][0]))))[:]
+// 	head = (*(*[1000000000]PtrdiffT)(unsafe.Pointer(uintptr(unsafe.Pointer(&w[0])) + (uintptr)(int(m))*unsafe.Sizeof(w[0]))))[:]
+// 	tail = (*(*[1000000000]PtrdiffT)(unsafe.Pointer(uintptr(unsafe.Pointer(&(*(*[1000000000]PtrdiffT)(unsafe.Pointer(uintptr(unsafe.Pointer(&w[0])) + (uintptr)(int(m))*unsafe.Sizeof(w[0]))))[:][0])) + (uintptr)(int(n))*unsafe.Sizeof((*(*[1000000000]PtrdiffT)(unsafe.Pointer(uintptr(unsafe.Pointer(&w[0])) + (uintptr)(int(m))*unsafe.Sizeof(w[0]))))[:][0]))))[:]
+// 	nque = (*(*[1000000000]PtrdiffT)(unsafe.Pointer(uintptr(unsafe.Pointer(&(*(*[1000000000]PtrdiffT)(unsafe.Pointer(uintptr(unsafe.Pointer(&w[0])) + (uintptr)(int(m))*unsafe.Sizeof(w[0]))))[:][0])) + (uintptr)(int(2*int32(n)))*unsafe.Sizeof((*(*[1000000000]PtrdiffT)(unsafe.Pointer(uintptr(unsafe.Pointer(&w[0])) + (uintptr)(int(m))*unsafe.Sizeof(w[0]))))[:][0]))))[:]
 // 	{
 // 		// queue k is empty
 // 		for k = 0; k < n; k++ {
@@ -3821,11 +3823,11 @@ func cs_scc(A *cs) *csd {
 
 // cs_sqr - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_sqr.c:60
 // symbolic ordering and analysis for QR or LU
-func cs_sqr(order noarch.PtrdiffT, A []cs, qr noarch.PtrdiffT) []css {
-	var n noarch.PtrdiffT
-	var k noarch.PtrdiffT
-	var ok noarch.PtrdiffT = 1
-	var post []noarch.PtrdiffT
+func cs_sqr(order PtrdiffT, A []cs, qr PtrdiffT) []css {
+	var n PtrdiffT
+	var k PtrdiffT
+	var ok PtrdiffT = 1
+	var post []PtrdiffT
 	var S []css
 	if !(A != nil && A.nz == -1) {
 		// check inputs
@@ -3839,13 +3841,13 @@ func cs_sqr(order noarch.PtrdiffT, A []cs, qr noarch.PtrdiffT) []css {
 		return nil
 	}
 	// fill-reducing ordering
-	S[0].q = cs_amd(noarch.PtrdiffT(order), A)
+	S[0].q = cs_amd(PtrdiffT(order), A)
 	if bool(order) && S[0].q == nil {
 		return (cs_sfree(S))
 	}
-	if bool(noarch.PtrdiffT(qr)) {
+	if bool(PtrdiffT(qr)) {
 		var C []cs = func() []cs {
-			if bool(noarch.PtrdiffT(order)) {
+			if bool(PtrdiffT(order)) {
 				return cs_permute(A, nil, S[0].q, 0)
 			}
 			return (A)
@@ -3857,7 +3859,7 @@ func cs_sqr(order noarch.PtrdiffT, A []cs, qr noarch.PtrdiffT) []css {
 		// col counts chol(C'*C)
 		S[0].cp = cs_counts(C, S[0].parent, post, 1)
 		cs_free(post)
-		ok = noarch.PtrdiffT(C != nil && S[0].parent != nil && S[0].cp != nil && bool(cs_vcount(C, S)))
+		ok = PtrdiffT(C != nil && S[0].parent != nil && S[0].cp != nil && bool(cs_vcount(C, S)))
 		if bool(ok) {
 			S[0].unz = 0
 			k = 0
@@ -3865,7 +3867,7 @@ func cs_sqr(order noarch.PtrdiffT, A []cs, qr noarch.PtrdiffT) []css {
 				S[0].unz += float64(S[0].cp[k])
 			}
 		}
-		if bool(noarch.PtrdiffT(order)) {
+		if bool(PtrdiffT(order)) {
 			cs_spfree(C) // TODO (KI) : remove
 		}
 	} else {
@@ -3885,19 +3887,19 @@ func cs_sqr(order noarch.PtrdiffT, A []cs, qr noarch.PtrdiffT) []css {
 
 // // cs_symperm - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_symperm.c:3
 // // C = A(p,p) where A and C are symmetric the upper part stored; pinv not p
-// func cs_symperm(A []cs, pinv []noarch.PtrdiffT, values noarch.PtrdiffT) []cs {
-// 	var i noarch.PtrdiffT
-// 	var j noarch.PtrdiffT
-// 	var p noarch.PtrdiffT
-// 	var q noarch.PtrdiffT
-// 	var i2 noarch.PtrdiffT
-// 	var j2 noarch.PtrdiffT
-// 	var n noarch.PtrdiffT
-// 	var Ap []noarch.PtrdiffT
-// 	var Ai []noarch.PtrdiffT
-// 	var Cp []noarch.PtrdiffT
-// 	var Ci []noarch.PtrdiffT
-// 	var w []noarch.PtrdiffT
+// func cs_symperm(A []cs, pinv []PtrdiffT, values PtrdiffT) []cs {
+// 	var i PtrdiffT
+// 	var j PtrdiffT
+// 	var p PtrdiffT
+// 	var q PtrdiffT
+// 	var i2 PtrdiffT
+// 	var j2 PtrdiffT
+// 	var n PtrdiffT
+// 	var Ap []PtrdiffT
+// 	var Ai []PtrdiffT
+// 	var Cp []PtrdiffT
+// 	var Ci []PtrdiffT
+// 	var w []PtrdiffT
 // 	var Cx []float64
 // 	var Ax []float64
 // 	var C []cs
@@ -3910,9 +3912,9 @@ func cs_sqr(order noarch.PtrdiffT, A []cs, qr noarch.PtrdiffT) []css {
 // 	Ai = A[0].i
 // 	Ax = A[0].x
 // 	// alloc result
-// 	C = cs_spalloc(n, n, noarch.PtrdiffT(Ap[n]), noarch.PtrdiffT(bool(values) && Ax != nil), 0)
+// 	C = cs_spalloc(n, n, PtrdiffT(Ap[n]), PtrdiffT(bool(values) && Ax != nil), 0)
 // 	// get workspace
-// 	w = cs_calloc(n, uint(0)).([]noarch.PtrdiffT)
+// 	w = cs_calloc(n, uint(0)).([]PtrdiffT)
 // 	if C == nil || w == nil {
 // 		// out of memory
 // 		return (cs_done(C, w, nil, 0))
@@ -3924,11 +3926,11 @@ func cs_sqr(order noarch.PtrdiffT, A []cs, qr noarch.PtrdiffT) []css {
 // 		// count entries in each column of C
 // 		for j = 0; j < n; j++ {
 // 			// column j of A is column j2 of C
-// 			j2 = noarch.PtrdiffT(func() int32 {
+// 			j2 = PtrdiffT(func() int32 {
 // 				if pinv != nil {
-// 					return int32(noarch.PtrdiffT(pinv[j]))
+// 					return int32(PtrdiffT(pinv[j]))
 // 				}
-// 				return int32(noarch.PtrdiffT(j))
+// 				return int32(PtrdiffT(j))
 // 			}() / 8)
 // 			for p = Ap[j]; p < Ap[j+1]; p++ {
 // 				i = Ai[p]
@@ -3937,18 +3939,18 @@ func cs_sqr(order noarch.PtrdiffT, A []cs, qr noarch.PtrdiffT) []css {
 // 					continue
 // 				}
 // 				// row i of A is row i2 of C
-// 				i2 = noarch.PtrdiffT(func() int32 {
+// 				i2 = PtrdiffT(func() int32 {
 // 					if pinv != nil {
-// 						return int32(noarch.PtrdiffT(pinv[i]))
+// 						return int32(PtrdiffT(pinv[i]))
 // 					}
-// 					return int32(noarch.PtrdiffT(i))
+// 					return int32(PtrdiffT(i))
 // 				}() / 8)
 // 				// column count of C
 // 				w[func() int32 {
 // 					if i2 > j2 {
-// 						return int32(noarch.PtrdiffT((i2)))
+// 						return int32(PtrdiffT((i2)))
 // 					}
-// 					return int32(noarch.PtrdiffT((j2)))
+// 					return int32(PtrdiffT((j2)))
 // 				}()]++
 // 			}
 // 		}
@@ -3957,11 +3959,11 @@ func cs_sqr(order noarch.PtrdiffT, A []cs, qr noarch.PtrdiffT) []css {
 // 	cs_cumsum(Cp, w, n)
 // 	for j = 0; j < n; j++ {
 // 		// column j of A is column j2 of C
-// 		j2 = noarch.PtrdiffT(func() int32 {
+// 		j2 = PtrdiffT(func() int32 {
 // 			if pinv != nil {
-// 				return int32(noarch.PtrdiffT(pinv[j]))
+// 				return int32(PtrdiffT(pinv[j]))
 // 			}
-// 			return int32(noarch.PtrdiffT(j))
+// 			return int32(PtrdiffT(j))
 // 		}() / 8)
 // 		for p = Ap[j]; p < Ap[j+1]; p++ {
 // 			i = Ai[p]
@@ -3970,19 +3972,19 @@ func cs_sqr(order noarch.PtrdiffT, A []cs, qr noarch.PtrdiffT) []css {
 // 				continue
 // 			}
 // 			// row i of A is row i2 of C
-// 			i2 = noarch.PtrdiffT(func() int32 {
+// 			i2 = PtrdiffT(func() int32 {
 // 				if pinv != nil {
-// 					return int32(noarch.PtrdiffT(pinv[i]))
+// 					return int32(PtrdiffT(pinv[i]))
 // 				}
-// 				return int32(noarch.PtrdiffT(i))
+// 				return int32(PtrdiffT(i))
 // 			}() / 8)
 // 			Ci[(func() int {
 // 				q = func() int {
 // 					tempVar := &w[func() int32 {
 // 						if i2 > j2 {
-// 							return int32(noarch.PtrdiffT((i2)))
+// 							return int32(PtrdiffT((i2)))
 // 						}
-// 						return int32(noarch.PtrdiffT((j2)))
+// 						return int32(PtrdiffT((j2)))
 // 					}()]
 // 					defer func() {
 // 						*tempVar++
@@ -3990,11 +3992,11 @@ func cs_sqr(order noarch.PtrdiffT, A []cs, qr noarch.PtrdiffT) []css {
 // 					return *tempVar
 // 				}()
 // 				return q
-// 			}())] = noarch.PtrdiffT(func() int32 {
+// 			}())] = PtrdiffT(func() int32 {
 // 				if i2 < j2 {
-// 					return int32(noarch.PtrdiffT((i2)))
+// 					return int32(PtrdiffT((i2)))
 // 				}
-// 				return int32(noarch.PtrdiffT((j2)))
+// 				return int32(PtrdiffT((j2)))
 // 			}() / 8)
 // 			if Cx != nil {
 // 				Cx[q] = Ax[p]
@@ -4007,10 +4009,10 @@ func cs_sqr(order noarch.PtrdiffT, A []cs, qr noarch.PtrdiffT) []css {
 //
 // // cs_tdfs - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_tdfs.c:3
 // // depth-first search and postorder of a tree rooted at node j
-// func cs_tdfs(j, k int, head []int, next []int, post []int, stack []int) noarch.PtrdiffT {
-// 	var i noarch.PtrdiffT
-// 	var p noarch.PtrdiffT
-// 	var top noarch.PtrdiffT
+// func cs_tdfs(j, k int, head []int, next []int, post []int, stack []int) PtrdiffT {
+// 	var i PtrdiffT
+// 	var p PtrdiffT
+// 	var top PtrdiffT
 // 	if head == nil || next == nil || post == nil || stack == nil {
 // 		// check inputs
 // 		return -1
@@ -4043,7 +4045,7 @@ func cs_sqr(order noarch.PtrdiffT, A []cs, qr noarch.PtrdiffT) []css {
 // 			}()] = i
 // 		}
 // 	}
-// 	return noarch.PtrdiffT((k))
+// 	return PtrdiffT((k))
 // }
 
 // cs_transpose - C = A'
@@ -4113,15 +4115,15 @@ func cs_transpose(A *cs, values bool) *cs {
 
 // // cs_updown - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_updown.c:3
 // // sparse Cholesky update/downdate, L*L' + sigma*w*w' (sigma = +1 or -1)
-// func cs_updown(L []cs, sigma noarch.PtrdiffT, C []cs, parent []noarch.PtrdiffT) noarch.PtrdiffT {
-// 	var n noarch.PtrdiffT
-// 	var p noarch.PtrdiffT
-// 	var f noarch.PtrdiffT
-// 	var j noarch.PtrdiffT
-// 	var Lp []noarch.PtrdiffT
-// 	var Li []noarch.PtrdiffT
-// 	var Cp []noarch.PtrdiffT
-// 	var Ci []noarch.PtrdiffT
+// func cs_updown(L []cs, sigma PtrdiffT, C []cs, parent []PtrdiffT) PtrdiffT {
+// 	var n PtrdiffT
+// 	var p PtrdiffT
+// 	var f PtrdiffT
+// 	var j PtrdiffT
+// 	var Lp []PtrdiffT
+// 	var Li []PtrdiffT
+// 	var Cp []PtrdiffT
+// 	var Ci []PtrdiffT
 // 	var Lx []float64
 // 	var Cx []float64
 // 	var alpha float64
@@ -4132,7 +4134,7 @@ func cs_transpose(A *cs, values bool) *cs {
 // 	var w2 float64
 // 	var w []float64
 // 	var beta2 float64 = 1
-// 	if !(L != nil && noarch.PtrdiffT(L[0].nz) == -1) || !(C != nil && noarch.PtrdiffT(C[0].nz) == -1) || parent == nil {
+// 	if !(L != nil && PtrdiffT(L[0].nz) == -1) || !(C != nil && PtrdiffT(C[0].nz) == -1) || parent == nil {
 // 		// check inputs
 // 		return 0
 // 	}
@@ -4159,11 +4161,11 @@ func cs_transpose(A *cs, values bool) *cs {
 // 	f = Ci[p]
 // 	for ; p < Cp[1]; p++ {
 // 		// f = min (find (C))
-// 		f = noarch.PtrdiffT(func() int32 {
+// 		f = PtrdiffT(func() int32 {
 // 			if f < Ci[p] {
 // 				return int32(f)
 // 			}
-// 			return int32(noarch.PtrdiffT((Ci[p])))
+// 			return int32(PtrdiffT((Ci[p])))
 // 		}() / 8)
 // 	}
 // 	{
@@ -4218,7 +4220,7 @@ func cs_transpose(A *cs, values bool) *cs {
 // 		}
 // 	}
 // 	cs_free(w)
-// 	return noarch.PtrdiffT((beta2 > 0))
+// 	return PtrdiffT((beta2 > 0))
 // }
 //
 // // cs_usolve - solve Ux=b where x and b are dense.  x=b on input, solution on output.
@@ -4275,7 +4277,7 @@ func cs_spalloc(m, n, nzmax int, values, triplet bool) *cs {
 	} else {
 		A.p = make([]int, n+1)
 	}
-	A.i = make([]int, nzmax) // cs_malloc(nzmax, uint(0)).([]noarch.PtrdiffT)
+	A.i = make([]int, nzmax) // cs_malloc(nzmax, uint(0)).([]PtrdiffT)
 	A.x = make([]float64, nzmax)
 	// func() interface{} {
 	// 	if values {
