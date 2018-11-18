@@ -132,10 +132,8 @@ func cs_add(A *cs, B *cs, alpha float64, beta float64) *cs {
 // 	return (i != j)
 // }
 
-type Order int
-
 const (
-	Natural Order = iota
+	Natural int = iota
 	Chol
 	LU
 	QR

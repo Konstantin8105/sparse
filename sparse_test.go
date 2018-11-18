@@ -304,7 +304,7 @@ func demo2(Prob *problem) bool {
 	var t float64
 	var tol float64
 	var ok bool
-	var order Order
+	var order int
 	var D *csd
 	if Prob == nil {
 		return false
@@ -333,77 +333,90 @@ func demo2(Prob *problem) bool {
 	s := D.s
 	rr := D.rr
 	sprank := rr[3]
-	{
-		ns := 0
-		k := 0
-		for k = 0; k < nb; k++ {
-			ns += noarch.PtrdiffT(int32(map[bool]int{false: 0, true: 1}[r[k+noarch.PtrdiffT(1/8)] == r[k]+noarch.PtrdiffT(1/8) && s[k+noarch.PtrdiffT(1/8)] == s[k]+noarch.PtrdiffT(1/8)]) / 8)
+
+	ns := 0
+	k := 0
+	for k = 0; k < nb; k++ {
+		if (r[k+1] == r[k]+1) && (s[k+1] == s[k]+1) {
+			ns++
 		}
 	}
-	noarch.Printf([]byte("blocks: %g singletons: %g structural rank: %g\n\x00"), float64(noarch.PtrdiffT(nb)), float64(noarch.PtrdiffT(ns)), float64(noarch.PtrdiffT(sprank)))
+
+	fmt.Printf("blocks: %g singletons: %g structural rank: %g\n", nb, ns, sprank)
 	cs_dfree(D)
-	{
-		// natural and amd(A'*A)
-		for order = 0; order <= 3; order += noarch.PtrdiffT(3 / 8) {
-			if bool(noarch.NotNoarch.PtrdiffT(noarch.PtrdiffT(order))) && m > noarch.PtrdiffT(1000/8) {
-				continue
-			}
-			fmt.Printf("QR   ")
-			print_order(noarch.PtrdiffT(order))
-			// compute right-hand side
-			rhs(x, b, noarch.PtrdiffT(m))
-			t = tic()
-			// min norm(Ax-b) with QR
-			ok = cs_qrsol(noarch.PtrdiffT(order), C, x)
-			noarch.Printf([]byte("time: %8.2f \x00"), toc(t))
-			// print residual
-			print_resid(noarch.PtrdiffT(ok), C, x, b, resid)
+
+	// natural and amd(A'*A)
+	for order = 0; order <= 3; order += 3 {
+		if order != 0 && m > 1000 {
+			continue
 		}
+		fmt.Printf("QR   ")
+		print_order(order)
+		// compute right-hand side
+		rhs(x, b, m)
+		t = tic()
+		// min norm(Ax-b) with QR
+		ok = cs_qrsol(order, C, x)
+		fmt.Printf("time: %8.2f ", toc(t))
+		// print residual
+		print_resid(ok, C, x, b, resid)
 	}
+
 	if m != n || sprank < n {
 		// return if rect. or singular
-		return noarch.PtrdiffT((1))
+		return true
 	}
-	{
-		// try all orderings
-		for order = 0; order <= 3; order++ {
-			if bool(noarch.NotNoarch.PtrdiffT(noarch.PtrdiffT(order))) && m > noarch.PtrdiffT(1000/8) {
-				continue
-			}
-			fmt.Printf("LU   ")
-			print_order(noarch.PtrdiffT(order))
-			// compute right-hand side
-			rhs(x, b, noarch.PtrdiffT(m))
-			t = tic()
-			// solve Ax=b with LU
-			ok = cs_lusol(noarch.PtrdiffT(order), C, x, tol)
-			noarch.Printf([]byte("time: %8.2f \x00"), toc(t))
-			// print residual
-			print_resid(noarch.PtrdiffT(ok), C, x, b, resid)
+
+	// try all orderings
+	for order = 0; order <= 3; order++ {
+		if order != 0 && m > 1000 {
+			continue
 		}
+		fmt.Printf("LU   ")
+		print_order(order)
+		// compute right-hand side
+		rhs(x, b, m)
+		t = tic()
+		// solve Ax=b with LU
+		ok = cs_lusol(order, C, x, tol)
+		fmt.Printf("time: %8.2f ", toc(t))
+		// print residual
+		print_resid(ok, C, x, b, resid)
 	}
-	if bool(noarch.NotNoarch.PtrdiffT(noarch.PtrdiffT(Prob[0].sym))) {
-		return noarch.PtrdiffT((1))
+
+	if !Prob.sym {
+		return true
 	}
-	{
-		// natural and amd(A+A')
-		for order = 0; order <= 1; order++ {
-			if bool(noarch.NotNoarch.PtrdiffT(noarch.PtrdiffT(order))) && m > noarch.PtrdiffT(1000/8) {
-				continue
-			}
-			fmt.Printf("Chol ")
-			print_order(noarch.PtrdiffT(order))
-			// compute right-hand side
-			rhs(x, b, noarch.PtrdiffT(m))
-			t = tic()
-			// solve Ax=b with Cholesky
-			ok = cs_cholsol(noarch.PtrdiffT(order), C, x)
-			noarch.Printf([]byte("time: %8.2f \x00"), toc(t))
-			// print residual
-			print_resid(noarch.PtrdiffT(ok), C, x, b, resid)
+
+	// natural and amd(A+A')
+	for order = 0; order <= 1; order++ {
+		if order != 0 && m > 1000 {
+			continue
 		}
+		fmt.Printf("Chol ")
+		print_order(order)
+		// compute right-hand side
+		rhs(x, b, m)
+		t = tic()
+		// solve Ax=b with Cholesky
+		ok = cs_cholsol(order, C, x)
+		fmt.Printf("time: %8.2f ", toc(t))
+		// print residual
+		print_resid(ok, C, x, b, resid)
 	}
-	return noarch.PtrdiffT((1))
+
+	return true
+}
+
+// rhs - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/testdata/csparse_demo2_test.c:26
+// create a right-hand side
+func rhs(x []float64, b []float64, m int) {
+	for i := 0; i < m; i++ {
+		b[i] = 1 + float64(i)/float64(m)
+	}
+	for i := 0; i < m; i++ {
+		x[i] = b[i]
+	}
 }
 
 // norm - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/testdata/csparse_demo2_test.c:16
