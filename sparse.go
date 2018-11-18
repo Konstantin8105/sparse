@@ -21,14 +21,16 @@ type cs struct { // struct cs_sparse
 
 // symbolic Cholesky, LU, or QR analysis
 type css struct { // struct cs_symbolic
-	pinv     *int    // inverse row perm. for QR, fill red. perm for Chol
-	q        *int    // fill-reducing column permutation for LU and QR
-	parent   *int    // elimination tree for Cholesky and QR
-	cp       *int    // column pointers for Cholesky, row counts for QR
-	leftmost *int    // TODO
-	m2       int     // # of rows for QR, after adding fictitious rows
-	lnz      float64 // # entries in L for LU or Cholesky; in V for QR
-	unz      float64 // # entries in U for LU; in R for QR
+	pinv     *int  // inverse row perm. for QR, fill red. perm for Chol
+	q        []int // fill-reducing column permutation for LU and QR
+	parent   *int  // elimination tree for Cholesky and QR
+	cp       *int  // column pointers for Cholesky, row counts for QR
+	leftmost *int  // TODO
+	m2       int   // # of rows for QR, after adding fictitious rows
+
+	// TODO (KI): lnz, unz is "double" at the base, but I think it is "int"
+	lnz int // # entries in L for LU or Cholesky; in V for QR
+	unz int // # entries in U for LU; in R for QR
 }
 
 // numeric Cholesky, LU, or QR factorization
@@ -2158,33 +2160,32 @@ func cs_load(f io.Reader) *cs {
 	return T
 }
 
-//
-// // cs_lsolve - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_lsolve.c:3
-// // solve Lx=b where x and b are dense.  x=b on input, solution on output.
-// func cs_lsolve(L []cs, x []float64) PtrdiffT {
-// 	var p PtrdiffT
-// 	var j PtrdiffT
-// 	var n PtrdiffT
-// 	var Lp []PtrdiffT
-// 	var Li []PtrdiffT
-// 	var Lx []float64
-// 	if !(L != nil && PtrdiffT(L.nz) == -1) || x == nil {
-// 		// check inputs
-// 		return 0
-// 	}
-// 	n = L.n
-// 	Lp = L.p
-// 	Li = L.i
-// 	Lx = L.x
-// 	for j = 0; j < n; j++ {
-// 		x[j] /= Lx[Lp[j]]
-// 		for p = Lp[j] + 1; p < Lp[j+1]; p++ {
-// 			x[Li[p]] -= Lx[p] * x[j]
-// 		}
-// 	}
-// 	return 1
-// }
-//
+// cs_lsolve - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_lsolve.c:3
+// solve Lx=b where x and b are dense.  x=b on input, solution on output.
+func cs_lsolve(L *cs, x []float64) int {
+	var p PtrdiffT
+	var j PtrdiffT
+	var n PtrdiffT
+	var Lp []PtrdiffT
+	var Li []PtrdiffT
+	var Lx []float64
+	if !(L != nil && PtrdiffT(L.nz) == -1) || x == nil {
+		// check inputs
+		return 0
+	}
+	n = L.n
+	Lp = L.p
+	Li = L.i
+	Lx = L.x
+	for j = 0; j < n; j++ {
+		x[j] /= Lx[Lp[j]]
+		for p = Lp[j] + 1; p < Lp[j+1]; p++ {
+			x[Li[p]] -= Lx[p] * x[j]
+		}
+	}
+	return 1
+}
+
 // // cs_ltsolve - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_ltsolve.c:3
 // // solve L'x=b where x and b are dense.  x=b on input, solution on output.
 // func cs_ltsolve(L []cs, x []float64) PtrdiffT {
@@ -2290,19 +2291,20 @@ func cs_lu(A *cs, S *css, tol float64) *csn {
 		Lp[k] = lnz
 		// U(:,k) starts here
 		Up[k] = unz
-		if lnz+n > PtrdiffT(L.nzmax) && bool(noarch.NotNoarch.PtrdiffT(cs_sprealloc(L, PtrdiffT((2*(L.nzmax)+int(n))/8)))) || unz+n > PtrdiffT(U.nzmax) && bool(noarch.NotNoarch.PtrdiffT(cs_sprealloc(U, PtrdiffT((2*(U.nzmax)+int(n))/8)))) {
-			return (cs_ndone(N, nil, xi, x, 0))
+		if (int(lnz)+n > L.nzmax && !cs_sprealloc(L, 2*L.nzmax+n)) ||
+			(int(unz)+n > U.nzmax && !cs_sprealloc(U, 2*(U.nzmax)+n)) {
+			return cs_ndone(N, nil, xi, x, false)
 		}
 		Li = L.i
 		Lx = L.x
 		Ui = U.i
 		Ux = U.x
-		col = PtrdiffT(func() int {
+		col = func() int {
 			if q != nil {
 				return (q[k])
 			}
 			return (k)
-		}() / 8)
+		}()
 		// x = L\A(:,col)
 		top = cs_spsolve(L, A, PtrdiffT(col), xi, x, pinv, 1)
 		// --- Find pivot ---------------------------------------------------
@@ -3370,39 +3372,39 @@ func cs_randperm(n int, seed int) []int {
 	return p
 }
 
-// // cs_reach - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_reach.c:4
-// // xi [top...n-1] = nodes reachable from graph of G*P' via nodes in B(:,k).
-// // * xi [n...2n-1] used as workspace
-// func cs_reach(G []cs, B []cs, k PtrdiffT, xi []PtrdiffT, pinv []PtrdiffT) PtrdiffT {
-// 	var p PtrdiffT
-// 	var n PtrdiffT
-// 	var top PtrdiffT
-// 	var Bp []PtrdiffT
-// 	var Bi []PtrdiffT
-// 	var Gp []PtrdiffT
-// 	if !(G != nil && PtrdiffT(G[0].nz) == -1) || !(B != nil && PtrdiffT(B[0].nz) == -1) || xi == nil {
-// 		// check inputs
-// 		return -1
-// 	}
-// 	n = PtrdiffT(G[0].n)
-// 	Bp = B[0].p
-// 	Bi = B[0].i
-// 	Gp = G[0].p
-// 	top = n
-// 	for p = Bp[k]; p < Bp[k+1]; p++ {
-// 		if !(Gp[Bi[p]] < 0) {
-// 			// start a dfs at unmarked node i
-// 			top = cs_dfs(PtrdiffT(Bi[p]), G, PtrdiffT(top), xi, (*(*[1000000000]PtrdiffT)(unsafe.Pointer(uintptr(unsafe.Pointer(&xi[0])) + (uintptr)(int(n))*unsafe.Sizeof(xi[0]))))[:], pinv)
-// 		}
-// 	}
-// 	{
-// 		// restore G
-// 		for p = top; p < n; p++ {
-// 			Gp[xi[p]] = -PtrdiffT((Gp[xi[p]])) - 2
-// 		}
-// 	}
-// 	return PtrdiffT((top))
-// }
+// cs_reach - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_reach.c:4
+// xi [top...n-1] = nodes reachable from graph of G*P' via nodes in B(:,k).
+// * xi [n...2n-1] used as workspace
+func cs_reach(G []cs, B []cs, k PtrdiffT, xi []PtrdiffT, pinv []PtrdiffT) PtrdiffT {
+	var p PtrdiffT
+	var n PtrdiffT
+	var top PtrdiffT
+	var Bp []PtrdiffT
+	var Bi []PtrdiffT
+	var Gp []PtrdiffT
+	if !(G != nil && PtrdiffT(G[0].nz) == -1) || !(B != nil && PtrdiffT(B[0].nz) == -1) || xi == nil {
+		// check inputs
+		return -1
+	}
+	n = PtrdiffT(G[0].n)
+	Bp = B[0].p
+	Bi = B[0].i
+	Gp = G[0].p
+	top = n
+	for p = Bp[k]; p < Bp[k+1]; p++ {
+		if !(Gp[Bi[p]] < 0) {
+			// start a dfs at unmarked node i
+			top = cs_dfs(PtrdiffT(Bi[p]), G, PtrdiffT(top), xi, (*(*[1000000000]PtrdiffT)(unsafe.Pointer(uintptr(unsafe.Pointer(&xi[0])) + (uintptr)(int(n))*unsafe.Sizeof(xi[0]))))[:], pinv)
+		}
+	}
+	{
+		// restore G
+		for p = top; p < n; p++ {
+			Gp[xi[p]] = -PtrdiffT((Gp[xi[p]])) - 2
+		}
+	}
+	return PtrdiffT((top))
+}
 
 // cs_scatter - x = x + beta * A(:,j), where x is a dense vector and A(:,j) is sparse
 func cs_scatter(A *cs, j int, beta float64, w []int, x []float64, mark int, C *cs, nz int) int {
@@ -3588,91 +3590,91 @@ func cs_scc(A *cs) *csd {
 // 		return cs_sfree(S)
 // 	}())
 // }
-//
-// // cs_spsolve - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_spsolve.c:3
-// // solve Gx=b(:,k), where G is either upper (lo=0) or lower (lo=1) triangular
-// func cs_spsolve(G []cs, B []cs, k PtrdiffT, xi []PtrdiffT, x []float64, pinv []PtrdiffT, lo PtrdiffT) PtrdiffT {
-// 	var j PtrdiffT
-// 	var J PtrdiffT
-// 	var p PtrdiffT
-// 	var q PtrdiffT
-// 	var px PtrdiffT
-// 	var top PtrdiffT
-// 	var n PtrdiffT
-// 	var Gp []PtrdiffT
-// 	var Gi []PtrdiffT
-// 	var Bp []PtrdiffT
-// 	var Bi []PtrdiffT
-// 	var Gx []float64
-// 	var Bx []float64
-// 	if !(G != nil && PtrdiffT(G[0].nz) == -1) || !(B != nil && PtrdiffT(B[0].nz) == -1) || xi == nil || x == nil {
-// 		return -1
-// 	}
-// 	Gp = G[0].p
-// 	Gi = G[0].i
-// 	Gx = G[0].x
-// 	n = PtrdiffT(G[0].n)
-// 	Bp = B[0].p
-// 	Bi = B[0].i
-// 	Bx = B[0].x
-// 	// xi[top..n-1]=Reach(B(:,k))
-// 	top = cs_reach(G, B, PtrdiffT(k), xi, pinv)
-// 	{
-// 		// clear x
-// 		for p = top; p < n; p++ {
-// 			x[xi[p]] = 0
-// 		}
-// 	}
-// 	{
-// 		// scatter B
-// 		for p = Bp[k]; p < Bp[k+1]; p++ {
-// 			x[Bi[p]] = Bx[p]
-// 		}
-// 	}
-// 	for px = top; px < n; px++ {
-// 		// x(j) is nonzero
-// 		j = xi[px]
-// 		// j maps to col J of G
-// 		J = PtrdiffT(func() int {
-// 			if pinv != nil {
-// 				return (((pinv[j])))
-// 			}
-// 			return ((j))
-// 		}() / 8)
-// 		if J < 0 {
-// 			// column J is empty
-// 			continue
-// 		}
-// 		// x(j) /= G(j,j)
-// 		x[j] /= Gx[func() int {
-// 			if bool(PtrdiffT(lo)) {
-// 				return (((Gp[J])))
-// 			}
-// 			return (int(Gp[J+1] - 1))
-// 		}()]
-// 		// lo: L(j,j) 1st entry
-// 		p = PtrdiffT(func() int {
-// 			if bool(PtrdiffT(lo)) {
-// 				return (int(Gp[J] + 1))
-// 			}
-// 			return (((Gp[J])))
-// 		}() / 8)
-// 		// up: U(j,j) last entry
-// 		q = PtrdiffT(func() int {
-// 			if bool(PtrdiffT(lo)) {
-// 				return (((Gp[J+1])))
-// 			}
-// 			return (int(Gp[J+1] - 1))
-// 		}() / 8)
-// 		for ; p < q; p++ {
-// 			// x(i) -= G(i,j) * x(j)
-// 			x[Gi[p]] -= Gx[p] * x[j]
-// 		}
-// 	}
-// 	// return top of stack
-// 	return PtrdiffT((top))
-// }
-//
+
+// cs_spsolve - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_spsolve.c:3
+// solve Gx=b(:,k), where G is either upper (lo=0) or lower (lo=1) triangular
+func cs_spsolve(G *cs, B *cs, k int, xi []int, x []float64, pinv []int, lo int) int {
+	var j PtrdiffT
+	var J PtrdiffT
+	var p PtrdiffT
+	var q PtrdiffT
+	var px PtrdiffT
+	var top PtrdiffT
+	var n PtrdiffT
+	var Gp []PtrdiffT
+	var Gi []PtrdiffT
+	var Bp []PtrdiffT
+	var Bi []PtrdiffT
+	var Gx []float64
+	var Bx []float64
+	if !(G != nil && PtrdiffT(G[0].nz) == -1) || !(B != nil && PtrdiffT(B[0].nz) == -1) || xi == nil || x == nil {
+		return -1
+	}
+	Gp = G[0].p
+	Gi = G[0].i
+	Gx = G[0].x
+	n = PtrdiffT(G[0].n)
+	Bp = B[0].p
+	Bi = B[0].i
+	Bx = B[0].x
+	// xi[top..n-1]=Reach(B(:,k))
+	top = cs_reach(G, B, PtrdiffT(k), xi, pinv)
+	{
+		// clear x
+		for p = top; p < n; p++ {
+			x[xi[p]] = 0
+		}
+	}
+	{
+		// scatter B
+		for p = Bp[k]; p < Bp[k+1]; p++ {
+			x[Bi[p]] = Bx[p]
+		}
+	}
+	for px = top; px < n; px++ {
+		// x(j) is nonzero
+		j = xi[px]
+		// j maps to col J of G
+		J = PtrdiffT(func() int {
+			if pinv != nil {
+				return (pinv[j])
+			}
+			return (j)
+		}() / 8)
+		if J < 0 {
+			// column J is empty
+			continue
+		}
+		// x(j) /= G(j,j)
+		x[j] /= Gx[func() int {
+			if bool(PtrdiffT(lo)) {
+				return (Gp[J])
+			}
+			return (int(Gp[J+1] - 1))
+		}()]
+		// lo: L(j,j) 1st entry
+		p = PtrdiffT(func() int {
+			if bool(PtrdiffT(lo)) {
+				return (int(Gp[J] + 1))
+			}
+			return (Gp[J])
+		}() / 8)
+		// up: U(j,j) last entry
+		q = PtrdiffT(func() int {
+			if bool(PtrdiffT(lo)) {
+				return (Gp[J+1])
+			}
+			return (int(Gp[J+1] - 1))
+		}() / 8)
+		for ; p < q; p++ {
+			// x(i) -= G(i,j) * x(j)
+			x[Gi[p]] -= Gx[p] * x[j]
+		}
+	}
+	// return top of stack
+	return PtrdiffT((top))
+}
+
 // // cs_vcount - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_sqr.c:3
 // // compute nnz(V) = S->lnz, S->pinv, S->leftmost, S->m2 from A and S->parent
 // func cs_vcount(A []cs, S []css) PtrdiffT {
@@ -4216,30 +4218,30 @@ func cs_transpose(A *cs, values bool) *cs {
 // 	cs_free(w)
 // 	return PtrdiffT((beta2 > 0))
 // }
-//
-// // cs_usolve - solve Ux=b where x and b are dense.  x=b on input, solution on output.
-// func cs_usolve(U *cs, x []float64) bool {
-// 	if !(U != nil && U.nz == -1) || x == nil {
-// 		// check inputs
-// 		return false
-// 	}
-// 	var (
-// 		n  = U.n
-// 		Up = U.p
-// 		Ui = U.i
-// 		Ux = U.x
-// 	)
-// 	for j := n - 1; j >= 0; j-- {
-// 		x[j] /= Ux[Up[j+1]-1]
-// 		for p := Up[j]; p < Up[j+1]-1; p++ {
-// 			x[Ui[p]] -= Ux[p] * x[j]
-// 		}
-// 	}
-// 	//
-// 	// TODO (KI) : probably var `x` is return var
-// 	//
-// 	return true
-// }
+
+// cs_usolve - solve Ux=b where x and b are dense.  x=b on input, solution on output.
+func cs_usolve(U *cs, x []float64) bool {
+	if !(U != nil && U.nz == -1) || x == nil {
+		// check inputs
+		return false
+	}
+	var (
+		n  = U.n
+		Up = U.p
+		Ui = U.i
+		Ux = U.x
+	)
+	for j := n - 1; j >= 0; j-- {
+		x[j] /= Ux[Up[j+1]-1]
+		for p := Up[j]; p < Up[j+1]-1; p++ {
+			x[Ui[p]] -= Ux[p] * x[j]
+		}
+	}
+	//
+	// TODO (KI) : probably var `x` is return var
+	//
+	return true
+}
 
 // cs_spalloc - allocate a sparse matrix (triplet form or compressed-column form)
 func cs_spalloc(m, n, nzmax int, values, triplet bool) *cs {
@@ -4330,36 +4332,36 @@ func cs_spfree(A *cs) *cs {
 	return nil
 }
 
-// // cs_nfree - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_util.c:43
-// // free a numeric factorization
-// func cs_nfree(N []csn) []csn {
-// 	if N == nil {
-// 		// do nothing if N already NULL
-// 		return nil
-// 	}
-// 	cs_spfree(N.L) // TODO (KI) : remove
-// 	cs_spfree(N.U) // TODO (KI) : remove
-// 	cs_free(N.pinv)
-// 	cs_free(N.B)
-// 	// free the csn struct and return NULL
-// 	return (cs_free(N).([]csn))
-// }
-//
-// // cs_sfree - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_util.c:54
-// // free a symbolic factorization
-// func cs_sfree(S []css) []css {
-// 	if S == nil {
-// 		// do nothing if S already NULL
-// 		return nil
-// 	}
-// 	cs_free(S[0].pinv)
-// 	cs_free(S[0].q)
-// 	cs_free(S[0].parent)
-// 	cs_free(S[0].cp)
-// 	cs_free(S[0].leftmost)
-// 	// free the css struct and return NULL
-// 	return (cs_free(S).([]css))
-// }
+// cs_nfree - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_util.c:43
+// free a numeric factorization
+func cs_nfree(N []csn) []csn {
+	if N == nil {
+		// do nothing if N already NULL
+		return nil
+	}
+	cs_spfree(N.L) // TODO (KI) : remove
+	cs_spfree(N.U) // TODO (KI) : remove
+	cs_free(N.pinv)
+	cs_free(N.B)
+	// free the csn struct and return NULL
+	return (cs_free(N).([]csn))
+}
+
+// cs_sfree - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_util.c:54
+// free a symbolic factorization
+func cs_sfree(S []css) []css {
+	if S == nil {
+		// do nothing if S already NULL
+		return nil
+	}
+	cs_free(S[0].pinv)
+	cs_free(S[0].q)
+	cs_free(S[0].parent)
+	cs_free(S[0].cp)
+	cs_free(S[0].leftmost)
+	// free the css struct and return NULL
+	return (cs_free(S).([]css))
+}
 
 // cs_dalloc - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_util.c:66
 // allocate a cs_dmperm or cs_scc result
