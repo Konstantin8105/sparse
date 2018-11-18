@@ -2168,7 +2168,7 @@ func cs_load(f io.Reader) *cs {
 // 	var Lp []PtrdiffT
 // 	var Li []PtrdiffT
 // 	var Lx []float64
-// 	if !(L != nil && PtrdiffT(L[0].nz) == -1) || x == nil {
+// 	if !(L != nil && PtrdiffT(L.nz) == -1) || x == nil {
 // 		// check inputs
 // 		return 0
 // 	}
@@ -2194,7 +2194,7 @@ func cs_load(f io.Reader) *cs {
 // 	var Lp []PtrdiffT
 // 	var Li []PtrdiffT
 // 	var Lx []float64
-// 	if !(L != nil && PtrdiffT(L[0].nz) == -1) || x == nil {
+// 	if !(L != nil && PtrdiffT(L.nz) == -1) || x == nil {
 // 		// check inputs
 // 		return 0
 // 	}
@@ -2290,7 +2290,7 @@ func cs_lu(A *cs, S *css, tol float64) *csn {
 		Lp[k] = lnz
 		// U(:,k) starts here
 		Up[k] = unz
-		if lnz+n > PtrdiffT(L[0].nzmax) && bool(noarch.NotNoarch.PtrdiffT(cs_sprealloc(L, PtrdiffT((2*(L[0].nzmax)+int(n))/8)))) || unz+n > PtrdiffT(U[0].nzmax) && bool(noarch.NotNoarch.PtrdiffT(cs_sprealloc(U, PtrdiffT((2*(U[0].nzmax)+int(n))/8)))) {
+		if lnz+n > PtrdiffT(L.nzmax) && bool(noarch.NotNoarch.PtrdiffT(cs_sprealloc(L, PtrdiffT((2*(L.nzmax)+int(n))/8)))) || unz+n > PtrdiffT(U.nzmax) && bool(noarch.NotNoarch.PtrdiffT(cs_sprealloc(U, PtrdiffT((2*(U.nzmax)+int(n))/8)))) {
 			return (cs_ndone(N, nil, xi, x, 0))
 		}
 		Li = L.i
@@ -4128,7 +4128,7 @@ func cs_transpose(A *cs, values bool) *cs {
 // 	var w2 float64
 // 	var w []float64
 // 	var beta2 float64 = 1
-// 	if !(L != nil && PtrdiffT(L[0].nz) == -1) || !(C != nil && PtrdiffT(C[0].nz) == -1) || parent == nil {
+// 	if !(L != nil && PtrdiffT(L.nz) == -1) || !(C != nil && PtrdiffT(C.nz) == -1) || parent == nil {
 // 		// check inputs
 // 		return 0
 // 	}
