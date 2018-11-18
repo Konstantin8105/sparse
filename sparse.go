@@ -24,7 +24,7 @@ type css struct { // struct cs_symbolic
 	pinv     *int  // inverse row perm. for QR, fill red. perm for Chol
 	q        []int // fill-reducing column permutation for LU and QR
 	parent   *int  // elimination tree for Cholesky and QR
-	cp       *int  // column pointers for Cholesky, row counts for QR
+	cp       []int // column pointers for Cholesky, row counts for QR
 	leftmost *int  // TODO
 	m2       int   // # of rows for QR, after adding fictitious rows
 
@@ -895,9 +895,9 @@ type PtrdiffT = int
 // 	c = cs_malloc(PtrdiffT(2*int(n)/8), uint(0)).([]PtrdiffT)
 // 	// get double workspace
 // 	x = cs_malloc(n, uint(8)).([]float64)
-// 	cp = S[0].cp
-// 	pinv = S[0].pinv
-// 	parent = S[0].parent
+// 	cp = S.cp
+// 	pinv = S.pinv
+// 	parent = S.parent
 // 	C = func() []cs {
 // 		if pinv != nil {
 // 			return cs_symperm(A, pinv, 1)
@@ -1021,13 +1021,13 @@ type PtrdiffT = int
 // 	ok = PtrdiffT(S != nil && N != nil && x != nil)
 // 	if bool(ok) {
 // 		// x = P*b
-// 		cs_ipvec(S[0].pinv, b, x, n)
+// 		cs_ipvec(S.pinv, b, x, n)
 // 		// x = L\x
 // 		cs_lsolve(N.L, x)
 // 		// x = L'\x
 // 		cs_ltsolve(N.L, x)
 // 		// b = P'*x
-// 		cs_pvec(S[0].pinv, x, b, n)
+// 		cs_pvec(S.pinv, x, b, n)
 // 	}
 // 	cs_free(x)
 // 	cs_sfree(S)
@@ -1811,8 +1811,8 @@ func cs_entry(T *cs, i, j int, x float64) bool {
 // 	}
 // 	n = A.n
 // 	top = n
-// 	Ap = A[0].p
-// 	Ai = A[0].i
+// 	Ap = A.p
+// 	Ai = A.i
 // 	{
 // 		// mark node k as visited
 // 		w[k] = -PtrdiffT((w[k])) - 2
@@ -1886,8 +1886,8 @@ func cs_entry(T *cs, i, j int, x float64) bool {
 // 	}
 // 	m = A.m
 // 	n = A.n
-// 	Ap = A[0].p
-// 	Ai = A[0].i
+// 	Ap = A.p
+// 	Ai = A.i
 // 	// allocate result
 // 	parent = cs_malloc(n, uint(0)).([]PtrdiffT)
 // 	// get workspace
@@ -2306,7 +2306,7 @@ func cs_lu(A *cs, S *css, tol float64) *csn {
 			return (k)
 		}()
 		// x = L\A(:,col)
-		top = cs_spsolve(L, A, PtrdiffT(col), xi, x, pinv, 1)
+		top = cs_spsolve(L, A, col, xi, x, pinv, true)
 		// --- Find pivot ---------------------------------------------------
 		ipiv = -1
 		a = float64(-1)
@@ -2335,7 +2335,7 @@ func cs_lu(A *cs, S *css, tol float64) *csn {
 			}
 		}
 		if ipiv == -1 || a <= 0 {
-			return (cs_ndone(N, nil, xi, x, 0))
+			return (cs_ndone(N, nil, xi, x, false))
 		}
 		if pinv[col] < 0 && math.Abs(x[col]) >= a*tol {
 			// tol=1 for  partial pivoting; tol<1 gives preference to diagonal
@@ -2396,7 +2396,7 @@ func cs_lu(A *cs, S *css, tol float64) *csn {
 	cs_sprealloc(L, 0)
 	cs_sprealloc(U, 0)
 	// success
-	return (cs_ndone(N, nil, xi, x, 1))
+	return (cs_ndone(N, nil, xi, x, true))
 }
 
 // cs_lusol - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_lusol.c:3
@@ -2408,7 +2408,7 @@ func cs_lusol(order int, A *cs, b []float64, tol float64) bool {
 	}
 	n := A.n
 	// ordering and symbolic analysis
-	S := cs_sqr(order, A, 0)
+	S := cs_sqr(order, A, false)
 	// numeric LU factorization
 	N := cs_lu(A, S, tol)
 	// get workspace
@@ -3091,16 +3091,16 @@ func cs_print(A *cs, brief bool) bool {
 // 	}
 // 	m = A.m
 // 	n = A.n
-// 	Ap = A[0].p
-// 	Ai = A[0].i
-// 	Ax = A[0].x
-// 	q = S[0].q
-// 	parent = S[0].parent
-// 	pinv = S[0].pinv
-// 	m2 = PtrdiffT(S[0].m2)
+// 	Ap = A.p
+// 	Ai = A.i
+// 	Ax = A.x
+// 	q = S.q
+// 	parent = S.parent
+// 	pinv = S.pinv
+// 	m2 = PtrdiffT(S.m2)
 // 	vnz = S.lnz
 // 	rnz = S.unz
-// 	leftmost = S[0].leftmost
+// 	leftmost = S.leftmost
 // 	// get csi workspace
 // 	w = cs_malloc(m2+n, uint(0)).([]PtrdiffT)
 // 	// get double workspace
@@ -3283,14 +3283,14 @@ func cs_print(A *cs, brief bool) bool {
 // 		// get workspace
 // 		x = cs_calloc(PtrdiffT(func() int {
 // 			if S != nil {
-// 				return ((S[0].m2))
+// 				return ((S.m2))
 // 			}
 // 			return 1
 // 		}()/8), uint(8)).([]float64)
 // 		ok = PtrdiffT(S != nil && N != nil && x != nil)
 // 		if bool(ok) {
 // 			// x(0:m-1) = b(p(0:m-1)
-// 			cs_ipvec(S[0].pinv, b, x, m)
+// 			cs_ipvec(S.pinv, b, x, m)
 // 			{
 // 				// apply Householder refl. to x
 // 				for k = 0; k < n; k++ {
@@ -3300,7 +3300,7 @@ func cs_print(A *cs, brief bool) bool {
 // 			// x = R\x
 // 			cs_usolve(N.U, x)
 // 			// b(q(0:n-1)) = x(0:n-1)
-// 			cs_ipvec(S[0].q, x, b, n)
+// 			cs_ipvec(S.q, x, b, n)
 // 		}
 // 	} else {
 // 		// Ax=b is underdetermined
@@ -3312,14 +3312,14 @@ func cs_print(A *cs, brief bool) bool {
 // 		// get workspace
 // 		x = cs_calloc(PtrdiffT(func() int {
 // 			if S != nil {
-// 				return ((S[0].m2))
+// 				return ((S.m2))
 // 			}
 // 			return 1
 // 		}()/8), uint(8)).([]float64)
 // 		ok = PtrdiffT(AT != nil && S != nil && N != nil && x != nil)
 // 		if bool(ok) {
 // 			// x(q(0:m-1)) = b(0:m-1)
-// 			cs_pvec(S[0].q, b, x, m)
+// 			cs_pvec(S.q, b, x, m)
 // 			// x = R'\x
 // 			cs_utsolve(N.U, x)
 // 			{
@@ -3329,7 +3329,7 @@ func cs_print(A *cs, brief bool) bool {
 // 				}
 // 			}
 // 			// b(0:n-1) = x(p(0:n-1))
-// 			cs_pvec(S[0].pinv, x, b, n)
+// 			cs_pvec(S.pinv, x, b, n)
 // 		}
 // 	}
 // 	cs_free(x)
@@ -3375,26 +3375,26 @@ func cs_randperm(n int, seed int) []int {
 // cs_reach - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_reach.c:4
 // xi [top...n-1] = nodes reachable from graph of G*P' via nodes in B(:,k).
 // * xi [n...2n-1] used as workspace
-func cs_reach(G []cs, B []cs, k PtrdiffT, xi []PtrdiffT, pinv []PtrdiffT) PtrdiffT {
+func cs_reach(G *cs, B *cs, k PtrdiffT, xi []PtrdiffT, pinv []PtrdiffT) PtrdiffT {
 	var p PtrdiffT
 	var n PtrdiffT
 	var top PtrdiffT
 	var Bp []PtrdiffT
 	var Bi []PtrdiffT
 	var Gp []PtrdiffT
-	if !(G != nil && PtrdiffT(G[0].nz) == -1) || !(B != nil && PtrdiffT(B[0].nz) == -1) || xi == nil {
+	if !(G != nil && PtrdiffT(G.nz) == -1) || !(B != nil && PtrdiffT(B.nz) == -1) || xi == nil {
 		// check inputs
 		return -1
 	}
-	n = PtrdiffT(G[0].n)
-	Bp = B[0].p
-	Bi = B[0].i
-	Gp = G[0].p
+	n = PtrdiffT(G.n)
+	Bp = B.p
+	Bi = B.i
+	Gp = G.p
 	top = n
 	for p = Bp[k]; p < Bp[k+1]; p++ {
 		if !(Gp[Bi[p]] < 0) {
 			// start a dfs at unmarked node i
-			top = cs_dfs(PtrdiffT(Bi[p]), G, PtrdiffT(top), xi, (*(*[1000000000]PtrdiffT)(unsafe.Pointer(uintptr(unsafe.Pointer(&xi[0])) + (uintptr)(int(n))*unsafe.Sizeof(xi[0]))))[:], pinv)
+			top = cs_dfs(Bi[p], G, top, xi, xi[n:], pinv)
 		}
 	}
 	{
@@ -3562,29 +3562,29 @@ func cs_scc(A *cs) *csd {
 // 	// P = amd(A+A'), or natural
 // 	P = cs_amd(PtrdiffT(order), A)
 // 	// find inverse permutation
-// 	S[0].pinv = cs_pinv(P, n)
+// 	S.pinv = cs_pinv(P, n)
 // 	cs_free(P)
-// 	if bool(order) && S[0].pinv == nil {
+// 	if bool(order) && S.pinv == nil {
 // 		return (cs_sfree(S))
 // 	}
 // 	// C = spones(triu(A(P,P)))
-// 	C = cs_symperm(A, S[0].pinv, 0)
+// 	C = cs_symperm(A, S.pinv, 0)
 // 	// find etree of C
-// 	S[0].parent = cs_etree(C, 0)
+// 	S.parent = cs_etree(C, 0)
 // 	// postorder the etree
-// 	post = cs_post(S[0].parent, n)
+// 	post = cs_post(S.parent, n)
 // 	// find column counts of chol(C)
-// 	c = cs_counts(C, S[0].parent, post, 0)
+// 	c = cs_counts(C, S.parent, post, 0)
 // 	cs_free(post)
 // 	cs_spfree(C) // TODO (KI) : remove
 // 	// allocate result S->cp
-// 	S[0].cp = cs_malloc(n+1, uint(0)).([]PtrdiffT)
-// 	S[0].lnz = cs_cumsum(S[0].cp, c, n)
+// 	S.cp = cs_malloc(n+1, uint(0)).([]PtrdiffT)
+// 	S.lnz = cs_cumsum(S.cp, c, n)
 // 	// find column pointers for L
-// 	S[0].unz = S[0].lnz
+// 	S.unz = S.lnz
 // 	cs_free(c)
 // 	return (func() []css {
-// 		if S[0].lnz >= 0 {
+// 		if S.lnz >= 0 {
 // 			return S
 // 		}
 // 		return cs_sfree(S)
@@ -3593,7 +3593,7 @@ func cs_scc(A *cs) *csd {
 
 // cs_spsolve - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_spsolve.c:3
 // solve Gx=b(:,k), where G is either upper (lo=0) or lower (lo=1) triangular
-func cs_spsolve(G *cs, B *cs, k int, xi []int, x []float64, pinv []int, lo int) int {
+func cs_spsolve(G *cs, B *cs, k int, xi []int, x []float64, pinv []int, lo bool) int {
 	var j PtrdiffT
 	var J PtrdiffT
 	var p PtrdiffT
@@ -3607,16 +3607,16 @@ func cs_spsolve(G *cs, B *cs, k int, xi []int, x []float64, pinv []int, lo int) 
 	var Bi []PtrdiffT
 	var Gx []float64
 	var Bx []float64
-	if !(G != nil && PtrdiffT(G[0].nz) == -1) || !(B != nil && PtrdiffT(B[0].nz) == -1) || xi == nil || x == nil {
+	if !(G != nil && PtrdiffT(G.nz) == -1) || !(B != nil && PtrdiffT(B.nz) == -1) || xi == nil || x == nil {
 		return -1
 	}
-	Gp = G[0].p
-	Gi = G[0].i
-	Gx = G[0].x
-	n = PtrdiffT(G[0].n)
-	Bp = B[0].p
-	Bi = B[0].i
-	Bx = B[0].x
+	Gp = G.p
+	Gi = G.i
+	Gx = G.x
+	n = PtrdiffT(G.n)
+	Bp = B.p
+	Bi = B.i
+	Bx = B.x
 	// xi[top..n-1]=Reach(B(:,k))
 	top = cs_reach(G, B, PtrdiffT(k), xi, pinv)
 	{
@@ -3647,21 +3647,21 @@ func cs_spsolve(G *cs, B *cs, k int, xi []int, x []float64, pinv []int, lo int) 
 		}
 		// x(j) /= G(j,j)
 		x[j] /= Gx[func() int {
-			if bool(PtrdiffT(lo)) {
+			if lo {
 				return (Gp[J])
 			}
 			return (int(Gp[J+1] - 1))
 		}()]
 		// lo: L(j,j) 1st entry
 		p = PtrdiffT(func() int {
-			if bool(PtrdiffT(lo)) {
+			if lo {
 				return (int(Gp[J] + 1))
 			}
 			return (Gp[J])
 		}() / 8)
 		// up: U(j,j) last entry
 		q = PtrdiffT(func() int {
-			if bool(PtrdiffT(lo)) {
+			if lo {
 				return (Gp[J+1])
 			}
 			return (int(Gp[J+1] - 1))
@@ -3684,8 +3684,8 @@ func cs_spsolve(G *cs, B *cs, k int, xi []int, x []float64, pinv []int, lo int) 
 // 	var pa PtrdiffT
 // 	var n PtrdiffT = A.n
 // 	var m PtrdiffT = A.m
-// 	var Ap []PtrdiffT = A[0].p
-// 	var Ai []PtrdiffT = A[0].i
+// 	var Ap []PtrdiffT = A.p
+// 	var Ai []PtrdiffT = A.i
 // 	var next []PtrdiffT
 // 	var head []PtrdiffT
 // 	var tail []PtrdiffT
@@ -3693,13 +3693,13 @@ func cs_spsolve(G *cs, B *cs, k int, xi []int, x []float64, pinv []int, lo int) 
 // 	var pinv []PtrdiffT
 // 	var leftmost []PtrdiffT
 // 	var w []PtrdiffT
-// 	var parent []PtrdiffT = S[0].parent
+// 	var parent []PtrdiffT = S.parent
 // 	pinv = cs_malloc(m+n, uint(0)).([]PtrdiffT)
 // 	// allocate pinv,
-// 	S[0].pinv = pinv
+// 	S.pinv = pinv
 // 	leftmost = cs_malloc(m, uint(0)).([]PtrdiffT)
 // 	// and leftmost
-// 	S[0].leftmost = leftmost
+// 	S.leftmost = leftmost
 // 	// get workspace
 // 	w = cs_malloc(m+PtrdiffT(3*int(n)/8), uint(0)).([]PtrdiffT)
 // 	if pinv == nil || w == nil || leftmost == nil {
@@ -3758,19 +3758,19 @@ func cs_spsolve(G *cs, B *cs, k int, xi []int, x []float64, pinv []int, lo int) 
 // 			head[k] = i
 // 		}
 // 	}
-// 	S[0].lnz = 0
-// 	S[0].m2 = m
+// 	S.lnz = 0
+// 	S.m2 = m
 // 	{
 // 		// find row permutation and nnz(V)
 // 		for k = 0; k < n; k++ {
 // 			// remove row i from queue k
 // 			i = head[k]
 // 			// count V(k,k) as nonzero
-// 			S[0].lnz++
+// 			S.lnz++
 // 			if i < 0 {
 // 				// add a fictitious row
 // 				i = func() int {
-// 					tempVar := &S[0].m2
+// 					tempVar := &S.m2
 // 					defer func() {
 // 						*tempVar++
 // 					}()
@@ -3788,7 +3788,7 @@ func cs_spsolve(G *cs, B *cs, k int, xi []int, x []float64, pinv []int, lo int) 
 // 				continue
 // 			}
 // 			// nque [k] is nnz (V(k+1:m,k))
-// 			S[0].lnz += float64(nque[k])
+// 			S.lnz += float64(nque[k])
 // 			if (func() int {
 // 				pa = parent[k]
 // 				return pa
@@ -3819,62 +3819,62 @@ func cs_spsolve(G *cs, B *cs, k int, xi []int, x []float64, pinv []int, lo int) 
 
 // cs_sqr - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_sqr.c:60
 // symbolic ordering and analysis for QR or LU
-func cs_sqr(order PtrdiffT, A []cs, qr PtrdiffT) []css {
+func cs_sqr(order int, A *cs, qr bool) *css {
 	var n PtrdiffT
 	var k PtrdiffT
-	var ok PtrdiffT = 1
+	var ok bool = true
 	var post []PtrdiffT
-	var S []css
+	var S *css
 	if !(A != nil && A.nz == -1) {
 		// check inputs
 		return nil
 	}
 	n = A.n
 	// allocate result S
-	S = cs_calloc(1, uint(0)).([]css)
+	S = new(css)
 	if S == nil {
 		// out of memory
 		return nil
 	}
 	// fill-reducing ordering
-	S[0].q = cs_amd(PtrdiffT(order), A)
-	if bool(order) && S[0].q == nil {
+	S.q = cs_amd(PtrdiffT(order), A)
+	if order != 0 && S.q == nil {
 		return (cs_sfree(S))
 	}
-	if bool(PtrdiffT(qr)) {
-		var C []cs = func() []cs {
-			if bool(PtrdiffT(order)) {
-				return cs_permute(A, nil, S[0].q, 0)
+	if qr {
+		var C *cs = func() *cs {
+			if order != 0 {
+				return cs_permute(A, nil, S.q, false)
 			}
 			return (A)
 		}()
 		// QR symbolic analysis
 		// etree of C'*C, where C=A(:,q)
-		S[0].parent = cs_etree(C, 1)
-		post = cs_post(S[0].parent, n)
+		S.parent = cs_etree(C, 1)
+		post = cs_post(S.parent, n)
 		// col counts chol(C'*C)
-		S[0].cp = cs_counts(C, S[0].parent, post, 1)
+		S.cp = cs_counts(C, S.parent, post, 1)
 		cs_free(post)
-		ok = PtrdiffT(C != nil && S[0].parent != nil && S[0].cp != nil && bool(cs_vcount(C, S)))
+		ok = PtrdiffT(C != nil && S.parent != nil && S.cp != nil && bool(cs_vcount(C, S)))
 		if bool(ok) {
-			S[0].unz = 0
+			S.unz = 0
 			k = 0
 			for k = 0; k < n; k++ {
-				S[0].unz += float64(S[0].cp[k])
+				S.unz += S.cp[k]
 			}
 		}
-		if bool(PtrdiffT(order)) {
+		if order != 0 {
 			cs_spfree(C) // TODO (KI) : remove
 		}
 	} else {
 		// for LU factorization only,
-		S[0].unz = float64(4*int(A[0].p[n]) + int(n))
+		S.unz = 4*A.p[n] + n
 		// guess nnz(L) and nnz(U)
-		S[0].lnz = S[0].unz
+		S.lnz = S.unz
 	}
 	// return result S
-	return (func() []css {
-		if bool(ok) {
+	return (func() *css {
+		if ok {
 			return S
 		}
 		return cs_sfree(S)
@@ -3904,9 +3904,9 @@ func cs_sqr(order PtrdiffT, A []cs, qr PtrdiffT) []css {
 // 		return nil
 // 	}
 // 	n = A.n
-// 	Ap = A[0].p
-// 	Ai = A[0].i
-// 	Ax = A[0].x
+// 	Ap = A.p
+// 	Ai = A.i
+// 	Ax = A.x
 // 	// alloc result
 // 	C = cs_spalloc(n, n, PtrdiffT(Ap[n]), PtrdiffT(bool(values) && Ax != nil), 0)
 // 	// get workspace
@@ -4334,33 +4334,16 @@ func cs_spfree(A *cs) *cs {
 
 // cs_nfree - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_util.c:43
 // free a numeric factorization
-func cs_nfree(N []csn) []csn {
-	if N == nil {
-		// do nothing if N already NULL
-		return nil
-	}
-	cs_spfree(N.L) // TODO (KI) : remove
-	cs_spfree(N.U) // TODO (KI) : remove
-	cs_free(N.pinv)
-	cs_free(N.B)
+func cs_nfree(N *csn) *csn {
 	// free the csn struct and return NULL
-	return (cs_free(N).([]csn))
+	return nil
 }
 
 // cs_sfree - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_util.c:54
 // free a symbolic factorization
-func cs_sfree(S []css) []css {
-	if S == nil {
-		// do nothing if S already NULL
-		return nil
-	}
-	cs_free(S[0].pinv)
-	cs_free(S[0].q)
-	cs_free(S[0].parent)
-	cs_free(S[0].cp)
-	cs_free(S[0].leftmost)
+func cs_sfree(S *css) *css {
 	// free the css struct and return NULL
-	return (cs_free(S).([]css))
+	return nil
 }
 
 // cs_dalloc - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_util.c:66
