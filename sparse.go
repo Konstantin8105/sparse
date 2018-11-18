@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"io"
 	"math"
-	"unsafe"
 
 	"github.com/Konstantin8105/c4go/noarch"
 	"golang.org/x/exp/rand"
@@ -1290,99 +1289,99 @@ func cs_cumsum(p []int, c []int, n int) int64 {
 	return nz2
 }
 
-// // cs_dfs - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_dfs.c:3
-// // depth-first-search of the graph of a matrix, starting at node j
-// func cs_dfs(j noarch.PtrdiffT, G []cs, top noarch.PtrdiffT, xi []noarch.PtrdiffT, pstack []noarch.PtrdiffT, pinv []noarch.PtrdiffT) noarch.PtrdiffT {
-// 	var i noarch.PtrdiffT
-// 	var p noarch.PtrdiffT
-// 	var p2 noarch.PtrdiffT
-// 	var done noarch.PtrdiffT
-// 	var jnew noarch.PtrdiffT
-// 	var head noarch.PtrdiffT
-// 	var Gp []noarch.PtrdiffT
-// 	var Gi []noarch.PtrdiffT
-// 	if !(G != nil && noarch.PtrdiffT(G[0].nz) == -1) || xi == nil || pstack == nil {
-// 		// check inputs
-// 		return -1
-// 	}
-// 	Gp = G[0].p
-// 	Gi = G[0].i
-// 	// initialize the recursion stack
-// 	xi[0] = j
-// 	for head >= 0 {
-// 		// get j from the top of the recursion stack
-// 		j = xi[head]
-// 		jnew = noarch.PtrdiffT(func() int32 {
-// 			if pinv != nil {
-// 				return int32(noarch.PtrdiffT((pinv[j])))
-// 			}
-// 			return int32(noarch.PtrdiffT(j))
-// 		}() / 8)
-// 		if !(Gp[j] < 0) {
-// 			{
-// 				// mark node j as visited
-// 				Gp[j] = -noarch.PtrdiffT((Gp[j])) - 2
-// 			}
-// 			pstack[head] = noarch.PtrdiffT(func() int32 {
-// 				if jnew < 0 {
-// 					return 0
-// 				}
-// 				return (func() int32 {
-// 					if Gp[jnew] < 0 {
-// 						return (int32(-noarch.PtrdiffT((Gp[jnew])) - 2))
-// 					}
-// 					return int32(noarch.PtrdiffT((Gp[jnew])))
-// 				}())
-// 			}() / 8)
-// 		}
-// 		// node j done if no unvisited neighbors
-// 		done = 1
-// 		p2 = noarch.PtrdiffT(func() int32 {
-// 			if jnew < 0 {
-// 				return 0
-// 			}
-// 			return (func() int32 {
-// 				if Gp[jnew+1] < 0 {
-// 					return (int32(-noarch.PtrdiffT((Gp[jnew+1])) - 2))
-// 				}
-// 				return int32(noarch.PtrdiffT((Gp[jnew+1])))
-// 			}())
-// 		}() / 8)
-// 		{
-// 			// examine all neighbors of j
-// 			for p = pstack[head]; p < p2; p++ {
-// 				// consider neighbor node i
-// 				i = Gi[p]
-// 				if Gp[i] < 0 {
-// 					// skip visited node i
-// 					continue
-// 				}
-// 				// pause depth-first search of node j
-// 				pstack[head] = p
-// 				// start dfs at node i
-// 				xi[func() noarch.PtrdiffT {
-// 					head++
-// 					return head
-// 				}()] = i
-// 				// node j is not done
-// 				done = 0
-// 				// break, to start dfs (i)
-// 				break
-// 			}
-// 		}
-// 		if bool(noarch.PtrdiffT(done)) {
-// 			// depth-first search at node j is done
-// 			// remove j from the recursion stack
-// 			head--
-// 			// and place in the output stack
-// 			xi[func() noarch.PtrdiffT {
-// 				top--
-// 				return top
-// 			}()] = j
-// 		}
-// 	}
-// 	return noarch.PtrdiffT((top))
-// }
+// cs_dfs - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_dfs.c:3
+// depth-first-search of the graph of a matrix, starting at node j
+func cs_dfs(j noarch.PtrdiffT, G []cs, top noarch.PtrdiffT, xi []noarch.PtrdiffT, pstack []noarch.PtrdiffT, pinv []noarch.PtrdiffT) noarch.PtrdiffT {
+	var i noarch.PtrdiffT
+	var p noarch.PtrdiffT
+	var p2 noarch.PtrdiffT
+	var done noarch.PtrdiffT
+	var jnew noarch.PtrdiffT
+	var head noarch.PtrdiffT
+	var Gp []noarch.PtrdiffT
+	var Gi []noarch.PtrdiffT
+	if !(G != nil && noarch.PtrdiffT(G[0].nz) == -1) || xi == nil || pstack == nil {
+		// check inputs
+		return -1
+	}
+	Gp = G[0].p
+	Gi = G[0].i
+	// initialize the recursion stack
+	xi[0] = j
+	for head >= 0 {
+		// get j from the top of the recursion stack
+		j = xi[head]
+		jnew = noarch.PtrdiffT(func() int32 {
+			if pinv != nil {
+				return int32(noarch.PtrdiffT((pinv[j])))
+			}
+			return int32(noarch.PtrdiffT(j))
+		}() / 8)
+		if !(Gp[j] < 0) {
+			{
+				// mark node j as visited
+				Gp[j] = -noarch.PtrdiffT((Gp[j])) - 2
+			}
+			pstack[head] = noarch.PtrdiffT(func() int32 {
+				if jnew < 0 {
+					return 0
+				}
+				return (func() int32 {
+					if Gp[jnew] < 0 {
+						return (int32(-noarch.PtrdiffT((Gp[jnew])) - 2))
+					}
+					return int32(noarch.PtrdiffT((Gp[jnew])))
+				}())
+			}() / 8)
+		}
+		// node j done if no unvisited neighbors
+		done = 1
+		p2 = noarch.PtrdiffT(func() int32 {
+			if jnew < 0 {
+				return 0
+			}
+			return (func() int32 {
+				if Gp[jnew+1] < 0 {
+					return (int32(-noarch.PtrdiffT((Gp[jnew+1])) - 2))
+				}
+				return int32(noarch.PtrdiffT((Gp[jnew+1])))
+			}())
+		}() / 8)
+		{
+			// examine all neighbors of j
+			for p = pstack[head]; p < p2; p++ {
+				// consider neighbor node i
+				i = Gi[p]
+				if Gp[i] < 0 {
+					// skip visited node i
+					continue
+				}
+				// pause depth-first search of node j
+				pstack[head] = p
+				// start dfs at node i
+				xi[func() noarch.PtrdiffT {
+					head++
+					return head
+				}()] = i
+				// node j is not done
+				done = 0
+				// break, to start dfs (i)
+				break
+			}
+		}
+		if bool(noarch.PtrdiffT(done)) {
+			// depth-first search at node j is done
+			// remove j from the recursion stack
+			head--
+			// and place in the output stack
+			xi[func() noarch.PtrdiffT {
+				top--
+				return top
+			}()] = j
+		}
+	}
+	return noarch.PtrdiffT((top))
+}
 
 // cs_bfs - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_dmperm.c:3
 // breadth-first search for coarse decomposition (C0,C1,R1 or R0,R3,C3)
@@ -3467,79 +3466,65 @@ func cs_scatter(A *cs, j int, beta float64, w []int, x []float64, mark int, C *c
 // find the strongly connected components of a square matrix
 // matrix A temporarily modified, then restored
 func cs_scc(A *cs) *csd {
-	var n noarch.PtrdiffT
-	var i noarch.PtrdiffT
 	var k noarch.PtrdiffT
 	var b noarch.PtrdiffT
 	var nb noarch.PtrdiffT
-	var top noarch.PtrdiffT
-	var xi []noarch.PtrdiffT
-	var pstack []noarch.PtrdiffT
-	var p []noarch.PtrdiffT
-	var r []noarch.PtrdiffT
-	var Ap []noarch.PtrdiffT
-	var ATp []noarch.PtrdiffT
-	var rcopy []noarch.PtrdiffT
-	var Blk []noarch.PtrdiffT
-	var AT []cs
-	var D []csd
-	if !(A != nil && noarch.PtrdiffT(A[0].nz) == -1) {
+	if !(A != nil && A.nz == -1) {
 		// check inputs
 		return nil
 	}
-	n = noarch.PtrdiffT(A[0].n)
-	Ap = A[0].p
+	n := A.n
+	Ap := A.p
 	// allocate result
-	D = cs_dalloc(noarch.PtrdiffT(n), 0)
+	D := cs_dalloc(n, 0)
 	// AT = A'
-	AT = cs_transpose(A, 0)
+	AT := cs_transpose(A, false)
 	// get workspace
-	xi = cs_malloc(noarch.PtrdiffT((2*int32(n)+1)/8), uint(0)).([]noarch.PtrdiffT)
+	xi := make([]int, 2*n+1)
 	if D == nil || AT == nil || xi == nil {
-		return (cs_ddone(D, AT, xi, 0))
+		return cs_ddone(D, AT, xi, false)
 	}
-	Blk = xi
-	pstack = (*(*[1000000000]noarch.PtrdiffT)(unsafe.Pointer(uintptr(unsafe.Pointer(&xi[0])) + (uintptr)(int(n))*unsafe.Sizeof(xi[0]))))[:]
-	rcopy = pstack
-	p = D[0].p
-	r = D[0].r
-	ATp = AT[0].p
-	top = n
-	{
-		// first dfs(A) to find finish times (xi)
-		for i = 0; i < n; i++ {
-			if !(Ap[i] < 0) {
-				top = cs_dfs(noarch.PtrdiffT(i), A, noarch.PtrdiffT(top), xi, pstack, nil)
-			}
+	Blk := xi
+	pstack := xi[n:]
+	rcopy := pstack
+	p := D.p
+	r := D.r
+	ATp := AT.p
+	top := n
+
+	// first dfs(A) to find finish times (xi)
+	for i := 0; i < n; i++ {
+		if !(Ap[i] < 0) {
+			top = cs_dfs(i, A, top, xi, pstack, nil)
 		}
 	}
-	{
-		// restore A; unmark all nodes
-		for i = 0; i < n; i++ {
-			Ap[i] = -noarch.PtrdiffT((Ap[i])) - 2
-		}
+
+	// restore A; unmark all nodes
+	for i := 0; i < n; i++ {
+		Ap[i] = -Ap[i] - 2
 	}
+
 	top = n
 	nb = n
-	{
-		// dfs(A') to find strongly connnected comp
-		for k = 0; k < n; k++ {
-			// get i in reverse order of finish times
-			i = xi[k]
-			if ATp[i] < 0 {
-				// skip node i if already ordered
-				continue
-			}
-			// node i is the start of a component in p
-			r[func() noarch.PtrdiffT {
-				defer func() {
-					nb--
-				}()
-				return nb
-			}()] = top
-			top = cs_dfs(noarch.PtrdiffT(i), AT, noarch.PtrdiffT(top), p, pstack, nil)
+
+	// dfs(A') to find strongly connnected comp
+	for k = 0; k < n; k++ {
+		// get i in reverse order of finish times
+		i = xi[k]
+		if ATp[i] < 0 {
+			// skip node i if already ordered
+			continue
 		}
+		// node i is the start of a component in p
+		r[func() noarch.PtrdiffT {
+			defer func() {
+				nb--
+			}()
+			return nb
+		}()] = top
+		top = cs_dfs(noarch.PtrdiffT(i), AT, noarch.PtrdiffT(top), p, pstack, nil)
 	}
+
 	// first block starts at zero; shift r up
 	r[nb] = 0
 	for k = nb; k <= n; k++ {
