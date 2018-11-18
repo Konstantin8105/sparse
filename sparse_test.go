@@ -333,7 +333,7 @@ func demo2(Prob *problem) bool {
 	}
 
 	// (KI): debug information
-	fmt.Println("Matrix D from function cs_dmperm: ", D)
+	fmt.Println("Matrix D from function cs_dmperm")
 	{
 		fmt.Printf("Vector p\n")
 		for i := range D.p {
@@ -387,6 +387,9 @@ func demo2(Prob *problem) bool {
 		// print residual
 		print_resid(ok, C, x, b, resid)
 	}
+
+	// (KI) debug info
+	fmt.Printf("m,n,sprank : %d:%d:%d\n", m, n, sprank)
 
 	if m != n || sprank < n {
 		// return if rect. or singular

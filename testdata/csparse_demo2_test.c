@@ -157,11 +157,11 @@ csi demo2 (problem *Prob)
 	// (KI): debug information
 	printf("Matrix D from function cs_dmperm\n");
 	{
-		printf("Vector p\n"); for(int i=0;i<m;i++) printf("p[%d] = %d\n",i,D.p[i]);
-		printf("Vector q\n"); for(int i=0;i<n;i++) printf("q[%d] = %d\n",i,D.q[i]);
-		printf("nb = %d\n",D.nb);
-		printf("Vector rr\n"); for(int i=0;i<5;i++) printf("rr[%d] = %d\n",i,D.rr[i]);
-		printf("Vector cc\n"); for(int i=0;i<5;i++) printf("cc[%d] = %d\n",i,D.cc[i]);
+		if(D->p){printf("Vector p\n"); for(int i=0;i<m;i++) printf("p[%d] = %g\n",i,((double )D->p[i]));}
+		if(D->q){printf("Vector q\n"); for(int i=0;i<n;i++) printf("q[%d] = %g\n",i,((double )D->q[i]));}
+		if(D->nb){printf("nb = %g\n",((double)D->nb));}
+		if(D->rr){printf("Vector rr\n"); for(int i=0;i<5;i++) printf("rr[%d] = %g\n",i,((double)D->rr[i]));}
+		if(D->cc){printf("Vector cc\n"); for(int i=0;i<5;i++) printf("cc[%d] = %g\n",i,((double)D->cc[i]));}
 	}
 
 
@@ -185,6 +185,11 @@ csi demo2 (problem *Prob)
         printf ("time: %8.2f ", toc (t)) ;
         print_resid (ok, C, x, b, resid) ;      /* print residual */
     }
+	
+
+	// (KI) debug info
+	printf("m,n,sprank : %d:%d:%d\n", m,n,sprank);
+
     if (m != n || sprank < n) return (1) ;      /* return if rect. or singular*/
     for (order = 0 ; order <= 3 ; order++)      /* try all orderings */
     {

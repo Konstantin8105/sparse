@@ -1597,7 +1597,7 @@ func cs_dmperm(A *cs, seed int) *csd {
 	cs_bfs(A, n, wi, wj, q, imatch, jmatch, 1)
 	// find R3, C3 from R0
 	ok := cs_bfs(A, m, wj, wi, p, jmatch, imatch, 3)
-	if ok {
+	if !ok {
 		return (cs_ddone(D, nil, jmatch, false))
 	}
 	// unmatched set C0
