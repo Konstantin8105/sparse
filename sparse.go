@@ -2403,43 +2403,38 @@ func cs_load(f io.Reader) *cs {
 // 	// success
 // 	return (cs_ndone(N, nil, xi, x, 1))
 // }
-//
-// // cs_lusol - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_lusol.c:3
-// // x=A\b where A is unsymmetric; b overwritten with solution
-// func cs_lusol(order noarch.PtrdiffT, A []cs, b []float64, tol float64) noarch.PtrdiffT {
-// 	var x []float64
-// 	var S []css
-// 	var N []csn
-// 	var n noarch.PtrdiffT
-// 	var ok noarch.PtrdiffT
-// 	if !(A != nil && noarch.PtrdiffT(A[0].nz) == -1) || b == nil {
-// 		// check inputs
-// 		return 0
-// 	}
-// 	n = noarch.PtrdiffT(A[0].n)
-// 	// ordering and symbolic analysis
-// 	S = cs_sqr(noarch.PtrdiffT(order), A, 0)
-// 	// numeric LU factorization
-// 	N = cs_lu(A, S, tol)
-// 	// get workspace
-// 	x = cs_malloc(noarch.PtrdiffT(n), uint(8)).([]float64)
-// 	ok = noarch.PtrdiffT(S != nil && N != nil && x != nil)
-// 	if bool(ok) {
-// 		// x = b(p)
-// 		cs_ipvec(N[0].pinv, b, x, noarch.PtrdiffT(n))
-// 		// x = L\x
-// 		cs_lsolve(N[0].L, x)
-// 		// x = U\x
-// 		cs_usolve(N[0].U, x)
-// 		// b(q) = x
-// 		cs_ipvec(S[0].q, x, b, noarch.PtrdiffT(n))
-// 	}
-// 	cs_free(x)
-// 	cs_sfree(S)
-// 	cs_nfree(N)
-// 	return noarch.PtrdiffT((ok))
-// }
-//
+
+// cs_lusol - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_lusol.c:3
+// x=A\b where A is unsymmetric; b overwritten with solution
+func cs_lusol(order int, A *cs, b []float64, tol float64) bool {
+	if !(A != nil && A.nz == -1) || b == nil {
+		// check inputs
+		return false
+	}
+	n := A.n
+	// ordering and symbolic analysis
+	S := cs_sqr(order, A, 0)
+	// numeric LU factorization
+	N := cs_lu(A, S, tol)
+	// get workspace
+	x := make([]float64, n)
+	ok := (S != nil && N != nil && x != nil)
+	if ok {
+		// x = b(p)
+		cs_ipvec(N.pinv, b, x, noarch.PtrdiffT(n))
+		// x = L\x
+		cs_lsolve(N.L, x)
+		// x = U\x
+		cs_usolve(N.U, x)
+		// b(q) = x
+		cs_ipvec(S.q, x, b, noarch.PtrdiffT(n))
+	}
+	cs_free(x)
+	cs_sfree(S)
+	cs_nfree(N)
+	return ok
+}
+
 // // cs_malloc - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_malloc.c:10
 // // wrapper for malloc
 // func cs_malloc(n noarch.PtrdiffT, size uint) interface{} {
