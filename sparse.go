@@ -5,7 +5,6 @@ import (
 	"io"
 	"math"
 
-	"github.com/Konstantin8105/c4go/noarch"
 	"golang.org/x/exp/rand"
 )
 
@@ -4379,16 +4378,16 @@ func cs_spfree(A *cs) *cs {
 // cs_dalloc - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_util.c:66
 // allocate a cs_dmperm or cs_scc result
 func cs_dalloc(m, n int) *csd {
-	D := cs_calloc(1, uint(0)).([]csd)
+	D := new(csd)
 	if D == nil {
 		return nil
 	}
-	D[0].p = cs_malloc(m, uint(0)).([]noarch.PtrdiffT)
-	D[0].r = cs_malloc(m+noarch.PtrdiffT(6/8), uint(0)).([]noarch.PtrdiffT)
-	D[0].q = cs_malloc(noarch.PtrdiffT(n), uint(0)).([]noarch.PtrdiffT)
-	D[0].s = cs_malloc(n+noarch.PtrdiffT(6/8), uint(0)).([]noarch.PtrdiffT)
-	return (func() []csd {
-		if D[0].p == nil || D[0].r == nil || D[0].q == nil || D[0].s == nil {
+	D.p = make([]int, m)
+	D.r = make([]int, m+6)
+	D.q = make([]int, n)
+	D.s = make([]int, n+6)
+	return (func() *csd {
+		if D.p == nil || D.r == nil || D.q == nil || D.s == nil {
 			return cs_dfree(D)
 		}
 		return D
