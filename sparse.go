@@ -21,11 +21,11 @@ type cs struct { // struct cs_sparse
 
 // symbolic Cholesky, LU, or QR analysis
 type css struct { // struct cs_symbolic
-	pinv     *int  // inverse row perm. for QR, fill red. perm for Chol
+	pinv     []int // inverse row perm. for QR, fill red. perm for Chol
 	q        []int // fill-reducing column permutation for LU and QR
 	parent   []int // elimination tree for Cholesky and QR
 	cp       []int // column pointers for Cholesky, row counts for QR
-	leftmost *int  // TODO
+	leftmost []int // TODO
 	m2       int   // # of rows for QR, after adding fictitious rows
 
 	// TODO (KI): lnz, unz is "double" at the base, but I think it is "int"
@@ -1099,42 +1099,42 @@ func cs_compress(T *cs) *cs {
 	return cs_done(C, w, nil, true)
 }
 
-// // init_ata - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_counts.c:5
-// // column counts of LL'=A or LL'=A'A, given parent & post ordering
-// func init_ata(AT []cs, post []PtrdiffT, w []PtrdiffT, head [][]PtrdiffT, next [][]PtrdiffT) {
-// 	var i PtrdiffT
-// 	var k PtrdiffT
-// 	var p PtrdiffT
-// 	var m PtrdiffT = PtrdiffT(AT.n)
-// 	var n PtrdiffT = PtrdiffT(AT.m)
-// 	var ATp []PtrdiffT = AT.p
-// 	var ATi []PtrdiffT = AT.i
-// 	head[0] = (*(*[1000000000]PtrdiffT)(unsafe.Pointer(uintptr(unsafe.Pointer(&w[0])) + (uintptr)(int(4*int(n)))*unsafe.Sizeof(w[0]))))[:]
-// 	next[0] = (*(*[1000000000]PtrdiffT)(unsafe.Pointer(uintptr(unsafe.Pointer(&w[0])) + (uintptr)(int(5*int(n)))*unsafe.Sizeof(w[0]))))[:][1:]
-// 	{
-// 		// invert post
-// 		for k = 0; k < n; k++ {
-// 			w[post[k]] = k
-// 		}
-// 	}
-// 	for i = 0; i < m; i++ {
-// 		{
-// 			k = n
-// 			p = ATp[i]
-// 			for p = ATp[i]; p < ATp[i+1]; p++ {
-// 				k = PtrdiffT(func() int {
-// 					if k < w[ATi[p]] {
-// 						return (((k)))
-// 					}
-// 					return (((w[ATi[p]])))
-// 				}() / 8)
-// 			}
-// 		}
-// 		// place row i in linked list k
-// 		(next[0])[i] = (head[0])[k]
-// 		(head[0])[k] = i
-// 	}
-// }
+// init_ata - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_counts.c:5
+// column counts of LL'=A or LL'=A'A, given parent & post ordering
+func init_ata(AT *cs, post []PtrdiffT, w []PtrdiffT, head []PtrdiffT, next []PtrdiffT) {
+	var i PtrdiffT
+	var k PtrdiffT
+	var p PtrdiffT
+	var m PtrdiffT = PtrdiffT(AT.n)
+	var n PtrdiffT = PtrdiffT(AT.m)
+	var ATp []PtrdiffT = AT.p
+	var ATi []PtrdiffT = AT.i
+	head = w[4*n:]
+	next = w[5*n+1:]
+	{
+		// invert post
+		for k = 0; k < n; k++ {
+			w[post[k]] = k
+		}
+	}
+	for i = 0; i < m; i++ {
+		{
+			k = n
+			p = ATp[i]
+			for p = ATp[i]; p < ATp[i+1]; p++ {
+				k = PtrdiffT(func() int {
+					if k < w[ATi[p]] {
+						return (k)
+					}
+					return (w[ATi[p]])
+				}() / 8)
+			}
+		}
+		// place row i in linked list k
+		(next)[i] = (head)[k]
+		(head)[k] = i
+	}
+}
 
 // cs_counts - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_counts.c:17
 func cs_counts(A *cs, parent []PtrdiffT, post []PtrdiffT, ata bool) []PtrdiffT {
@@ -1211,7 +1211,7 @@ func cs_counts(A *cs, parent []PtrdiffT, post []PtrdiffT, ata bool) []PtrdiffT {
 	ATp = AT.p
 	ATi = AT.i
 	if ata {
-		init_ata(AT, post, w, &head, &next)
+		init_ata(AT, post, w, head, next)
 	}
 	{
 		// each node in its own set
@@ -2089,48 +2089,47 @@ func cs_ipvec(p []int, b []float64, x []float64, n int) bool {
 	return true
 }
 
-// // cs_leaf - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_leaf.c:3
-// // consider A(i,j), node j in ith row subtree and return lca(jprev,j)
-// func cs_leaf(i PtrdiffT, j PtrdiffT, first []PtrdiffT, maxfirst []PtrdiffT, prevleaf []PtrdiffT, ancestor []PtrdiffT, jleaf []PtrdiffT) PtrdiffT {
-// 	var q PtrdiffT
-// 	var s PtrdiffT
-// 	var sparent PtrdiffT
-// 	var jprev PtrdiffT
-// 	if first == nil || maxfirst == nil || prevleaf == nil || ancestor == nil || jleaf == nil {
-// 		return -1
-// 	}
-// 	jleaf[0] = 0
-// 	if i <= j || first[j] <= maxfirst[i] {
-// 		// j not a leaf
-// 		return -1
-// 	}
-// 	// update max first[j] seen so far
-// 	maxfirst[i] = first[j]
-// 	// jprev = previous leaf of ith subtree
-// 	jprev = prevleaf[i]
-// 	prevleaf[i] = j
-// 	// j is first or subsequent leaf
-// 	jleaf[0] = PtrdiffT(func() int {
-// 		if jprev == -1 {
-// 			return 1
-// 		}
-// 		return 2
-// 	}())
-// 	if jleaf[0] == 1 {
-// 		// if 1st leaf, q = root of ith subtree
-// 		return PtrdiffT((i))
-// 	}
-// 	for q = jprev; q != ancestor[q]; q = ancestor[q] {
-// 	}
-// 	for s = jprev; s != q; s = sparent {
-// 		// path compression
-// 		sparent = ancestor[s]
-// 		ancestor[s] = q
-// 	}
-// 	// q = least common ancester (jprev,j)
-// 	return PtrdiffT((q))
-// }
-//
+// cs_leaf - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_leaf.c:3
+// consider A(i,j), node j in ith row subtree and return lca(jprev,j)
+func cs_leaf(i PtrdiffT, j PtrdiffT, first []PtrdiffT, maxfirst []PtrdiffT, prevleaf []PtrdiffT, ancestor []PtrdiffT, jleaf *PtrdiffT) PtrdiffT {
+	var q PtrdiffT
+	var s PtrdiffT
+	var sparent PtrdiffT
+	var jprev PtrdiffT
+	if first == nil || maxfirst == nil || prevleaf == nil || ancestor == nil || jleaf == nil {
+		return -1
+	}
+	*jleaf = 0
+	if i <= j || first[j] <= maxfirst[i] {
+		// j not a leaf
+		return -1
+	}
+	// update max first[j] seen so far
+	maxfirst[i] = first[j]
+	// jprev = previous leaf of ith subtree
+	jprev = prevleaf[i]
+	prevleaf[i] = j
+	// j is first or subsequent leaf
+	*jleaf = PtrdiffT(func() int {
+		if jprev == -1 {
+			return 1
+		}
+		return 2
+	}())
+	if *jleaf == 1 {
+		// if 1st leaf, q = root of ith subtree
+		return PtrdiffT((i))
+	}
+	for q = jprev; q != ancestor[q]; q = ancestor[q] {
+	}
+	for s = jprev; s != q; s = sparent {
+		// path compression
+		sparent = ancestor[s]
+		ancestor[s] = q
+	}
+	// q = least common ancester (jprev,j)
+	return PtrdiffT((q))
+}
 
 // cs_load - load a triplet matrix from a file
 func cs_load(f io.Reader) *cs {
@@ -3675,147 +3674,147 @@ func cs_spsolve(G *cs, B *cs, k int, xi []int, x []float64, pinv []int, lo bool)
 	return PtrdiffT((top))
 }
 
-// // cs_vcount - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_sqr.c:3
-// // compute nnz(V) = S->lnz, S->pinv, S->leftmost, S->m2 from A and S->parent
-// func cs_vcount(A []cs, S []css) PtrdiffT {
-// 	var i PtrdiffT
-// 	var k PtrdiffT
-// 	var p PtrdiffT
-// 	var pa PtrdiffT
-// 	var n PtrdiffT = A.n
-// 	var m PtrdiffT = A.m
-// 	var Ap []PtrdiffT = A.p
-// 	var Ai []PtrdiffT = A.i
-// 	var next []PtrdiffT
-// 	var head []PtrdiffT
-// 	var tail []PtrdiffT
-// 	var nque []PtrdiffT
-// 	var pinv []PtrdiffT
-// 	var leftmost []PtrdiffT
-// 	var w []PtrdiffT
-// 	var parent []PtrdiffT = S.parent
-// 	pinv = cs_malloc(m+n, uint(0)).([]PtrdiffT)
-// 	// allocate pinv,
-// 	S.pinv = pinv
-// 	leftmost = cs_malloc(m, uint(0)).([]PtrdiffT)
-// 	// and leftmost
-// 	S.leftmost = leftmost
-// 	// get workspace
-// 	w = cs_malloc(m+PtrdiffT(3*int(n)/8), uint(0)).([]PtrdiffT)
-// 	if pinv == nil || w == nil || leftmost == nil {
-// 		// pinv and leftmost freed later
-// 		cs_free(w)
-// 		// out of memory
-// 		return 0
-// 	}
-// 	next = w
-// 	head = (*(*[1000000000]PtrdiffT)(unsafe.Pointer(uintptr(unsafe.Pointer(&w[0])) + (uintptr)(int(m))*unsafe.Sizeof(w[0]))))[:]
-// 	tail = (*(*[1000000000]PtrdiffT)(unsafe.Pointer(uintptr(unsafe.Pointer(&(*(*[1000000000]PtrdiffT)(unsafe.Pointer(uintptr(unsafe.Pointer(&w[0])) + (uintptr)(int(m))*unsafe.Sizeof(w[0]))))[:][0])) + (uintptr)(int(n))*unsafe.Sizeof((*(*[1000000000]PtrdiffT)(unsafe.Pointer(uintptr(unsafe.Pointer(&w[0])) + (uintptr)(int(m))*unsafe.Sizeof(w[0]))))[:][0]))))[:]
-// 	nque = (*(*[1000000000]PtrdiffT)(unsafe.Pointer(uintptr(unsafe.Pointer(&(*(*[1000000000]PtrdiffT)(unsafe.Pointer(uintptr(unsafe.Pointer(&w[0])) + (uintptr)(int(m))*unsafe.Sizeof(w[0]))))[:][0])) + (uintptr)(int(2*int(n)))*unsafe.Sizeof((*(*[1000000000]PtrdiffT)(unsafe.Pointer(uintptr(unsafe.Pointer(&w[0])) + (uintptr)(int(m))*unsafe.Sizeof(w[0]))))[:][0]))))[:]
-// 	{
-// 		// queue k is empty
-// 		for k = 0; k < n; k++ {
-// 			head[k] = -1
-// 		}
-// 	}
-// 	for k = 0; k < n; k++ {
-// 		tail[k] = -1
-// 	}
-// 	for k = 0; k < n; k++ {
-// 		nque[k] = 0
-// 	}
-// 	for i = 0; i < m; i++ {
-// 		leftmost[i] = -1
-// 	}
-// 	for k = n - 1; k >= 0; k-- {
-// 		for p = Ap[k]; p < Ap[k+1]; p++ {
-// 			// leftmost[i] = min(find(A(i,:)))
-// 			leftmost[Ai[p]] = k
-// 		}
-// 	}
-// 	{
-// 		// scan rows in reverse order
-// 		for i = m - 1; i >= 0; i-- {
-// 			// row i is not yet ordered
-// 			pinv[i] = -1
-// 			k = leftmost[i]
-// 			if k == -1 {
-// 				// row i is empty
-// 				continue
-// 			}
-// 			if func() int {
-// 				tempVar := &nque[k]
-// 				defer func() {
-// 					*tempVar++
-// 				}()
-// 				return *tempVar
-// 			}() == 0 {
-// 				// first row in queue k
-// 				tail[k] = i
-// 			}
-// 			// put i at head of queue k
-// 			next[i] = head[k]
-// 			head[k] = i
-// 		}
-// 	}
-// 	S.lnz = 0
-// 	S.m2 = m
-// 	{
-// 		// find row permutation and nnz(V)
-// 		for k = 0; k < n; k++ {
-// 			// remove row i from queue k
-// 			i = head[k]
-// 			// count V(k,k) as nonzero
-// 			S.lnz++
-// 			if i < 0 {
-// 				// add a fictitious row
-// 				i = func() int {
-// 					tempVar := &S.m2
-// 					defer func() {
-// 						*tempVar++
-// 					}()
-// 					return *tempVar
-// 				}()
-// 			}
-// 			// associate row i with V(:,k)
-// 			pinv[i] = k
-// 			if func() int {
-// 				tempVar := &nque[k]
-// 				*tempVar--
-// 				return *tempVar
-// 			}() <= 0 {
-// 				// skip if V(k+1:m,k) is empty
-// 				continue
-// 			}
-// 			// nque [k] is nnz (V(k+1:m,k))
-// 			S.lnz += float64(nque[k])
-// 			if (func() int {
-// 				pa = parent[k]
-// 				return pa
-// 			}()) != -1 {
-// 				if nque[pa] == 0 {
-// 					// move all rows to parent of k
-// 					tail[pa] = tail[k]
-// 				}
-// 				next[tail[k]] = head[pa]
-// 				head[pa] = next[i]
-// 				nque[pa] += nque[k]
-// 			}
-// 		}
-// 	}
-// 	for i = 0; i < m; i++ {
-// 		if pinv[i] < 0 {
-// 			pinv[i] = func() int {
-// 				defer func() {
-// 					k++
-// 				}()
-// 				return k
-// 			}()
-// 		}
-// 	}
-// 	cs_free(w)
-// 	return 1
-// }
+// cs_vcount - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_sqr.c:3
+// compute nnz(V) = S->lnz, S->pinv, S->leftmost, S->m2 from A and S->parent
+func cs_vcount(A *cs, S *css) bool {
+	var i PtrdiffT
+	var k PtrdiffT
+	var p PtrdiffT
+	var pa PtrdiffT
+	var n PtrdiffT = A.n
+	var m PtrdiffT = A.m
+	var Ap []PtrdiffT = A.p
+	var Ai []PtrdiffT = A.i
+	var next []PtrdiffT
+	var head []PtrdiffT
+	var tail []PtrdiffT
+	var nque []PtrdiffT
+	var pinv []PtrdiffT
+	var leftmost []PtrdiffT
+	var w []PtrdiffT
+	var parent []PtrdiffT = S.parent
+	pinv = make([]int, m+n)
+	// allocate pinv,
+	S.pinv = pinv
+	leftmost = make([]int, m)
+	// and leftmost
+	S.leftmost = leftmost
+	// get workspace
+	w = make([]int, m+3*n)
+	if pinv == nil || w == nil || leftmost == nil {
+		// pinv and leftmost freed later
+		cs_free(w)
+		// out of memory
+		return false
+	}
+	next = w
+	head = w[m:]
+	tail = w[m+n:]
+	nque = w[m+2*n:]
+	{
+		// queue k is empty
+		for k = 0; k < n; k++ {
+			head[k] = -1
+		}
+	}
+	for k = 0; k < n; k++ {
+		tail[k] = -1
+	}
+	for k = 0; k < n; k++ {
+		nque[k] = 0
+	}
+	for i = 0; i < m; i++ {
+		leftmost[i] = -1
+	}
+	for k = n - 1; k >= 0; k-- {
+		for p = Ap[k]; p < Ap[k+1]; p++ {
+			// leftmost[i] = min(find(A(i,:)))
+			leftmost[Ai[p]] = k
+		}
+	}
+	{
+		// scan rows in reverse order
+		for i = m - 1; i >= 0; i-- {
+			// row i is not yet ordered
+			pinv[i] = -1
+			k = leftmost[i]
+			if k == -1 {
+				// row i is empty
+				continue
+			}
+			if func() int {
+				tempVar := &nque[k]
+				defer func() {
+					*tempVar++
+				}()
+				return *tempVar
+			}() == 0 {
+				// first row in queue k
+				tail[k] = i
+			}
+			// put i at head of queue k
+			next[i] = head[k]
+			head[k] = i
+		}
+	}
+	S.lnz = 0
+	S.m2 = m
+	{
+		// find row permutation and nnz(V)
+		for k = 0; k < n; k++ {
+			// remove row i from queue k
+			i = head[k]
+			// count V(k,k) as nonzero
+			S.lnz++
+			if i < 0 {
+				// add a fictitious row
+				i = func() int {
+					tempVar := &S.m2
+					defer func() {
+						*tempVar++
+					}()
+					return *tempVar
+				}()
+			}
+			// associate row i with V(:,k)
+			pinv[i] = k
+			if func() int {
+				tempVar := &nque[k]
+				*tempVar--
+				return *tempVar
+			}() <= 0 {
+				// skip if V(k+1:m,k) is empty
+				continue
+			}
+			// nque [k] is nnz (V(k+1:m,k))
+			S.lnz += nque[k]
+			if (func() int {
+				pa = parent[k]
+				return pa
+			}()) != -1 {
+				if nque[pa] == 0 {
+					// move all rows to parent of k
+					tail[pa] = tail[k]
+				}
+				next[tail[k]] = head[pa]
+				head[pa] = next[i]
+				nque[pa] += nque[k]
+			}
+		}
+	}
+	for i = 0; i < m; i++ {
+		if pinv[i] < 0 {
+			pinv[i] = func() int {
+				defer func() {
+					k++
+				}()
+				return k
+			}()
+		}
+	}
+	cs_free(w)
+	return true
+}
 
 // cs_sqr - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_sqr.c:60
 // symbolic ordering and analysis for QR or LU
@@ -3855,8 +3854,8 @@ func cs_sqr(order int, A *cs, qr bool) *css {
 		// col counts chol(C'*C)
 		S.cp = cs_counts(C, S.parent, post, true)
 		cs_free(post)
-		ok = PtrdiffT(C != nil && S.parent != nil && S.cp != nil && bool(cs_vcount(C, S)))
-		if bool(ok) {
+		ok = (C != nil && S.parent != nil && S.cp != nil && bool(cs_vcount(C, S)))
+		if ok {
 			S.unz = 0
 			k = 0
 			for k = 0; k < n; k++ {
@@ -4002,47 +4001,47 @@ func cs_sqr(order int, A *cs, qr bool) *css {
 // 	// success; free workspace, return C
 // 	return (cs_done(C, w, nil, 1))
 // }
-//
-// // cs_tdfs - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_tdfs.c:3
-// // depth-first search and postorder of a tree rooted at node j
-// func cs_tdfs(j, k int, head []int, next []int, post []int, stack []int) PtrdiffT {
-// 	var i PtrdiffT
-// 	var p PtrdiffT
-// 	var top PtrdiffT
-// 	if head == nil || next == nil || post == nil || stack == nil {
-// 		// check inputs
-// 		return -1
-// 	}
-// 	// place j on the stack
-// 	stack[0] = j
-// 	for top >= 0 {
-// 		// while (stack is not empty)
-// 		// p = top of stack
-// 		p = stack[top]
-// 		// i = youngest child of p
-// 		i = head[p]
-// 		if i == -1 {
-// 			// p has no unordered children left
-// 			top--
-// 			// node p is the kth postordered node
-// 			post[func() int {
-// 				defer func() {
-// 					k++
-// 				}()
-// 				return k
-// 			}()] = p
-// 		} else {
-// 			// remove i from children of p
-// 			head[p] = next[i]
-// 			// start dfs on child node i
-// 			stack[func() int {
-// 				top++
-// 				return top
-// 			}()] = i
-// 		}
-// 	}
-// 	return PtrdiffT((k))
-// }
+
+// cs_tdfs - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_tdfs.c:3
+// depth-first search and postorder of a tree rooted at node j
+func cs_tdfs(j, k int, head []int, next []int, post []int, stack []int) int {
+	var i PtrdiffT
+	var p PtrdiffT
+	var top PtrdiffT
+	if head == nil || next == nil || post == nil || stack == nil {
+		// check inputs
+		return -1
+	}
+	// place j on the stack
+	stack[0] = j
+	for top >= 0 {
+		// while (stack is not empty)
+		// p = top of stack
+		p = stack[top]
+		// i = youngest child of p
+		i = head[p]
+		if i == -1 {
+			// p has no unordered children left
+			top--
+			// node p is the kth postordered node
+			post[func() int {
+				defer func() {
+					k++
+				}()
+				return k
+			}()] = p
+		} else {
+			// remove i from children of p
+			head[p] = next[i]
+			// start dfs on child node i
+			stack[func() int {
+				top++
+				return top
+			}()] = i
+		}
+	}
+	return PtrdiffT((k))
+}
 
 // cs_transpose - C = A'
 func cs_transpose(A *cs, values bool) *cs {
