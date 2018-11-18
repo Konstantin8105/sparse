@@ -1105,10 +1105,10 @@ func cs_compress(T *cs) *cs {
 // 	var i PtrdiffT
 // 	var k PtrdiffT
 // 	var p PtrdiffT
-// 	var m PtrdiffT = PtrdiffT(AT[0].n)
-// 	var n PtrdiffT = PtrdiffT(AT[0].m)
-// 	var ATp []PtrdiffT = AT[0].p
-// 	var ATi []PtrdiffT = AT[0].i
+// 	var m PtrdiffT = PtrdiffT(AT.n)
+// 	var n PtrdiffT = PtrdiffT(AT.m)
+// 	var ATp []PtrdiffT = AT.p
+// 	var ATi []PtrdiffT = AT.i
 // 	head[0] = (*(*[1000000000]PtrdiffT)(unsafe.Pointer(uintptr(unsafe.Pointer(&w[0])) + (uintptr)(int(4*int(n)))*unsafe.Sizeof(w[0]))))[:]
 // 	next[0] = (*(*[1000000000]PtrdiffT)(unsafe.Pointer(uintptr(unsafe.Pointer(&w[0])) + (uintptr)(int(5*int(n)))*unsafe.Sizeof(w[0]))))[:][1:]
 // 	{
@@ -1135,139 +1135,139 @@ func cs_compress(T *cs) *cs {
 // 		(head[0])[k] = i
 // 	}
 // }
-//
-// // cs_counts - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_counts.c:17
-// func cs_counts(A []cs, parent []PtrdiffT, post []PtrdiffT, ata PtrdiffT) []PtrdiffT {
-// 	var i PtrdiffT
-// 	var j PtrdiffT
-// 	var k PtrdiffT
-// 	var n PtrdiffT
-// 	var m PtrdiffT
-// 	var J PtrdiffT
-// 	var s PtrdiffT
-// 	var p PtrdiffT
-// 	var q PtrdiffT
-// 	var jleaf PtrdiffT
-// 	var ATp []PtrdiffT
-// 	var ATi []PtrdiffT
-// 	var maxfirst []PtrdiffT
-// 	var prevleaf []PtrdiffT
-// 	var ancestor []PtrdiffT
-// 	var head []PtrdiffT
-// 	var next []PtrdiffT
-// 	var colcount []PtrdiffT
-// 	var w []PtrdiffT
-// 	var first []PtrdiffT
-// 	var delta []PtrdiffT
-// 	var AT []cs
-// 	if !(A != nil && A.nz == -1) || parent == nil || post == nil {
-// 		// check inputs
-// 		return nil
-// 	}
-// 	m = A.m
-// 	n = A.n
-// 	s = PtrdiffT((4*int(n) + func() int {
-// 		if bool(PtrdiffT(ata)) {
-// 			return (int(n + m + 1))
-// 		}
-// 		return 0
-// 	}()) / 8)
-// 	colcount = cs_malloc(n, uint(0)).([]PtrdiffT)
-// 	// allocate result
-// 	delta = colcount
-// 	// get workspace
-// 	w = cs_malloc(PtrdiffT(s), uint(0)).([]PtrdiffT)
-// 	// AT = A'
-// 	AT = cs_transpose(A, 0)
-// 	if AT == nil || colcount == nil || w == nil {
-// 		return (cs_idone(colcount, AT, w, 0))
-// 	}
-// 	ancestor = w
-// 	maxfirst = (*(*[1000000000]PtrdiffT)(unsafe.Pointer(uintptr(unsafe.Pointer(&w[0])) + (uintptr)(int(n))*unsafe.Sizeof(w[0]))))[:]
-// 	prevleaf = (*(*[1000000000]PtrdiffT)(unsafe.Pointer(uintptr(unsafe.Pointer(&w[0])) + (uintptr)(int(2*int(n)))*unsafe.Sizeof(w[0]))))[:]
-// 	first = (*(*[1000000000]PtrdiffT)(unsafe.Pointer(uintptr(unsafe.Pointer(&w[0])) + (uintptr)(int(3*int(n)))*unsafe.Sizeof(w[0]))))[:]
-// 	{
-// 		// clear workspace w [0..s-1]
-// 		for k = 0; k < s; k++ {
-// 			w[k] = -1
-// 		}
-// 	}
-// 	{
-// 		// find first [j]
-// 		for k = 0; k < n; k++ {
-// 			j = post[k]
-// 			// delta[j]=1 if j is a leaf
-// 			delta[j] = PtrdiffT(func() int {
-// 				if first[j] == -1 {
-// 					return 1
-// 				}
-// 				return 0
-// 			}())
-// 			for ; j != -1 && first[j] == -1; j = parent[j] {
-// 				first[j] = k
-// 			}
-// 		}
-// 	}
-// 	ATp = AT[0].p
-// 	ATi = AT[0].i
-// 	if bool(PtrdiffT(ata)) {
-// 		init_ata(AT, post, w, (*[100000000][]PtrdiffT)(unsafe.Pointer(&head))[:], (*[100000000][]PtrdiffT)(unsafe.Pointer(&next))[:])
-// 	}
-// 	{
-// 		// each node in its own set
-// 		for i = 0; i < n; i++ {
-// 			ancestor[i] = i
-// 		}
-// 	}
-// 	for k = 0; k < n; k++ {
-// 		// j is the kth node in postordered etree
-// 		j = post[k]
-// 		if parent[j] != -1 {
-// 			// j is not a root
-// 			delta[parent[j]]--
-// 		}
-// 		{
-// 			// J=j for LL'=A case
-// 			for J = PtrdiffT(func() int {
-// 				if bool(PtrdiffT(ata)) {
-// 					return ((head[k]))
-// 				}
-// 				return ((j))
-// 			}() / 8); J != -1; J = PtrdiffT(func() int {
-// 				if bool(PtrdiffT(ata)) {
-// 					return ((next[J]))
-// 				}
-// 				return int(-1)
-// 			}() / 8) {
-// 				for p = ATp[J]; p < ATp[J+1]; p++ {
-// 					i = ATi[p]
-// 					q = cs_leaf(PtrdiffT(i), PtrdiffT(j), first, maxfirst, prevleaf, ancestor, (*[100000000]PtrdiffT)(unsafe.Pointer(&jleaf))[:])
-// 					if jleaf >= 1 {
-// 						// A(i,j) is in skeleton
-// 						delta[j]++
-// 					}
-// 					if jleaf == 2 {
-// 						// account for overlap in q
-// 						delta[q]--
-// 					}
-// 				}
-// 			}
-// 		}
-// 		if parent[j] != -1 {
-// 			ancestor[j] = parent[j]
-// 		}
-// 	}
-// 	{
-// 		// sum up delta's of each child
-// 		for j = 0; j < n; j++ {
-// 			if parent[j] != -1 {
-// 				colcount[parent[j]] += colcount[j]
-// 			}
-// 		}
-// 	}
-// 	// success: free workspace
-// 	return (cs_idone(colcount, AT, w, 1))
-// }
+
+// cs_counts - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_counts.c:17
+func cs_counts(A *cs, parent []PtrdiffT, post []PtrdiffT, ata bool) []PtrdiffT {
+	var i PtrdiffT
+	var j PtrdiffT
+	var k PtrdiffT
+	var n PtrdiffT
+	var m PtrdiffT
+	var J PtrdiffT
+	var s PtrdiffT
+	var p PtrdiffT
+	var q PtrdiffT
+	var jleaf PtrdiffT
+	var ATp []PtrdiffT
+	var ATi []PtrdiffT
+	var maxfirst []PtrdiffT
+	var prevleaf []PtrdiffT
+	var ancestor []PtrdiffT
+	var head []PtrdiffT
+	var next []PtrdiffT
+	var colcount []PtrdiffT
+	var w []PtrdiffT
+	var first []PtrdiffT
+	var delta []PtrdiffT
+	var AT *cs
+	if !(A != nil && A.nz == -1) || parent == nil || post == nil {
+		// check inputs
+		return nil
+	}
+	m = A.m
+	n = A.n
+	s = (4*int(n) + func() int {
+		if ata {
+			return (int(n + m + 1))
+		}
+		return 0
+	}())
+	colcount = make([]int, n)
+	// allocate result
+	delta = colcount
+	// get workspace
+	w = make([]int, s)
+	// AT = A'
+	AT = cs_transpose(A, false)
+	if AT == nil || colcount == nil || w == nil {
+		return (cs_idone(colcount, AT, w, false))
+	}
+	ancestor = w
+	maxfirst = w[n:]
+	prevleaf = w[2*n:]
+	first = w[3*n:]
+	{
+		// clear workspace w [0..s-1]
+		for k = 0; k < s; k++ {
+			w[k] = -1
+		}
+	}
+	{
+		// find first [j]
+		for k = 0; k < n; k++ {
+			j = post[k]
+			// delta[j]=1 if j is a leaf
+			delta[j] = PtrdiffT(func() int {
+				if first[j] == -1 {
+					return 1
+				}
+				return 0
+			}())
+			for ; j != -1 && first[j] == -1; j = parent[j] {
+				first[j] = k
+			}
+		}
+	}
+	ATp = AT.p
+	ATi = AT.i
+	if ata {
+		init_ata(AT, post, w, &head, &next)
+	}
+	{
+		// each node in its own set
+		for i = 0; i < n; i++ {
+			ancestor[i] = i
+		}
+	}
+	for k = 0; k < n; k++ {
+		// j is the kth node in postordered etree
+		j = post[k]
+		if parent[j] != -1 {
+			// j is not a root
+			delta[parent[j]]--
+		}
+		{
+			// J=j for LL'=A case
+			for J = PtrdiffT(func() int {
+				if ata {
+					return (head[k])
+				}
+				return (j)
+			}() / 8); J != -1; J = PtrdiffT(func() int {
+				if ata {
+					return (next[J])
+				}
+				return int(-1)
+			}() / 8) {
+				for p = ATp[J]; p < ATp[J+1]; p++ {
+					i = ATi[p]
+					q = cs_leaf(i, j, first, maxfirst, prevleaf, ancestor, &jleaf)
+					if jleaf >= 1 {
+						// A(i,j) is in skeleton
+						delta[j]++
+					}
+					if jleaf == 2 {
+						// account for overlap in q
+						delta[q]--
+					}
+				}
+			}
+		}
+		if parent[j] != -1 {
+			ancestor[j] = parent[j]
+		}
+	}
+	{
+		// sum up delta's of each child
+		for j = 0; j < n; j++ {
+			if parent[j] != -1 {
+				colcount[parent[j]] += colcount[j]
+			}
+		}
+	}
+	// success: free workspace
+	return (cs_idone(colcount, AT, w, true))
+}
 
 // cs_cumsum - p [0..n] = cumulative sum of c [0..n-1], and then copy p [0..n-1] into c
 func cs_cumsum(p []int, c []int, n int) int64 {
@@ -1891,12 +1891,12 @@ func cs_etree(A *cs, ata bool) []int {
 	// allocate result
 	parent = make([]int, n)
 	// get workspace
-	w = cs_malloc(n+(func() int {
+	w = make([]int, (n + (func() int {
 		if ata {
 			return int(m)
 		}
 		return 0
-	}()), uint(0)).([]PtrdiffT)
+	}())))
 	if w == nil || parent == nil {
 		return (cs_idone(parent, nil, w, false))
 	}
@@ -3853,7 +3853,7 @@ func cs_sqr(order int, A *cs, qr bool) *css {
 		S.parent = cs_etree(C, true)
 		post = cs_post(S.parent, n)
 		// col counts chol(C'*C)
-		S.cp = cs_counts(C, S.parent, post, 1)
+		S.cp = cs_counts(C, S.parent, post, true)
 		cs_free(post)
 		ok = PtrdiffT(C != nil && S.parent != nil && S.cp != nil && bool(cs_vcount(C, S)))
 		if bool(ok) {
