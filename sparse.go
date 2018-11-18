@@ -1291,96 +1291,94 @@ func cs_cumsum(p []int, c []int, n int) int64 {
 
 // cs_dfs - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_dfs.c:3
 // depth-first-search of the graph of a matrix, starting at node j
-func cs_dfs(j noarch.PtrdiffT, G []cs, top noarch.PtrdiffT, xi []noarch.PtrdiffT, pstack []noarch.PtrdiffT, pinv []noarch.PtrdiffT) noarch.PtrdiffT {
-	var i noarch.PtrdiffT
-	var p noarch.PtrdiffT
-	var p2 noarch.PtrdiffT
-	var done noarch.PtrdiffT
-	var jnew noarch.PtrdiffT
-	var head noarch.PtrdiffT
-	var Gp []noarch.PtrdiffT
-	var Gi []noarch.PtrdiffT
-	if !(G != nil && noarch.PtrdiffT(G[0].nz) == -1) || xi == nil || pstack == nil {
+func cs_dfs(j int, G *cs, top int, xi []int, pstack []int, pinv []int) int {
+	var i int
+	var p int
+	var p2 int
+	var done bool
+	var jnew int
+	var head int
+	if !(G != nil && G.nz == -1) || xi == nil || pstack == nil {
 		// check inputs
 		return -1
 	}
-	Gp = G[0].p
-	Gi = G[0].i
+	Gp := G.p
+	Gi := G.i
 	// initialize the recursion stack
 	xi[0] = j
 	for head >= 0 {
 		// get j from the top of the recursion stack
 		j = xi[head]
-		jnew = noarch.PtrdiffT(func() int32 {
+		jnew = func() int {
 			if pinv != nil {
-				return int32(noarch.PtrdiffT((pinv[j])))
+				return pinv[j]
 			}
-			return int32(noarch.PtrdiffT(j))
-		}() / 8)
+			return j
+		}()
 		if !(Gp[j] < 0) {
 			{
 				// mark node j as visited
-				Gp[j] = -noarch.PtrdiffT((Gp[j])) - 2
+				Gp[j] = -Gp[j] - 2
 			}
-			pstack[head] = noarch.PtrdiffT(func() int32 {
+			pstack[head] = func() int {
 				if jnew < 0 {
 					return 0
 				}
-				return (func() int32 {
+				return (func() int {
 					if Gp[jnew] < 0 {
-						return (int32(-noarch.PtrdiffT((Gp[jnew])) - 2))
+						return -Gp[jnew] - 2
 					}
-					return int32(noarch.PtrdiffT((Gp[jnew])))
+					return Gp[jnew]
 				}())
-			}() / 8)
+			}()
 		}
 		// node j done if no unvisited neighbors
-		done = 1
-		p2 = noarch.PtrdiffT(func() int32 {
+		done = true
+		p2 = func() int {
 			if jnew < 0 {
 				return 0
 			}
-			return (func() int32 {
+			return (func() int {
 				if Gp[jnew+1] < 0 {
-					return (int32(-noarch.PtrdiffT((Gp[jnew+1])) - 2))
+					return -Gp[jnew+1] - 2
 				}
-				return int32(noarch.PtrdiffT((Gp[jnew+1])))
+				return Gp[jnew+1]
 			}())
-		}() / 8)
-		{
-			// examine all neighbors of j
-			for p = pstack[head]; p < p2; p++ {
-				// consider neighbor node i
-				i = Gi[p]
-				if Gp[i] < 0 {
-					// skip visited node i
-					continue
-				}
-				// pause depth-first search of node j
-				pstack[head] = p
-				// start dfs at node i
-				xi[func() noarch.PtrdiffT {
-					head++
-					return head
-				}()] = i
-				// node j is not done
-				done = 0
-				// break, to start dfs (i)
-				break
+		}()
+
+		// examine all neighbors of j
+		for p = pstack[head]; p < p2; p++ {
+			// consider neighbor node i
+			i = Gi[p]
+			if Gp[i] < 0 {
+				// skip visited node i
+				continue
 			}
+			// pause depth-first search of node j
+			pstack[head] = p
+			// start dfs at node i
+			xi[func() int {
+				head++
+				return head
+			}()] = i
+			// node j is not done
+			done = false
+			// break, to start dfs (i)
+			break
 		}
-		if bool(noarch.PtrdiffT(done)) {
+
+		if done {
 			// depth-first search at node j is done
 			// remove j from the recursion stack
 			head--
 			// and place in the output stack
-			xi[func() noarch.PtrdiffT {
+			xi[func() int {
 				top--
 				return top
 			}()] = j
 		}
 	}
-	return noarch.PtrdiffT((top))
+	return top
 }
 
 // cs_bfs - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_dmperm.c:3
