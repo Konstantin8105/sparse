@@ -5,10 +5,12 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"math"
 	"os/exec"
 	"path/filepath"
 	"strings"
 	"testing"
+	"time"
 )
 
 func buildC(t *testing.T, filename string) {
@@ -421,72 +423,64 @@ func rhs(x []float64, b []float64, m int) {
 
 // norm - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/testdata/csparse_demo2_test.c:16
 // infinity-norm of x
-func norm(x []float64, n noarch.PtrdiffT) float64 {
-	var i noarch.PtrdiffT
+func norm(x []float64, n int) float64 {
 	var normx float64
-	for i = 0; i < n; i++ {
+	for i := 0; i < n; i++ {
 		normx = func() float64 {
 			if normx > math.Abs(x[i]) {
-				return (normx)
+				return normx
 			}
-			return (math.Abs(x[i]))
+			return math.Abs(x[i])
 		}()
 	}
-	return (normx)
+	return normx
 }
 
 // tic - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/testdata/csparse_demo2_test.c:136
-func tic() (c4goDefaultReturn float64) {
-	// Warning (*ast.ReturnStmt):  $GOPATH/src/github.com/Konstantin8105/sparse/testdata/csparse_demo2_test.c:136 :Cannot transpileToStmt : Cannot transpileReturnStmt. err = Cannot transpileToExpr. err = Cannot transpile ParenExpr. err = Cannot transpileToExpr. err = Cannot transpile BinaryOperator with type 'double' : result type = {unknown52}. Error: operator is `/`. cannot atomic for left part. Cannot transpileToExpr. err = Cannot transpileImplicitCastExpr. err = Cannot casting {clock_t -> double}. err = Cannot resolve type 'clock_t' : I couldn't find an appropriate Go type for the C type 'clock_t'.
-	{
-		// Warning (*ast.BinaryOperator):  $GOPATH/src/github.com/Konstantin8105/sparse/testdata/csparse_demo2_test.c:136 :Cannot transpile BinaryOperator with type 'double' : result type = {unknown52}. Error: operator is `/`. cannot atomic for left part. Cannot transpileToExpr. err = Cannot transpileImplicitCastExpr. err = Cannot casting {clock_t -> double}. err = Cannot resolve type 'clock_t' : I couldn't find an appropriate Go type for the C type 'clock_t'.
-		// Warning (*ast.ParenExpr):  $GOPATH/src/github.com/Konstantin8105/sparse/testdata/csparse_demo2_test.c:136 :Cannot transpile ParenExpr. err = Cannot transpileToExpr. err = Cannot transpile BinaryOperator with type 'double' : result type = {unknown52}. Error: operator is `/`. cannot atomic for left part. Cannot transpileToExpr. err = Cannot transpileImplicitCastExpr. err = Cannot casting {clock_t -> double}. err = Cannot resolve type 'clock_t' : I couldn't find an appropriate Go type for the C type 'clock_t'.
-	}
-	return
+func tic() float64 {
+	t := time.Now()
+	return float64(t.Unix())
 }
 
 // toc - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/testdata/csparse_demo2_test.c:137
 func toc(t float64) float64 {
-	var s float64 = tic()
+	s := tic()
 	return (func() float64 {
-		if float64(0) > s-t {
-			return float64((0))
+		if 0 > s-t {
+			return 0
 		}
-		return (s - t)
+		return s - t
 	}())
 }
 
 // print_resid - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/testdata/csparse_demo2_test.c:80
 // compute residual, norm(A*x-b,inf) / (norm(A,1)*norm(x,inf) + norm(b,inf))
-func print_resid(ok noarch.PtrdiffT, A []cs, x []float64, b []float64, resid []float64) {
-	var i noarch.PtrdiffT
-	var m noarch.PtrdiffT
-	var n noarch.PtrdiffT
-	if bool(noarch.NotNoarch.PtrdiffT(noarch.PtrdiffT(ok))) {
+func print_resid(ok bool, A []cs, x []float64, b []float64, resid []float64) {
+	if !ok {
 		fmt.Printf("    (failed)\n")
 		return
 	}
-	m = noarch.PtrdiffT(A[0].m)
-	n = noarch.PtrdiffT(A[0].n)
-	{
-		// resid = -b
-		for i = 0; i < m; i++ {
-			resid[i] = -b[i]
-		}
+	m := A.m
+	n := A.n
+
+	// resid = -b
+	for i := 0; i < m; i++ {
+		resid[i] = -b[i]
 	}
+
 	// resid = resid + A*x
 	cs_gaxpy(A, x, resid)
-	noarch.Printf([]byte("resid: %8.2e\n\x00"), norm(resid, noarch.PtrdiffT(m))/func() float64 {
-		if n == noarch.PtrdiffT(0/8) {
+	fmt.Printf("resid: %8.2e\n", norm(resid, m)/func() float64 {
+		if n == 0 {
 			return 1
 		}
-		return (cs_norm(A)*norm(x, noarch.PtrdiffT(n)) + norm(b, noarch.PtrdiffT(m)))
+		return cs_norm(A)*norm(x, n) + norm(b, m)
 	}())
 }
 
 // print_order - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/testdata/csparse_demo2_test.c:91
-func print_order(order noarch.PtrdiffT) {
-	switch noarch.PtrdiffT(order) {
+func print_order(order int) {
+	switch order {
 	case 0:
 		fmt.Printf("natural    ")
 	case 1:
@@ -494,9 +488,6 @@ func print_order(order noarch.PtrdiffT) {
 	case 2:
 		fmt.Printf("amd(S'*S)  ")
 	case 3:
-		{
-			fmt.Printf("amd(A'*A)  ")
-			break
-		}
+		fmt.Printf("amd(A'*A)  ")
 	}
 }
