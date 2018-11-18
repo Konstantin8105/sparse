@@ -890,7 +890,7 @@ const (
 // 	// get csi workspace
 // 	c = cs_malloc(noarch.PtrdiffT(2*int32(n)/8), uint(0)).([]noarch.PtrdiffT)
 // 	// get double workspace
-// 	x = cs_malloc(noarch.PtrdiffT(n), uint(8)).([]float64)
+// 	x = cs_malloc(n, uint(8)).([]float64)
 // 	cp = S[0].cp
 // 	pinv = S[0].pinv
 // 	parent = S[0].parent
@@ -911,18 +911,18 @@ const (
 // 		return (cs_ndone(N, E, c, x, 0))
 // 	}
 // 	s = (*(*[1000000000]noarch.PtrdiffT)(unsafe.Pointer(uintptr(unsafe.Pointer(&c[0])) + (uintptr)(int(n))*unsafe.Sizeof(c[0]))))[:]
-// 	Cp = C[0].p
-// 	Ci = C[0].i
-// 	Cx = C[0].x
-// 	L = cs_spalloc(noarch.PtrdiffT(n), noarch.PtrdiffT(n), noarch.PtrdiffT(cp[n]), 1, 0)
+// 	Cp = C.p
+// 	Ci = C.i
+// 	Cx = C.x
+// 	L = cs_spalloc(n, n, noarch.PtrdiffT(cp[n]), 1, 0)
 // 	// allocate result
-// 	N[0].L = L
+// 	N.L = L
 // 	if L == nil {
 // 		return (cs_ndone(N, E, c, x, 0))
 // 	}
-// 	Lp = L[0].p
-// 	Li = L[0].i
-// 	Lx = L[0].x
+// 	Lp = L.p
+// 	Li = L.i
+// 	Lx = L.x
 // 	for k = 0; k < n; k++ {
 // 		c[k] = cp[k]
 // 		Lp[k] = c[k]
@@ -961,7 +961,7 @@ const (
 // 				}
 // 				// d = d - L(k,i)*L(k,i)
 // 				d -= lki * lki
-// 				p = func() noarch.PtrdiffT {
+// 				p = func() int {
 // 					tempVar := &c[i]
 // 					defer func() {
 // 						*tempVar++
@@ -977,7 +977,7 @@ const (
 // 				// not pos def
 // 				return (cs_ndone(N, E, c, x, 0))
 // 			}
-// 			p = func() noarch.PtrdiffT {
+// 			p = func() int {
 // 				tempVar := &c[k]
 // 				defer func() {
 // 					*tempVar++
@@ -1007,23 +1007,23 @@ const (
 // 		// check inputs
 // 		return 0
 // 	}
-// 	n = noarch.PtrdiffT(A[0].n)
+// 	n = A.n
 // 	// ordering and symbolic analysis
 // 	S = cs_schol(noarch.PtrdiffT(order), A)
 // 	// numeric Cholesky factorization
 // 	N = cs_chol(A, S)
 // 	// get workspace
-// 	x = cs_malloc(noarch.PtrdiffT(n), uint(8)).([]float64)
+// 	x = cs_malloc(n, uint(8)).([]float64)
 // 	ok = noarch.PtrdiffT(S != nil && N != nil && x != nil)
 // 	if bool(ok) {
 // 		// x = P*b
-// 		cs_ipvec(S[0].pinv, b, x, noarch.PtrdiffT(n))
+// 		cs_ipvec(S[0].pinv, b, x, n)
 // 		// x = L\x
-// 		cs_lsolve(N[0].L, x)
+// 		cs_lsolve(N.L, x)
 // 		// x = L'\x
-// 		cs_ltsolve(N[0].L, x)
+// 		cs_ltsolve(N.L, x)
 // 		// b = P'*x
-// 		cs_pvec(S[0].pinv, x, b, noarch.PtrdiffT(n))
+// 		cs_pvec(S[0].pinv, x, b, n)
 // 	}
 // 	cs_free(x)
 // 	cs_sfree(S)
@@ -1160,15 +1160,15 @@ func cs_compress(T *cs) *cs {
 // 		// check inputs
 // 		return nil
 // 	}
-// 	m = noarch.PtrdiffT(A[0].m)
-// 	n = noarch.PtrdiffT(A[0].n)
+// 	m = A.m
+// 	n = A.n
 // 	s = noarch.PtrdiffT((4*int32(n) + func() int32 {
 // 		if bool(noarch.PtrdiffT(ata)) {
 // 			return (int32(n + m + 1))
 // 		}
 // 		return 0
 // 	}()) / 8)
-// 	colcount = cs_malloc(noarch.PtrdiffT(n), uint(0)).([]noarch.PtrdiffT)
+// 	colcount = cs_malloc(n, uint(0)).([]noarch.PtrdiffT)
 // 	// allocate result
 // 	delta = colcount
 // 	// get workspace
@@ -1805,7 +1805,7 @@ func cs_entry(T *cs, i, j int, x float64) bool {
 // 		// check inputs
 // 		return -1
 // 	}
-// 	n = noarch.PtrdiffT(A[0].n)
+// 	n = A.n
 // 	top = n
 // 	Ap = A[0].p
 // 	Ai = A[0].i
@@ -1824,7 +1824,7 @@ func cs_entry(T *cs, i, j int, x float64) bool {
 // 			// traverse up etree
 // 			for len = 0; !(w[i] < 0); i = parent[i] {
 // 				// L(k,i) is nonzero
-// 				s[func() noarch.PtrdiffT {
+// 				s[func() int {
 // 					defer func() {
 // 						len++
 // 					}()
@@ -1838,10 +1838,10 @@ func cs_entry(T *cs, i, j int, x float64) bool {
 // 		}
 // 		for len > 0 {
 // 			// push path onto stack
-// 			s[func() noarch.PtrdiffT {
+// 			s[func() int {
 // 				top--
 // 				return top
-// 			}()] = s[func() noarch.PtrdiffT {
+// 			}()] = s[func() int {
 // 				len--
 // 				return len
 // 			}()]
@@ -1880,12 +1880,12 @@ func cs_entry(T *cs, i, j int, x float64) bool {
 // 		// check inputs
 // 		return nil
 // 	}
-// 	m = noarch.PtrdiffT(A[0].m)
-// 	n = noarch.PtrdiffT(A[0].n)
+// 	m = A.m
+// 	n = A.n
 // 	Ap = A[0].p
 // 	Ai = A[0].i
 // 	// allocate result
-// 	parent = cs_malloc(noarch.PtrdiffT(n), uint(0)).([]noarch.PtrdiffT)
+// 	parent = cs_malloc(n, uint(0)).([]noarch.PtrdiffT)
 // 	// get workspace
 // 	w = cs_malloc(n+noarch.PtrdiffT(func() int32 {
 // 		if bool(noarch.PtrdiffT(ata)) {
@@ -2170,10 +2170,10 @@ func cs_load(f io.Reader) *cs {
 // 		// check inputs
 // 		return 0
 // 	}
-// 	n = noarch.PtrdiffT(L[0].n)
-// 	Lp = L[0].p
-// 	Li = L[0].i
-// 	Lx = L[0].x
+// 	n = L.n
+// 	Lp = L.p
+// 	Li = L.i
+// 	Lx = L.x
 // 	for j = 0; j < n; j++ {
 // 		x[j] /= Lx[Lp[j]]
 // 		for p = Lp[j] + 1; p < Lp[j+1]; p++ {
@@ -2196,10 +2196,10 @@ func cs_load(f io.Reader) *cs {
 // 		// check inputs
 // 		return 0
 // 	}
-// 	n = noarch.PtrdiffT(L[0].n)
-// 	Lp = L[0].p
-// 	Li = L[0].i
-// 	Lx = L[0].x
+// 	n = L.n
+// 	Lp = L.p
+// 	Li = L.i
+// 	Lx = L.x
 // 	for j = n - 1; j >= 0; j-- {
 // 		for p = Lp[j] + 1; p < Lp[j+1]; p++ {
 // 			x[j] -= Lx[p] * x[Li[p]]
@@ -2241,12 +2241,12 @@ func cs_lu(A *cs, S *css, tol float64) *csn {
 		// check inputs
 		return nil
 	}
-	n = noarch.PtrdiffT(A[0].n)
+	n = A.n
 	q = S[0].q
-	lnz = noarch.PtrdiffT(S[0].lnz)
-	unz = noarch.PtrdiffT(S[0].unz)
+	lnz = S.lnz
+	unz = S.unz
 	// get double workspace
-	x = cs_malloc(noarch.PtrdiffT(n), uint(8)).([]float64)
+	x = cs_malloc(n, uint(8)).([]float64)
 	// get csi workspace
 	xi = cs_malloc(noarch.PtrdiffT(2*int32(n)/8), uint(0)).([]noarch.PtrdiffT)
 	// allocate result
@@ -2254,19 +2254,19 @@ func cs_lu(A *cs, S *css, tol float64) *csn {
 	if x == nil || xi == nil || N == nil {
 		return (cs_ndone(N, nil, xi, x, 0))
 	}
-	L = cs_spalloc(noarch.PtrdiffT(n), noarch.PtrdiffT(n), noarch.PtrdiffT(lnz), 1, 0)
+	L = cs_spalloc(n, n, noarch.PtrdiffT(lnz), 1, 0)
 	// allocate result L
-	N[0].L = L
-	U = cs_spalloc(noarch.PtrdiffT(n), noarch.PtrdiffT(n), noarch.PtrdiffT(unz), 1, 0)
+	N.L = L
+	U = cs_spalloc(n, n, noarch.PtrdiffT(unz), 1, 0)
 	// allocate result U
-	N[0].U = U
-	pinv = cs_malloc(noarch.PtrdiffT(n), uint(0)).([]noarch.PtrdiffT)
+	N.U = U
+	pinv = cs_malloc(n, uint(0)).([]noarch.PtrdiffT)
 	// allocate result pinv
-	N[0].pinv = pinv
+	N.pinv = pinv
 	if L == nil || U == nil || pinv == nil {
 		return (cs_ndone(N, nil, xi, x, 0))
 	}
-	Lp = L[0].p
+	Lp = L.p
 	Up = U[0].p
 
 	// clear workspace
@@ -2297,10 +2297,10 @@ func cs_lu(A *cs, S *css, tol float64) *csn {
 		if lnz+n > noarch.PtrdiffT(L[0].nzmax) && bool(noarch.NotNoarch.PtrdiffT(cs_sprealloc(L, noarch.PtrdiffT((2*int32(noarch.PtrdiffT(L[0].nzmax))+int32(n))/8)))) || unz+n > noarch.PtrdiffT(U[0].nzmax) && bool(noarch.NotNoarch.PtrdiffT(cs_sprealloc(U, noarch.PtrdiffT((2*int32(noarch.PtrdiffT(U[0].nzmax))+int32(n))/8)))) {
 			return (cs_ndone(N, nil, xi, x, 0))
 		}
-		Li = L[0].i
-		Lx = L[0].x
-		Ui = U[0].i
-		Ux = U[0].x
+		Li = L.i
+		Lx = L.x
+		Ui = U.i
+		Ux = U.x
 		col = noarch.PtrdiffT(func() int32 {
 			if q != nil {
 				return int32(noarch.PtrdiffT((q[k])))
@@ -2328,7 +2328,7 @@ func cs_lu(A *cs, S *css, tol float64) *csn {
 			} else {
 				// x(i) is the entry U(pinv[i],k)
 				Ui[unz] = pinv[i]
-				Ux[func() noarch.PtrdiffT {
+				Ux[func() int {
 					defer func() {
 						unz++
 					}()
@@ -2348,7 +2348,7 @@ func cs_lu(A *cs, S *css, tol float64) *csn {
 		pivot = x[ipiv]
 		// last entry in U(:,k) is U(k,k)
 		Ui[unz] = k
-		Ux[func() noarch.PtrdiffT {
+		Ux[func() int {
 			defer func() {
 				unz++
 			}()
@@ -2358,7 +2358,7 @@ func cs_lu(A *cs, S *css, tol float64) *csn {
 		pinv[ipiv] = k
 		// first entry in L(:,k) is L(k,k) = 1
 		Li[lnz] = ipiv
-		Lx[func() noarch.PtrdiffT {
+		Lx[func() int {
 			defer func() {
 				lnz++
 			}()
@@ -2373,7 +2373,7 @@ func cs_lu(A *cs, S *css, tol float64) *csn {
 				// save unpermuted row in L
 				Li[lnz] = i
 				// scale pivot column
-				Lx[func() noarch.PtrdiffT {
+				Lx[func() int {
 					defer func() {
 						lnz++
 					}()
@@ -2390,7 +2390,7 @@ func cs_lu(A *cs, S *css, tol float64) *csn {
 	Lp[n] = lnz
 	Up[n] = unz
 	// fix row indices of L for final pinv
-	Li = L[0].i
+	Li = L.i
 	for p = 0; p < lnz; p++ {
 		Li[p] = pinv[Li[p]]
 	}
@@ -2418,13 +2418,13 @@ func cs_lusol(order int, A *cs, b []float64, tol float64) bool {
 	ok := (S != nil && N != nil && x != nil)
 	if ok {
 		// x = b(p)
-		cs_ipvec(N.pinv, b, x, noarch.PtrdiffT(n))
+		cs_ipvec(N.pinv, b, x, n)
 		// x = L\x
 		cs_lsolve(N.L, x)
 		// x = U\x
 		cs_usolve(N.U, x)
 		// b(q) = x
-		cs_ipvec(S.q, x, b, noarch.PtrdiffT(n))
+		cs_ipvec(S.q, x, b, n)
 	}
 	cs_free(x)
 	cs_sfree(S)
@@ -2907,7 +2907,7 @@ func cs_pinv(p []int, n int) []int {
 		return nil
 	}
 	// allocate result
-	pinv = make([]int, n) // cs_malloc(noarch.PtrdiffT(n), uint(0)).([]noarch.PtrdiffT)
+	pinv = make([]int, n) // cs_malloc(n, uint(0)).([]noarch.PtrdiffT)
 	if pinv == nil {
 		// out of memory
 		return nil
@@ -2937,7 +2937,7 @@ func cs_pinv(p []int, n int) []int {
 // 		return nil
 // 	}
 // 	// allocate result
-// 	post = cs_malloc(noarch.PtrdiffT(n), uint(0)).([]noarch.PtrdiffT)
+// 	post = cs_malloc(n, uint(0)).([]noarch.PtrdiffT)
 // 	// get workspace
 // 	w = cs_malloc(noarch.PtrdiffT(3*int32(n)/8), uint(0)).([]noarch.PtrdiffT)
 // 	if w == nil || post == nil {
@@ -3091,8 +3091,8 @@ func cs_print(A *cs, brief bool) bool {
 // 	if !(A != nil && A.nz == -1) || S == nil {
 // 		return nil
 // 	}
-// 	m = noarch.PtrdiffT(A[0].m)
-// 	n = noarch.PtrdiffT(A[0].n)
+// 	m = A.m
+// 	n = A.n
 // 	Ap = A[0].p
 // 	Ai = A[0].i
 // 	Ax = A[0].x
@@ -3100,8 +3100,8 @@ func cs_print(A *cs, brief bool) bool {
 // 	parent = S[0].parent
 // 	pinv = S[0].pinv
 // 	m2 = noarch.PtrdiffT(S[0].m2)
-// 	vnz = noarch.PtrdiffT(S[0].lnz)
-// 	rnz = noarch.PtrdiffT(S[0].unz)
+// 	vnz = S.lnz
+// 	rnz = S.unz
 // 	leftmost = S[0].leftmost
 // 	// get csi workspace
 // 	w = cs_malloc(m2+n, uint(0)).([]noarch.PtrdiffT)
@@ -3120,15 +3120,15 @@ func cs_print(A *cs, brief bool) bool {
 // 			x[k] = 0
 // 		}
 // 	}
-// 	V = cs_spalloc(noarch.PtrdiffT(m2), noarch.PtrdiffT(n), noarch.PtrdiffT(vnz), 1, 0)
+// 	V = cs_spalloc(noarch.PtrdiffT(m2), n, noarch.PtrdiffT(vnz), 1, 0)
 // 	// allocate result V
-// 	N[0].L = V
-// 	R = cs_spalloc(noarch.PtrdiffT(m2), noarch.PtrdiffT(n), noarch.PtrdiffT(rnz), 1, 0)
+// 	N.L = V
+// 	R = cs_spalloc(noarch.PtrdiffT(m2), n, noarch.PtrdiffT(rnz), 1, 0)
 // 	// allocate result R
-// 	N[0].U = R
-// 	Beta = cs_malloc(noarch.PtrdiffT(n), uint(8)).([]float64)
+// 	N.U = R
+// 	Beta = cs_malloc(n, uint(8)).([]float64)
 // 	// allocate result Beta
-// 	N[0].B = Beta
+// 	N.B = Beta
 // 	if R == nil || V == nil || Beta == nil {
 // 		return (cs_ndone(N, nil, w, x, 0))
 // 	}
@@ -3156,7 +3156,7 @@ func cs_print(A *cs, brief bool) bool {
 // 			Vp[k] = p1
 // 			// add V(k,k) to pattern of V
 // 			w[k] = k
-// 			Vi[func() noarch.PtrdiffT {
+// 			Vi[func() int {
 // 				defer func() {
 // 					vnz++
 // 				}()
@@ -3177,7 +3177,7 @@ func cs_print(A *cs, brief bool) bool {
 // 					{
 // 						// traverse up to k
 // 						for len = 0; w[i] != k; i = parent[i] {
-// 							s[func() noarch.PtrdiffT {
+// 							s[func() int {
 // 								defer func() {
 // 									len++
 // 								}()
@@ -3188,10 +3188,10 @@ func cs_print(A *cs, brief bool) bool {
 // 					}
 // 					for len > 0 {
 // 						// push path on stack
-// 						s[func() noarch.PtrdiffT {
+// 						s[func() int {
 // 							top--
 // 							return top
-// 						}()] = s[func() noarch.PtrdiffT {
+// 						}()] = s[func() int {
 // 							len--
 // 							return len
 // 						}()]
@@ -3203,7 +3203,7 @@ func cs_print(A *cs, brief bool) bool {
 // 					if i > k && w[i] < k {
 // 						// pattern of V(:,k) = x (k+1:m)
 // 						// add i to pattern of V(:,k)
-// 						Vi[func() noarch.PtrdiffT {
+// 						Vi[func() int {
 // 							defer func() {
 // 								vnz++
 // 							}()
@@ -3222,7 +3222,7 @@ func cs_print(A *cs, brief bool) bool {
 // 					cs_happly(V, noarch.PtrdiffT(i), Beta[i], x)
 // 					// R(i,k) = x(i)
 // 					Ri[rnz] = i
-// 					Rx[func() noarch.PtrdiffT {
+// 					Rx[func() int {
 // 						defer func() {
 // 							rnz++
 // 						}()
@@ -3244,7 +3244,7 @@ func cs_print(A *cs, brief bool) bool {
 // 			// R(k,k) = norm (x)
 // 			Ri[rnz] = k
 // 			// [v,beta]=house(x)
-// 			Rx[func() noarch.PtrdiffT {
+// 			Rx[func() int {
 // 				defer func() {
 // 					rnz++
 // 				}()
@@ -3275,8 +3275,8 @@ func cs_print(A *cs, brief bool) bool {
 // 		// check inputs
 // 		return 0
 // 	}
-// 	n = noarch.PtrdiffT(A[0].n)
-// 	m = noarch.PtrdiffT(A[0].m)
+// 	n = A.n
+// 	m = A.m
 // 	if m >= n {
 // 		// ordering and symbolic analysis
 // 		S = cs_sqr(noarch.PtrdiffT(order), A, 1)
@@ -3296,13 +3296,13 @@ func cs_print(A *cs, brief bool) bool {
 // 			{
 // 				// apply Householder refl. to x
 // 				for k = 0; k < n; k++ {
-// 					cs_happly(N[0].L, noarch.PtrdiffT(k), N[0].B[k], x)
+// 					cs_happly(N.L, noarch.PtrdiffT(k), N.B[k], x)
 // 				}
 // 			}
 // 			// x = R\x
-// 			cs_usolve(N[0].U, x)
+// 			cs_usolve(N.U, x)
 // 			// b(q(0:n-1)) = x(0:n-1)
-// 			cs_ipvec(S[0].q, x, b, noarch.PtrdiffT(n))
+// 			cs_ipvec(S[0].q, x, b, n)
 // 		}
 // 	} else {
 // 		// Ax=b is underdetermined
@@ -3323,15 +3323,15 @@ func cs_print(A *cs, brief bool) bool {
 // 			// x(q(0:m-1)) = b(0:m-1)
 // 			cs_pvec(S[0].q, b, x, m)
 // 			// x = R'\x
-// 			cs_utsolve(N[0].U, x)
+// 			cs_utsolve(N.U, x)
 // 			{
 // 				// apply Householder refl. to x
 // 				for k = m - 1; k >= 0; k-- {
-// 					cs_happly(N[0].L, noarch.PtrdiffT(k), N[0].B[k], x)
+// 					cs_happly(N.L, noarch.PtrdiffT(k), N.B[k], x)
 // 				}
 // 			}
 // 			// b(0:n-1) = x(p(0:n-1))
-// 			cs_pvec(S[0].pinv, x, b, noarch.PtrdiffT(n))
+// 			cs_pvec(S[0].pinv, x, b, n)
 // 		}
 // 	}
 // 	cs_free(x)
@@ -3554,7 +3554,7 @@ func cs_scc(A *cs) *csd {
 // 		// check inputs
 // 		return nil
 // 	}
-// 	n = noarch.PtrdiffT(A[0].n)
+// 	n = A.n
 // 	// allocate result S
 // 	S = cs_calloc(1, uint(0)).([]css)
 // 	if S == nil {
@@ -3564,7 +3564,7 @@ func cs_scc(A *cs) *csd {
 // 	// P = amd(A+A'), or natural
 // 	P = cs_amd(noarch.PtrdiffT(order), A)
 // 	// find inverse permutation
-// 	S[0].pinv = cs_pinv(P, noarch.PtrdiffT(n))
+// 	S[0].pinv = cs_pinv(P, n)
 // 	cs_free(P)
 // 	if bool(order) && S[0].pinv == nil {
 // 		return (cs_sfree(S))
@@ -3574,14 +3574,14 @@ func cs_scc(A *cs) *csd {
 // 	// find etree of C
 // 	S[0].parent = cs_etree(C, 0)
 // 	// postorder the etree
-// 	post = cs_post(S[0].parent, noarch.PtrdiffT(n))
+// 	post = cs_post(S[0].parent, n)
 // 	// find column counts of chol(C)
 // 	c = cs_counts(C, S[0].parent, post, 0)
 // 	cs_free(post)
 // 	cs_spfree(C) // TODO (KI) : remove
 // 	// allocate result S->cp
 // 	S[0].cp = cs_malloc(n+1, uint(0)).([]noarch.PtrdiffT)
-// 	S[0].lnz = cs_cumsum(S[0].cp, c, noarch.PtrdiffT(n))
+// 	S[0].lnz = cs_cumsum(S[0].cp, c, n)
 // 	// find column pointers for L
 // 	S[0].unz = S[0].lnz
 // 	cs_free(c)
@@ -3684,8 +3684,8 @@ func cs_scc(A *cs) *csd {
 // 	var k noarch.PtrdiffT
 // 	var p noarch.PtrdiffT
 // 	var pa noarch.PtrdiffT
-// 	var n noarch.PtrdiffT = noarch.PtrdiffT(A[0].n)
-// 	var m noarch.PtrdiffT = noarch.PtrdiffT(A[0].m)
+// 	var n noarch.PtrdiffT = A.n
+// 	var m noarch.PtrdiffT = A.m
 // 	var Ap []noarch.PtrdiffT = A[0].p
 // 	var Ai []noarch.PtrdiffT = A[0].i
 // 	var next []noarch.PtrdiffT
@@ -3745,7 +3745,7 @@ func cs_scc(A *cs) *csd {
 // 				// row i is empty
 // 				continue
 // 			}
-// 			if func() noarch.PtrdiffT {
+// 			if func() int {
 // 				tempVar := &nque[k]
 // 				defer func() {
 // 					*tempVar++
@@ -3771,7 +3771,7 @@ func cs_scc(A *cs) *csd {
 // 			S[0].lnz++
 // 			if i < 0 {
 // 				// add a fictitious row
-// 				i = func() noarch.PtrdiffT {
+// 				i = func() int {
 // 					tempVar := &S[0].m2
 // 					defer func() {
 // 						*tempVar++
@@ -3781,7 +3781,7 @@ func cs_scc(A *cs) *csd {
 // 			}
 // 			// associate row i with V(:,k)
 // 			pinv[i] = k
-// 			if func() noarch.PtrdiffT {
+// 			if func() int {
 // 				tempVar := &nque[k]
 // 				*tempVar--
 // 				return *tempVar
@@ -3791,7 +3791,7 @@ func cs_scc(A *cs) *csd {
 // 			}
 // 			// nque [k] is nnz (V(k+1:m,k))
 // 			S[0].lnz += float64(nque[k])
-// 			if (func() noarch.PtrdiffT {
+// 			if (func() int {
 // 				pa = parent[k]
 // 				return pa
 // 			}()) != -1 {
@@ -3807,7 +3807,7 @@ func cs_scc(A *cs) *csd {
 // 	}
 // 	for i = 0; i < m; i++ {
 // 		if pinv[i] < 0 {
-// 			pinv[i] = func() noarch.PtrdiffT {
+// 			pinv[i] = func() int {
 // 				defer func() {
 // 					k++
 // 				}()
@@ -3831,7 +3831,7 @@ func cs_sqr(order noarch.PtrdiffT, A []cs, qr noarch.PtrdiffT) []css {
 		// check inputs
 		return nil
 	}
-	n = noarch.PtrdiffT(A[0].n)
+	n = A.n
 	// allocate result S
 	S = cs_calloc(1, uint(0)).([]css)
 	if S == nil {
@@ -3853,7 +3853,7 @@ func cs_sqr(order noarch.PtrdiffT, A []cs, qr noarch.PtrdiffT) []css {
 		// QR symbolic analysis
 		// etree of C'*C, where C=A(:,q)
 		S[0].parent = cs_etree(C, 1)
-		post = cs_post(S[0].parent, noarch.PtrdiffT(n))
+		post = cs_post(S[0].parent, n)
 		// col counts chol(C'*C)
 		S[0].cp = cs_counts(C, S[0].parent, post, 1)
 		cs_free(post)
@@ -3905,21 +3905,21 @@ func cs_sqr(order noarch.PtrdiffT, A []cs, qr noarch.PtrdiffT) []css {
 // 		// check inputs
 // 		return nil
 // 	}
-// 	n = noarch.PtrdiffT(A[0].n)
+// 	n = A.n
 // 	Ap = A[0].p
 // 	Ai = A[0].i
 // 	Ax = A[0].x
 // 	// alloc result
-// 	C = cs_spalloc(noarch.PtrdiffT(n), noarch.PtrdiffT(n), noarch.PtrdiffT(Ap[n]), noarch.PtrdiffT(bool(values) && Ax != nil), 0)
+// 	C = cs_spalloc(n, n, noarch.PtrdiffT(Ap[n]), noarch.PtrdiffT(bool(values) && Ax != nil), 0)
 // 	// get workspace
-// 	w = cs_calloc(noarch.PtrdiffT(n), uint(0)).([]noarch.PtrdiffT)
+// 	w = cs_calloc(n, uint(0)).([]noarch.PtrdiffT)
 // 	if C == nil || w == nil {
 // 		// out of memory
 // 		return (cs_done(C, w, nil, 0))
 // 	}
-// 	Cp = C[0].p
-// 	Ci = C[0].i
-// 	Cx = C[0].x
+// 	Cp = C.p
+// 	Ci = C.i
+// 	Cx = C.x
 // 	{
 // 		// count entries in each column of C
 // 		for j = 0; j < n; j++ {
@@ -3954,7 +3954,7 @@ func cs_sqr(order noarch.PtrdiffT, A []cs, qr noarch.PtrdiffT) []css {
 // 		}
 // 	}
 // 	// compute column pointers of C
-// 	cs_cumsum(Cp, w, noarch.PtrdiffT(n))
+// 	cs_cumsum(Cp, w, n)
 // 	for j = 0; j < n; j++ {
 // 		// column j of A is column j2 of C
 // 		j2 = noarch.PtrdiffT(func() int32 {
@@ -3976,8 +3976,8 @@ func cs_sqr(order noarch.PtrdiffT, A []cs, qr noarch.PtrdiffT) []css {
 // 				}
 // 				return int32(noarch.PtrdiffT(i))
 // 			}() / 8)
-// 			Ci[(func() noarch.PtrdiffT {
-// 				q = func() noarch.PtrdiffT {
+// 			Ci[(func() int {
+// 				q = func() int {
 // 					tempVar := &w[func() int32 {
 // 						if i2 > j2 {
 // 							return int32(noarch.PtrdiffT((i2)))
@@ -4027,7 +4027,7 @@ func cs_sqr(order noarch.PtrdiffT, A []cs, qr noarch.PtrdiffT) []css {
 // 			// p has no unordered children left
 // 			top--
 // 			// node p is the kth postordered node
-// 			post[func() noarch.PtrdiffT {
+// 			post[func() int {
 // 				defer func() {
 // 					k++
 // 				}()
@@ -4037,7 +4037,7 @@ func cs_sqr(order noarch.PtrdiffT, A []cs, qr noarch.PtrdiffT) []css {
 // 			// remove i from children of p
 // 			head[p] = next[i]
 // 			// start dfs on child node i
-// 			stack[func() noarch.PtrdiffT {
+// 			stack[func() int {
 // 				top++
 // 				return top
 // 			}()] = i
@@ -4136,14 +4136,14 @@ func cs_transpose(A *cs, values bool) *cs {
 // 		// check inputs
 // 		return 0
 // 	}
-// 	Lp = L[0].p
-// 	Li = L[0].i
-// 	Lx = L[0].x
-// 	n = noarch.PtrdiffT(L[0].n)
-// 	Cp = C[0].p
-// 	Ci = C[0].i
-// 	Cx = C[0].x
-// 	if (func() noarch.PtrdiffT {
+// 	Lp = L.p
+// 	Li = L.i
+// 	Lx = L.x
+// 	n = L.n
+// 	Cp = C.p
+// 	Ci = C.i
+// 	Cx = C.x
+// 	if (func() int {
 // 		p = Cp[0]
 // 		return p
 // 	}()) >= Cp[1] {
@@ -4151,7 +4151,7 @@ func cs_transpose(A *cs, values bool) *cs {
 // 		return 1
 // 	}
 // 	// get workspace
-// 	w = cs_malloc(noarch.PtrdiffT(n), uint(8)).([]float64)
+// 	w = cs_malloc(n, uint(8)).([]float64)
 // 	if w == nil {
 // 		// out of memory
 // 		return 0
@@ -4341,10 +4341,10 @@ func cs_spfree(A *cs) *cs {
 // 		// do nothing if N already NULL
 // 		return nil
 // 	}
-// 	cs_spfree(N[0].L) // TODO (KI) : remove
-// 	cs_spfree(N[0].U) // TODO (KI) : remove
-// 	cs_free(N[0].pinv)
-// 	cs_free(N[0].B)
+// 	cs_spfree(N.L) // TODO (KI) : remove
+// 	cs_spfree(N.U) // TODO (KI) : remove
+// 	cs_free(N.pinv)
+// 	cs_free(N.B)
 // 	// free the csn struct and return NULL
 // 	return (cs_free(N).([]csn))
 // }
