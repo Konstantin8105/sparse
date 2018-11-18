@@ -3464,9 +3464,6 @@ func cs_scatter(A *cs, j int, beta float64, w []int, x []float64, mark int, C *c
 // find the strongly connected components of a square matrix
 // matrix A temporarily modified, then restored
 func cs_scc(A *cs) *csd {
-	var k noarch.PtrdiffT
-	var b noarch.PtrdiffT
-	var nb noarch.PtrdiffT
 	if !(A != nil && A.nz == -1) {
 		// check inputs
 		return nil
@@ -3503,47 +3500,47 @@ func cs_scc(A *cs) *csd {
 	}
 
 	top = n
-	nb = n
+	nb := n
 
 	// dfs(A') to find strongly connnected comp
-	for k = 0; k < n; k++ {
+	for k := 0; k < n; k++ {
 		// get i in reverse order of finish times
-		i = xi[k]
+		i := xi[k]
 		if ATp[i] < 0 {
 			// skip node i if already ordered
 			continue
 		}
 		// node i is the start of a component in p
-		r[func() noarch.PtrdiffT {
+		r[func() int {
 			defer func() {
 				nb--
 			}()
 			return nb
 		}()] = top
-		top = cs_dfs(noarch.PtrdiffT(i), AT, noarch.PtrdiffT(top), p, pstack, nil)
+		top = cs_dfs(i, AT, top, p, pstack, nil)
 	}
 
 	// first block starts at zero; shift r up
 	r[nb] = 0
-	for k = nb; k <= n; k++ {
+	for k := nb; k <= n; k++ {
 		r[k-nb] = r[k]
 	}
 	nb = n - nb
 	// nb = # of strongly connected components
-	D[0].nb = nb
-	{
-		// sort each block in natural order
-		for b = 0; b < nb; b++ {
-			for k = r[b]; k < r[b+1]; k++ {
-				Blk[p[k]] = b
-			}
+	D.nb = nb
+
+	// sort each block in natural order
+	for b := 0; b < nb; b++ {
+		for k := r[b]; k < r[b+1]; k++ {
+			Blk[p[k]] = b
 		}
 	}
-	for b = 0; b <= nb; b++ {
+
+	for b := 0; b <= nb; b++ {
 		rcopy[b] = r[b]
 	}
-	for i = 0; i < n; i++ {
-		p[func() noarch.PtrdiffT {
+	for i := 0; i < n; i++ {
+		p[func() int {
 			tempVar := &rcopy[Blk[i]]
 			defer func() {
 				*tempVar++
@@ -3551,7 +3548,7 @@ func cs_scc(A *cs) *csd {
 			return *tempVar
 		}()] = i
 	}
-	return (cs_ddone(D, AT, xi, 1))
+	return (cs_ddone(D, AT, xi, true))
 }
 
 //
