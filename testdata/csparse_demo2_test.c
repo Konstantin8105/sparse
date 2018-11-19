@@ -11,6 +11,23 @@ typedef struct problem_struct
     double *resid ;
 } problem ;
 
+void print_problem(problem * P)
+{
+	printf("Matrix A:\n");
+	if (P->A) { cs_print(P->A,0);};
+	printf("Matrix C:\n");
+	if (P->C) { cs_print(P->C,0);};
+	printf("sym = %d\n",(int) P->sym);
+	
+	printf("Vector x\n");
+	for (int i=0;i<P->A->n;i++)
+		printf("x[%d] = %f\n", i, (double)P->x[i]);
+	for (int i=0;i<P->A->n;i++)
+		printf("b[%d] = %f\n", i, (double)P->b[i]);
+	for (int i=0;i<P->A->n;i++)
+		printf("resid[%d] = %f\n", i, (double)P->resid[i]);
+}
+
 
 /* infinity-norm of x */
 static double norm (double *x, csi n)
@@ -130,6 +147,12 @@ problem *get_problem (FILE *f, double tol)
     Prob->b = cs_malloc (mn, sizeof (double)) ;
     Prob->x = cs_malloc (mn, sizeof (double)) ;
     Prob->resid = cs_malloc (mn, sizeof (double)) ;
+	// initialization
+	for (int pos = 0; pos < mn; pos ++){
+		Prob->b    [pos] = 0;
+		Prob->x    [pos] = 0;
+		Prob->resid[pos] = 0;
+	}
     return ((!Prob->b || !Prob->x || !Prob->resid) ? free_problem (Prob) : Prob) ;
 }
 
@@ -222,6 +245,7 @@ csi demo2 (problem *Prob)
 int main (void)
 {
     problem *Prob = get_problem (stdin, 1e-14) ;
+	print_problem(Prob) ;
     demo2 (Prob) ;
     free_problem (Prob) ;
     return (0) ;

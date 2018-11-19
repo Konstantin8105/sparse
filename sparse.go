@@ -2995,11 +2995,11 @@ func cs_print(A *cs, brief bool) bool {
 	nz = A.nz
 	fmt.Printf("CSparse Version %d.%d.%d, %s.  %s\n", 3, 2, 0, "Sept 12, 2017", "Copyright (c) Timothy A. Davis, 2006-2016")
 	if nz < 0 {
-		fmt.Printf("%d-by-%d, nzmax: %d nnz: %d, 1-norm: %g\n", m, n, nzmax, Ap[n], cs_norm(A))
+		fmt.Printf("%d-by-%d, nzmax: %d nnz: %d, 1-norm: %10e\n", m, n, nzmax, Ap[n], cs_norm(A))
 		for j := 0; j < n; j++ {
 			fmt.Printf("    col %d : locations %d to %d\n", j, Ap[j], Ap[j+1]-1)
 			for p = Ap[j]; p < Ap[j+1]; p++ {
-				fmt.Printf("      %d : %v\n", Ai[p], func() float64 {
+				fmt.Printf("      %d : %10e\n", Ai[p], func() float64 {
 					if Ax != nil {
 						return Ax[p]
 					}
@@ -3014,7 +3014,7 @@ func cs_print(A *cs, brief bool) bool {
 	} else {
 		fmt.Printf("triplet: %d-by-%d, nzmax: %d nnz: %d\n", m, n, nzmax, nz)
 		for p = 0; p < nz; p++ {
-			fmt.Printf("    %d %d : %v\n", Ai[p], Ap[p], func() float64 {
+			fmt.Printf("    %d %d : %10e\n", Ai[p], Ap[p], func() float64 {
 				if Ax != nil {
 					return Ax[p]
 				}
@@ -3502,12 +3502,8 @@ func cs_scc(A *cs) *csd {
 			continue
 		}
 		// node i is the start of a component in p
-		r[func() int {
-			defer func() {
-				nb--
-			}()
-			return nb
-		}()] = top
+		r[nb] = top
+		nb--
 		top = cs_dfs(i, AT, top, p, pstack, nil)
 	}
 

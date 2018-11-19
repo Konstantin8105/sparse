@@ -6,6 +6,7 @@ import (
 	"io"
 	"io/ioutil"
 	"math"
+	"os"
 	"os/exec"
 	"path/filepath"
 	"strconv"
@@ -154,14 +155,33 @@ func TestDemo2(t *testing.T) {
 		t.Run("Demo2: "+matrixes[i], func(t *testing.T) {
 			// data checking
 			b, c := getCresult(t, matrixes[i])
-			fmt.Println(c)
 
-			fmt.Println("-------")
+			tmpfile, err := ioutil.TempFile("", "example")
+			if err != nil {
+				t.Fatal(err)
+			}
+			old := os.Stdout
+			os.Stdout = tmpfile
+			defer func() {
+				os.Stdout = old
+			}()
 
 			var stdin bytes.Buffer
 			stdin.Write(b)
 			prob := get_problem(&stdin, 1e-14)
-			c2, _ := demo2(prob)
+			print_problem(prob)
+			demo2(prob)
+
+			filename := tmpfile.Name()
+			err = tmpfile.Close()
+			if err != nil {
+				t.Fatal(err)
+			}
+			cb2, err := ioutil.ReadFile(filename)
+			if err != nil {
+				t.Fatal(err)
+			}
+			c2 := string(cb2)
 
 			// compare strings
 			if c != c2 {
@@ -211,6 +231,25 @@ type problem struct {
 	x     []float64
 	b     []float64
 	resid []float64
+}
+
+func print_problem(P *problem) {
+	fmt.Println("Matrix A:")
+	cs_print(P.A, false)
+	fmt.Println("Matrix C:")
+	cs_print(P.C, false)
+	fmt.Println("sym =", P.sym)
+
+	fmt.Printf("Vector x\n")
+	for i := 0; i < P.A.n; i++ {
+		fmt.Printf("x[%d] = %f\n", i, P.x[i])
+	}
+	for i := 0; i < P.A.n; i++ {
+		fmt.Printf("b[%d] = %f\n", i, P.b[i])
+	}
+	for i := 0; i < P.A.n; i++ {
+		fmt.Printf("resid[%d] = %f\n", i, P.resid[i])
+	}
 }
 
 // is_sym - 1 if A is square & upper tri., -1 if square & lower tri., 0 otherwise
@@ -266,7 +305,6 @@ func make_sym(A *cs) *cs {
 
 // get_problem - read a problem from a file; use %g for integers to avoid csi conflicts */
 func get_problem(f io.Reader, tol float64) *problem {
-	var C *cs
 	var nz1 int
 	var nz2 int
 	Prob := new(problem)
@@ -284,8 +322,8 @@ func get_problem(f io.Reader, tol float64) *problem {
 		// sum up duplicates */
 		return nil
 	}
-	sym := is_sym(A)
 	// determine if A is symmetric */
+	sym := is_sym(A)
 	Prob.sym = sym
 	m := A.m
 	n := A.n
@@ -301,13 +339,13 @@ func get_problem(f io.Reader, tol float64) *problem {
 		// drop tiny entries (just to test) */
 		cs_droptol(A, tol)
 	}
-	C = func() *cs {
-		if sym == 1 {
+	// C = A + triu(A,1)', or C=A */
+	C := func() *cs {
+		if sym != 0 {
 			return make_sym(A)
 		}
 		return A
 	}()
-	// C = A + triu(A,1)', or C=A */
 	Prob.C = C
 	if C == nil {
 		return nil
@@ -318,7 +356,7 @@ func get_problem(f io.Reader, tol float64) *problem {
 		float64((A.p[n])),
 		float64((sym)),
 		float64((func() int {
-			if sym == 1 {
+			if sym != 0 {
 				return C.p[n]
 			}
 			return 0
