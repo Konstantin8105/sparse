@@ -195,8 +195,8 @@ problem *get_problem (FILE *f, double tol)
     return ((!Prob->b || !Prob->x || !Prob->resid) ? free_problem (Prob) : Prob) ;
 }
 
-static double tic (void) { return (clock () / (double) CLOCKS_PER_SEC) ; }
-static double toc (double t) { double s = tic () ; return (CS_MAX (0, s-t)) ; }
+static double tic (void) { return 0; } //  (clock () / (double) CLOCKS_PER_SEC) ; }
+static double toc (double t) { return 0; } // double s = tic () ; return (CS_MAX (0, s-t)) ; }
 
 
 /* solve a linear system using Cholesky, LU, and QR, with various orderings */
@@ -265,7 +265,10 @@ csi demo2 (problem *Prob)
     if (m != n || sprank < n) return (1) ;      /* return if rect. or singular*/
     for (order = 0 ; order <= 3 ; order++)      /* try all orderings */
     {
-        if (!order && m > 1000) continue ;
+		printf ("Order : %d\n",order);
+		printf ("M is : %d\n",m);
+        /* if (!order && m > 1000) continue ; */
+		printf ("Start order : %d\n",order);
         printf ("LU   ") ;
         print_order (order) ;
         rhs (x, b, m) ;                         /* compute right-hand side */

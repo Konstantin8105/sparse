@@ -1531,7 +1531,7 @@ func cs_unmatched(m int, wi []int, p []int, rr *[5]int, set int) {
 // cs_rprune - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_dmperm.c:61
 // return 1 if row i is in R2
 func cs_rprune(i, j int, aij float64, other interface{}) bool {
-	rr := other.([5]int)
+	rr := other.(*[5]int)
 	return (i >= rr[1] && i < rr[2])
 }
 
@@ -2667,7 +2667,7 @@ func cs_maxtrans(A *cs, seed int) []int {
 	Cp = C.p
 	jmatch = func() []int {
 		if m2 < n2 {
-			return jmatch[n:]
+			return jimatch[n:]
 		}
 		return jimatch
 	}()

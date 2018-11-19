@@ -12,7 +12,6 @@ import (
 	"strconv"
 	"strings"
 	"testing"
-	"time"
 )
 
 func buildC(t *testing.T, filename string) {
@@ -186,6 +185,7 @@ func TestDemo2(t *testing.T) {
 			// compare strings
 			if c != c2 {
 				t.Log(ShowDiff(c, c2))
+				t.Fail()
 			}
 		})
 	}
@@ -217,6 +217,9 @@ func ShowDiff(a, b string) string {
 		if aLine != bLine {
 			diffFlag = "*"
 		}
+		// if diffFlag == " " {
+		// 	continue
+		// }
 		out += fmt.Sprintf("%s %3d %-40s%s\n", diffFlag, lineNumber+1, aLine, bLine)
 
 	}
@@ -483,9 +486,12 @@ func demo2(Prob *problem) bool {
 
 	// try all orderings
 	for order = 0; order <= 3; order++ {
-		if order != 0 && m > 1000 {
-			continue
-		}
+		fmt.Printf("Order : %d\n", order)
+		fmt.Printf("M is : %d\n", m)
+		// if order != 0 && m > 1000 {
+		// 	continue
+		// }
+		fmt.Printf("Start order : %d\n", order)
 		fmt.Printf("LU   ")
 		print_order(order)
 		// compute right-hand side
@@ -557,19 +563,21 @@ func norm(x []float64, n int) float64 {
 
 // tic - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/testdata/csparse_demo2_test.c:136
 func tic() float64 {
-	t := time.Now()
-	return float64(t.Unix())
+	return 0
+	// t := time.Now()
+	// return float64(t.Unix())
 }
 
 // toc - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/testdata/csparse_demo2_test.c:137
 func toc(t float64) float64 {
-	s := tic()
-	return (func() float64 {
-		if 0 > s-t {
-			return 0
-		}
-		return s - t
-	}())
+	return 0
+	// s := tic()
+	// return (func() float64 {
+	// 	if 0 > s-t {
+	// 		return 0
+	// 	}
+	// 	return s - t
+	// }())
 }
 
 // print_resid - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/testdata/csparse_demo2_test.c:80
