@@ -3571,7 +3571,7 @@ func cs_schol(order PtrdiffT, A *cs) (result *css) {
 	// find inverse permutation
 	S.pinv = cs_pinv(P, n)
 	cs_free(P)
-	if order == 0 && S.pinv == nil {
+	if order != 0 && S.pinv == nil {
 		return (cs_sfree(S))
 	}
 	// C = spones(triu(A(P,P)))
