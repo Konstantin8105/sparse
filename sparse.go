@@ -35,10 +35,10 @@ type css struct { // struct cs_symbolic
 
 // numeric Cholesky, LU, or QR factorization
 type csn struct { // struct cs_numeric
-	L    *cs      // L for LU and Cholesky, V for QR
-	U    *cs      // U for LU, R for QR, not used for Cholesky
-	pinv []int    // partial pivoting for LU
-	B    *float64 // beta [0..n-1] for QR
+	L    *cs       // L for LU and Cholesky, V for QR
+	U    *cs       // U for LU, R for QR, not used for Cholesky
+	pinv []int     // partial pivoting for LU
+	B    []float64 // beta [0..n-1] for QR
 }
 
 // cs_dmperm or cs_scc output
@@ -1110,7 +1110,7 @@ func cs_compress(T *cs) *cs {
 
 // init_ata - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_counts.c:5
 // column counts of LL'=A or LL'=A'A, given parent & post ordering
-func init_ata(AT *cs, post []PtrdiffT, w []PtrdiffT, head []PtrdiffT, next []PtrdiffT) {
+func init_ata(AT *cs, post []PtrdiffT, w []PtrdiffT, head *[]PtrdiffT, next *[]PtrdiffT) {
 	var i PtrdiffT
 	var k PtrdiffT
 	var p PtrdiffT
@@ -1118,8 +1118,8 @@ func init_ata(AT *cs, post []PtrdiffT, w []PtrdiffT, head []PtrdiffT, next []Ptr
 	var n PtrdiffT = PtrdiffT(AT.m)
 	var ATp []PtrdiffT = AT.p
 	var ATi []PtrdiffT = AT.i
-	head = w[4*n:]
-	next = w[5*n+1:]
+	*head = w[4*n:]
+	*next = w[5*n+1:]
 	{
 		// invert post
 		for k = 0; k < n; k++ {
@@ -1140,8 +1140,8 @@ func init_ata(AT *cs, post []PtrdiffT, w []PtrdiffT, head []PtrdiffT, next []Ptr
 			}
 		}
 		// place row i in linked list k
-		(next)[i] = (head)[k]
-		(head)[k] = i
+		(*next)[i] = (*head)[k]
+		(*head)[k] = i
 	}
 }
 
@@ -1220,7 +1220,7 @@ func cs_counts(A *cs, parent []PtrdiffT, post []PtrdiffT, ata bool) []PtrdiffT {
 	ATp = AT.p
 	ATi = AT.i
 	if ata {
-		init_ata(AT, post, w, head, next)
+		init_ata(AT, post, w, &head, &next)
 	}
 	{
 		// each node in its own set
@@ -2003,75 +2003,75 @@ func cs_gaxpy(A *cs, x []float64, y []float64) bool {
 	return true
 }
 
-// // cs_happly - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_happly.c:3
-// // apply the ith Householder vector to x
-// func cs_happly(V []cs, i PtrdiffT, beta float64, x []float64) PtrdiffT {
-// 	var p PtrdiffT
-// 	var Vp []PtrdiffT
-// 	var Vi []PtrdiffT
-// 	var Vx []float64
-// 	var tau float64
-// 	if !(V != nil && PtrdiffT(V[0].nz) == -1) || x == nil {
-// 		// check inputs
-// 		return 0
-// 	}
-// 	Vp = V[0].p
-// 	Vi = V[0].i
-// 	Vx = V[0].x
-// 	{
-// 		// tau = v'*x
-// 		for p = Vp[i]; p < Vp[i+1]; p++ {
-// 			tau += Vx[p] * x[Vi[p]]
-// 		}
-// 	}
-// 	// tau = beta*(v'*x)
-// 	tau *= beta
-// 	{
-// 		// x = x - v*tau
-// 		for p = Vp[i]; p < Vp[i+1]; p++ {
-// 			x[Vi[p]] -= Vx[p] * tau
-// 		}
-// 	}
-// 	return 1
-// }
-//
-// // cs_house - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_house.c:4
-// // create a Householder reflection [v,beta,s]=house(x), overwrite x with v,
-// // * where (I-beta*v*v')*x = s*e1.  See Algo 5.1.1, Golub & Van Loan, 3rd ed.
-// func cs_house(x []float64, beta []float64, n PtrdiffT) float64 {
-// 	var s float64
-// 	var sigma float64
-// 	var i PtrdiffT
-// 	if x == nil || beta == nil {
-// 		// check inputs
-// 		return float64((-1))
-// 	}
-// 	for i = 1; i < n; i++ {
-// 		sigma += x[i] * x[i]
-// 	}
-// 	if sigma == 0 {
-// 		// s = |x(0)|
-// 		s = math.Abs(x[0])
-// 		beta[0] = float64(func() int {
-// 			if x[0] <= 0 {
-// 				return 2
-// 			}
-// 			return 0
-// 		}())
-// 		x[0] = 1
-// 	} else {
-// 		// s = norm (x)
-// 		s = math.Sqrt(x[0]*x[0] + sigma)
-// 		x[0] = func() float64 {
-// 			if x[0] <= 0 {
-// 				return (x[0] - s)
-// 			}
-// 			return (-sigma / (x[0] + s))
-// 		}()
-// 		beta[0] = -1 / (s * x[0])
-// 	}
-// 	return (s)
-// }
+// cs_happly - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_happly.c:3
+// apply the ith Householder vector to x
+func cs_happly(V *cs, i PtrdiffT, beta float64, x []float64) PtrdiffT {
+	var p PtrdiffT
+	var Vp []PtrdiffT
+	var Vi []PtrdiffT
+	var Vx []float64
+	var tau float64
+	if !(V != nil && PtrdiffT(V.nz) == -1) || x == nil {
+		// check inputs
+		return 0
+	}
+	Vp = V.p
+	Vi = V.i
+	Vx = V.x
+	{
+		// tau = v'*x
+		for p = Vp[i]; p < Vp[i+1]; p++ {
+			tau += Vx[p] * x[Vi[p]]
+		}
+	}
+	// tau = beta*(v'*x)
+	tau *= beta
+	{
+		// x = x - v*tau
+		for p = Vp[i]; p < Vp[i+1]; p++ {
+			x[Vi[p]] -= Vx[p] * tau
+		}
+	}
+	return 1
+}
+
+// cs_house - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_house.c:4
+// create a Householder reflection [v,beta,s]=house(x), overwrite x with v,
+// * where (I-beta*v*v')*x = s*e1.  See Algo 5.1.1, Golub & Van Loan, 3rd ed.
+func cs_house(x []float64, beta []float64, n PtrdiffT) float64 {
+	var s float64
+	var sigma float64
+	var i PtrdiffT
+	if x == nil || beta == nil {
+		// check inputs
+		return float64((-1))
+	}
+	for i = 1; i < n; i++ {
+		sigma += x[i] * x[i]
+	}
+	if sigma == 0 {
+		// s = |x(0)|
+		s = math.Abs(x[0])
+		beta[0] = float64(func() int {
+			if x[0] <= 0 {
+				return 2
+			}
+			return 0
+		}())
+		x[0] = 1
+	} else {
+		// s = norm (x)
+		s = math.Sqrt(x[0]*x[0] + sigma)
+		x[0] = func() float64 {
+			if x[0] <= 0 {
+				return (x[0] - s)
+			}
+			return (-sigma / (x[0] + s))
+		}()
+		beta[0] = -1 / (s * x[0])
+	}
+	return (s)
+}
 
 // cs_ipvec - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_ipvec.c:3
 // x(p) = b, for dense vectors x and b; p=NULL denotes identity
@@ -3032,318 +3032,311 @@ func cs_print(A *cs, brief bool) bool {
 	return true
 }
 
-//
-// // cs_pvec - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_pvec.c:3
-// // x = b(p), for dense vectors x and b; p=NULL denotes identity
-// func cs_pvec(p []PtrdiffT, b []float64, x []float64, n PtrdiffT) PtrdiffT {
-// 	var k PtrdiffT
-// 	if x == nil || b == nil {
-// 		// check inputs
-// 		return 0
-// 	}
-// 	for k = 0; k < n; k++ {
-// 		x[k] = b[func() int {
-// 			if p != nil {
-// 				return ((p[k]))
-// 			}
-// 			return ((k))
-// 		}()]
-// 	}
-// 	return 1
-// }
-//
-// // cs_qr - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_qr.c:3
-// // sparse QR factorization [V,beta,pinv,R] = qr (A)
-// func cs_qr(A []cs, S []css) []csn {
-// 	var Rx []float64
-// 	var Vx []float64
-// 	var Ax []float64
-// 	var x []float64
-// 	var Beta []float64
-// 	var i PtrdiffT
-// 	var k PtrdiffT
-// 	var p PtrdiffT
-// 	var m PtrdiffT
-// 	var n PtrdiffT
-// 	var vnz PtrdiffT
-// 	var p1 PtrdiffT
-// 	var top PtrdiffT
-// 	var m2 PtrdiffT
-// 	var len PtrdiffT
-// 	var col PtrdiffT
-// 	var rnz PtrdiffT
-// 	var s []PtrdiffT
-// 	var leftmost []PtrdiffT
-// 	var Ap []PtrdiffT
-// 	var Ai []PtrdiffT
-// 	var parent []PtrdiffT
-// 	var Rp []PtrdiffT
-// 	var Ri []PtrdiffT
-// 	var Vp []PtrdiffT
-// 	var Vi []PtrdiffT
-// 	var w []PtrdiffT
-// 	var pinv []PtrdiffT
-// 	var q []PtrdiffT
-// 	var R []cs
-// 	var V []cs
-// 	var N []csn
-// 	if !(A != nil && A.nz == -1) || S == nil {
-// 		return nil
-// 	}
-// 	m = A.m
-// 	n = A.n
-// 	Ap = A.p
-// 	Ai = A.i
-// 	Ax = A.x
-// 	q = S.q
-// 	parent = S.parent
-// 	pinv = S.pinv
-// 	m2 = PtrdiffT(S.m2)
-// 	vnz = S.lnz
-// 	rnz = S.unz
-// 	leftmost = S.leftmost
-// 	// get csi workspace
-// 	w = cs_malloc(m2+n, uint(0)).([]PtrdiffT)
-// 	// get double workspace
-// 	x = cs_malloc(PtrdiffT(m2), uint(8)).([]float64)
-// 	// allocate result
-// 	N = cs_calloc(1, uint(32)).([]csn)
-// 	if w == nil || x == nil || N == nil {
-// 		return (cs_ndone(N, nil, w, x, 0))
-// 	}
-// 	// s is size n
-// 	s = (*(*[1000000000]PtrdiffT)(unsafe.Pointer(uintptr(unsafe.Pointer(&w[0])) + (uintptr)(int(m2))*unsafe.Sizeof(w[0]))))[:]
-// 	{
-// 		// clear workspace x
-// 		for k = 0; k < m2; k++ {
-// 			x[k] = 0
-// 		}
-// 	}
-// 	V = cs_spalloc(PtrdiffT(m2), n, PtrdiffT(vnz), 1, 0)
-// 	// allocate result V
-// 	N.L = V
-// 	R = cs_spalloc(PtrdiffT(m2), n, PtrdiffT(rnz), 1, 0)
-// 	// allocate result R
-// 	N.U = R
-// 	Beta = cs_malloc(n, uint(8)).([]float64)
-// 	// allocate result Beta
-// 	N.B = Beta
-// 	if R == nil || V == nil || Beta == nil {
-// 		return (cs_ndone(N, nil, w, x, 0))
-// 	}
-// 	Rp = R[0].p
-// 	Ri = R[0].i
-// 	Rx = R[0].x
-// 	Vp = V[0].p
-// 	Vi = V[0].i
-// 	Vx = V[0].x
-// 	{
-// 		// clear w, to mark nodes
-// 		for i = 0; i < m2; i++ {
-// 			w[i] = -1
-// 		}
-// 	}
-// 	rnz = 0
-// 	vnz = 0
-// 	{
-// 		// compute V and R
-// 		for k = 0; k < n; k++ {
-// 			// R(:,k) starts here
-// 			Rp[k] = rnz
-// 			p1 = vnz
-// 			// V(:,k) starts here
-// 			Vp[k] = p1
-// 			// add V(k,k) to pattern of V
-// 			w[k] = k
-// 			Vi[func() int {
-// 				defer func() {
-// 					vnz++
-// 				}()
-// 				return vnz
-// 			}()] = k
-// 			top = n
-// 			col = PtrdiffT(func() int {
-// 				if q != nil {
-// 					return ((q[k]))
-// 				}
-// 				return ((k))
-// 			}()  )
-// 			{
-// 				// find R(:,k) pattern
-// 				for p = Ap[col]; p < Ap[col+1]; p++ {
-// 					// i = min(find(A(i,q)))
-// 					i = leftmost[Ai[p]]
-// 					{
-// 						// traverse up to k
-// 						for len = 0; w[i] != k; i = parent[i] {
-// 							s[func() int {
-// 								defer func() {
-// 									len++
-// 								}()
-// 								return len
-// 							}()] = i
-// 							w[i] = k
-// 						}
-// 					}
-// 					for len > 0 {
-// 						// push path on stack
-// 						s[func() int {
-// 							top--
-// 							return top
-// 						}()] = s[func() int {
-// 							len--
-// 							return len
-// 						}()]
-// 					}
-// 					// i = permuted row of A(:,col)
-// 					i = pinv[Ai[p]]
-// 					// x (i) = A(:,col)
-// 					x[i] = Ax[p]
-// 					if i > k && w[i] < k {
-// 						// pattern of V(:,k) = x (k+1:m)
-// 						// add i to pattern of V(:,k)
-// 						Vi[func() int {
-// 							defer func() {
-// 								vnz++
-// 							}()
-// 							return vnz
-// 						}()] = i
-// 						w[i] = k
-// 					}
-// 				}
-// 			}
-// 			{
-// 				// for each i in pattern of R(:,k)
-// 				for p = top; p < n; p++ {
-// 					// R(i,k) is nonzero
-// 					i = s[p]
-// 					// apply (V(i),Beta(i)) to x
-// 					cs_happly(V, PtrdiffT(i), Beta[i], x)
-// 					// R(i,k) = x(i)
-// 					Ri[rnz] = i
-// 					Rx[func() int {
-// 						defer func() {
-// 							rnz++
-// 						}()
-// 						return rnz
-// 					}()] = x[i]
-// 					x[i] = 0
-// 					if parent[i] == k {
-// 						vnz = cs_scatter(V, PtrdiffT(i), 0, w, nil, PtrdiffT(k), V, PtrdiffT(vnz))
-// 					}
-// 				}
-// 			}
-// 			{
-// 				// gather V(:,k) = x
-// 				for p = p1; p < vnz; p++ {
-// 					Vx[p] = x[Vi[p]]
-// 					x[Vi[p]] = 0
-// 				}
-// 			}
-// 			// R(k,k) = norm (x)
-// 			Ri[rnz] = k
-// 			// [v,beta]=house(x)
-// 			Rx[func() int {
-// 				defer func() {
-// 					rnz++
-// 				}()
-// 				return rnz
-// 			}()] = cs_house((*(*[1000000000]float64)(unsafe.Pointer(uintptr(unsafe.Pointer(&Vx[0])) + (uintptr)(int(p1))*unsafe.Sizeof(Vx[0]))))[:], (*(*[1000000000]float64)(unsafe.Pointer(uintptr(unsafe.Pointer(&Beta[0])) + (uintptr)(int(k))*unsafe.Sizeof(Beta[0]))))[:], vnz-p1)
-// 		}
-// 	}
-// 	// finalize R
-// 	Rp[n] = rnz
-// 	// finalize V
-// 	Vp[n] = vnz
-// 	// success
-// 	return (cs_ndone(N, nil, w, x, 1))
-// }
-//
+// cs_pvec - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_pvec.c:3
+// x = b(p), for dense vectors x and b; p=NULL denotes identity
+func cs_pvec(p []PtrdiffT, b []float64, x []float64, n PtrdiffT) PtrdiffT {
+	var k PtrdiffT
+	if x == nil || b == nil {
+		// check inputs
+		return 0
+	}
+	for k = 0; k < n; k++ {
+		x[k] = b[func() int {
+			if p != nil {
+				return (p[k])
+			}
+			return (k)
+		}()]
+	}
+	return 1
+}
+
+// cs_qr - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_qr.c:3
+// sparse QR factorization [V,beta,pinv,R] = qr (A)
+func cs_qr(A *cs, S *css) *csn {
+	var Rx []float64
+	var Vx []float64
+	var Ax []float64
+	var x []float64
+	var Beta []float64
+	var i PtrdiffT
+	var k PtrdiffT
+	var p PtrdiffT
+	// var m PtrdiffT
+	var n PtrdiffT
+	var vnz PtrdiffT
+	var p1 PtrdiffT
+	var top PtrdiffT
+	var m2 PtrdiffT
+	var len PtrdiffT
+	var col PtrdiffT
+	var rnz PtrdiffT
+	var s []PtrdiffT
+	var leftmost []PtrdiffT
+	var Ap []PtrdiffT
+	var Ai []PtrdiffT
+	var parent []PtrdiffT
+	var Rp []PtrdiffT
+	var Ri []PtrdiffT
+	var Vp []PtrdiffT
+	var Vi []PtrdiffT
+	var w []PtrdiffT
+	var pinv []PtrdiffT
+	var q []PtrdiffT
+	var R *cs
+	var V *cs
+	var N *csn
+	if !(A != nil && A.nz == -1) || S == nil {
+		return nil
+	}
+	// m = A.m
+	n = A.n
+	Ap = A.p
+	Ai = A.i
+	Ax = A.x
+	q = S.q
+	parent = S.parent
+	pinv = S.pinv
+	m2 = PtrdiffT(S.m2)
+	vnz = S.lnz
+	rnz = S.unz
+	leftmost = S.leftmost
+	// get csi workspace
+	w = make([]int, m2+n) // cs_malloc(m2+n, uint(0)).([]PtrdiffT)
+	// get double workspace
+	x = make([]float64, m2) // cs_malloc(PtrdiffT(m2), uint(8)).([]float64)
+	// allocate result
+	N = new(csn) // cs_calloc(1, uint(32)).([]csn)
+	if w == nil || x == nil || N == nil {
+		return (cs_ndone(N, nil, w, x, false))
+	}
+	// s is size n
+	s = w[m2:] //  (*(*[1000000000]PtrdiffT)(unsafe.Pointer(uintptr(unsafe.Pointer(&w[0])) + (uintptr)(int(m2))*unsafe.Sizeof(w[0]))))[:]
+	{
+		// clear workspace x
+		for k = 0; k < m2; k++ {
+			x[k] = 0
+		}
+	}
+	V = cs_spalloc(PtrdiffT(m2), n, PtrdiffT(vnz), true, false)
+	// allocate result V
+	N.L = V
+	R = cs_spalloc(PtrdiffT(m2), n, PtrdiffT(rnz), true, false)
+	// allocate result R
+	N.U = R
+	Beta = make([]float64, n) // cs_malloc(n, uint(8)).([]float64)
+	// allocate result Beta
+	N.B = Beta
+	if R == nil || V == nil || Beta == nil {
+		return (cs_ndone(N, nil, w, x, false))
+	}
+	Rp = R.p
+	Ri = R.i
+	Rx = R.x
+	Vp = V.p
+	Vi = V.i
+	Vx = V.x
+	{
+		// clear w, to mark nodes
+		for i = 0; i < m2; i++ {
+			w[i] = -1
+		}
+	}
+	rnz = 0
+	vnz = 0
+	{
+		// compute V and R
+		for k = 0; k < n; k++ {
+			// R(:,k) starts here
+			Rp[k] = rnz
+			p1 = vnz
+			// V(:,k) starts here
+			Vp[k] = p1
+			// add V(k,k) to pattern of V
+			w[k] = k
+			Vi[func() int {
+				defer func() {
+					vnz++
+				}()
+				return vnz
+			}()] = k
+			top = n
+			col = PtrdiffT(func() int {
+				if q != nil {
+					return (q[k])
+				}
+				return (k)
+			}())
+			{
+				// find R(:,k) pattern
+				for p = Ap[col]; p < Ap[col+1]; p++ {
+					// i = min(find(A(i,q)))
+					i = leftmost[Ai[p]]
+					{
+						// traverse up to k
+						for len = 0; w[i] != k; i = parent[i] {
+							s[func() int {
+								defer func() {
+									len++
+								}()
+								return len
+							}()] = i
+							w[i] = k
+						}
+					}
+					for len > 0 {
+						// push path on stack
+						s[func() int {
+							top--
+							return top
+						}()] = s[func() int {
+							len--
+							return len
+						}()]
+					}
+					// i = permuted row of A(:,col)
+					i = pinv[Ai[p]]
+					// x (i) = A(:,col)
+					x[i] = Ax[p]
+					if i > k && w[i] < k {
+						// pattern of V(:,k) = x (k+1:m)
+						// add i to pattern of V(:,k)
+						Vi[func() int {
+							defer func() {
+								vnz++
+							}()
+							return vnz
+						}()] = i
+						w[i] = k
+					}
+				}
+			}
+			{
+				// for each i in pattern of R(:,k)
+				for p = top; p < n; p++ {
+					// R(i,k) is nonzero
+					i = s[p]
+					// apply (V(i),Beta(i)) to x
+					cs_happly(V, PtrdiffT(i), Beta[i], x)
+					// R(i,k) = x(i)
+					Ri[rnz] = i
+					Rx[func() int {
+						defer func() {
+							rnz++
+						}()
+						return rnz
+					}()] = x[i]
+					x[i] = 0
+					if parent[i] == k {
+						vnz = cs_scatter(V, PtrdiffT(i), 0, w, nil, PtrdiffT(k), V, PtrdiffT(vnz))
+					}
+				}
+			}
+			{
+				// gather V(:,k) = x
+				for p = p1; p < vnz; p++ {
+					Vx[p] = x[Vi[p]]
+					x[Vi[p]] = 0
+				}
+			}
+			// R(k,k) = norm (x)
+			Ri[rnz] = k
+			// [v,beta]=house(x)
+			Rx[func() int {
+				defer func() {
+					rnz++
+				}()
+				return rnz
+			}()] = cs_house(Vx[p1:], Beta[k:], vnz-p1) // cs_house((*(*[1000000000]float64)(unsafe.Pointer(uintptr(unsafe.Pointer(&Vx[0])) + (uintptr)(int(p1))*unsafe.Sizeof(Vx[0]))))[:], (*(*[1000000000]float64)(unsafe.Pointer(uintptr(unsafe.Pointer(&Beta[0])) + (uintptr)(int(k))*unsafe.Sizeof(Beta[0]))))[:], vnz-p1)
+		}
+	}
+	// finalize R
+	Rp[n] = rnz
+	// finalize V
+	Vp[n] = vnz
+	// success
+	return (cs_ndone(N, nil, w, x, true))
+}
+
 // cs_qrsol - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_qrsol.c:3
 // x=A\b where A can be rectangular; b overwritten with solution
 func cs_qrsol(order PtrdiffT, A *cs, b []float64) bool {
-
-	//
-	// TODO (KI) : create
-	//
-	return false
-
-	// 	var x []float64
-	// 	var S []css
-	// 	var N []csn
-	// 	var AT []cs
-	// 	var k PtrdiffT
-	// 	var m PtrdiffT
-	// 	var n PtrdiffT
-	// 	var ok PtrdiffT
-	// 	if !(A != nil && A.nz == -1) || b == nil {
-	// 		// check inputs
-	// 		return 0
-	// 	}
-	// 	n = A.n
-	// 	m = A.m
-	// 	if m >= n {
-	// 		// ordering and symbolic analysis
-	// 		S = cs_sqr(PtrdiffT(order), A, 1)
-	// 		// numeric QR factorization
-	// 		N = cs_qr(A, S)
-	// 		// get workspace
-	// 		x = cs_calloc(PtrdiffT(func() int {
-	// 			if S != nil {
-	// 				return ((S.m2))
-	// 			}
-	// 			return 1
-	// 		}()/8), uint(8)).([]float64)
-	// 		ok = PtrdiffT(S != nil && N != nil && x != nil)
-	// 		if bool(ok) {
-	// 			// x(0:m-1) = b(p(0:m-1)
-	// 			cs_ipvec(S.pinv, b, x, m)
-	// 			{
-	// 				// apply Householder refl. to x
-	// 				for k = 0; k < n; k++ {
-	// 					cs_happly(N.L, PtrdiffT(k), N.B[k], x)
-	// 				}
-	// 			}
-	// 			// x = R\x
-	// 			cs_usolve(N.U, x)
-	// 			// b(q(0:n-1)) = x(0:n-1)
-	// 			cs_ipvec(S.q, x, b, n)
-	// 		}
-	// 	} else {
-	// 		// Ax=b is underdetermined
-	// 		AT = cs_transpose(A, 1)
-	// 		// ordering and symbolic analysis
-	// 		S = cs_sqr(PtrdiffT(order), AT, 1)
-	// 		// numeric QR factorization of A'
-	// 		N = cs_qr(AT, S)
-	// 		// get workspace
-	// 		x = cs_calloc(PtrdiffT(func() int {
-	// 			if S != nil {
-	// 				return ((S.m2))
-	// 			}
-	// 			return 1
-	// 		}()/8), uint(8)).([]float64)
-	// 		ok = PtrdiffT(AT != nil && S != nil && N != nil && x != nil)
-	// 		if bool(ok) {
-	// 			// x(q(0:m-1)) = b(0:m-1)
-	// 			cs_pvec(S.q, b, x, m)
-	// 			// x = R'\x
-	// 			cs_utsolve(N.U, x)
-	// 			{
-	// 				// apply Householder refl. to x
-	// 				for k = m - 1; k >= 0; k-- {
-	// 					cs_happly(N.L, PtrdiffT(k), N.B[k], x)
-	// 				}
-	// 			}
-	// 			// b(0:n-1) = x(p(0:n-1))
-	// 			cs_pvec(S.pinv, x, b, n)
-	// 		}
-	// 	}
-	// 	cs_free(x)
-	// 	cs_sfree(S)
-	// 	cs_nfree(N)
-	// 	cs_spfree(AT) // TODO (KI) : remove
-	// 	return PtrdiffT((ok))
+	var x []float64
+	var S *css
+	var N *csn
+	var AT *cs
+	var k PtrdiffT
+	var m PtrdiffT
+	var n PtrdiffT
+	var ok bool
+	if !(A != nil && A.nz == -1) || b == nil {
+		// check inputs
+		return false
+	}
+	n = A.n
+	m = A.m
+	if m >= n {
+		// ordering and symbolic analysis
+		S = cs_sqr(order, A, true)
+		// numeric QR factorization
+		N = cs_qr(A, S)
+		// get workspace
+		x = make([]float64, func() int {
+			if S != nil {
+				return (S.m2)
+			}
+			return 1
+		}())
+		ok = S != nil && N != nil && x != nil
+		if bool(ok) {
+			// x(0:m-1) = b(p(0:m-1)
+			cs_ipvec(S.pinv, b, x, m)
+			{
+				// apply Householder refl. to x
+				for k = 0; k < n; k++ {
+					cs_happly(N.L, PtrdiffT(k), N.B[k], x)
+				}
+			}
+			// x = R\x
+			cs_usolve(N.U, x)
+			// b(q(0:n-1)) = x(0:n-1)
+			cs_ipvec(S.q, x, b, n)
+		}
+	} else {
+		// Ax=b is underdetermined
+		AT = cs_transpose(A, true)
+		// ordering and symbolic analysis
+		S = cs_sqr(PtrdiffT(order), AT, true)
+		// numeric QR factorization of A'
+		N = cs_qr(AT, S)
+		// get workspace
+		x = make([]float64, func() int {
+			if S != nil {
+				return (S.m2)
+			}
+			return 1
+		}())
+		ok = (AT != nil && S != nil && N != nil && x != nil)
+		if ok {
+			// x(q(0:m-1)) = b(0:m-1)
+			cs_pvec(S.q, b, x, m)
+			// x = R'\x
+			cs_utsolve(N.U, x)
+			{
+				// apply Householder refl. to x
+				for k = m - 1; k >= 0; k-- {
+					cs_happly(N.L, PtrdiffT(k), N.B[k], x)
+				}
+			}
+			// b(0:n-1) = x(p(0:n-1))
+			cs_pvec(S.pinv, x, b, n)
+		}
+	}
+	cs_free(x)
+	cs_sfree(S)
+	cs_nfree(N)
+	cs_spfree(AT) // TODO (KI) : remove
+	return ok
 }
 
 // cs_randperm - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_randperm.c:5
@@ -4433,26 +4426,26 @@ func cs_ddone(D *csd, C *cs, w interface{}, ok bool) *csd {
 	return nil
 }
 
-// // cs_utsolve - solve U'x=b where x and b are dense.  x=b on input, solution on output.
-// func cs_utsolve(U *cs, x []float64) bool {
-// 	if !(U != nil && U.nz == -1) || x == nil {
-// 		// check inputs
-// 		return false
-// 	}
-// 	var (
-// 		n  = U.n
-// 		Up = U.p
-// 		Ui = U.i
-// 		Ux = U.x
-// 	)
-// 	for j := 0; j < n; j++ {
-// 		for p := Up[j]; p < Up[j+1]-1; p++ {
-// 			x[j] -= Ux[p] * x[Ui[p]]
-// 		}
-// 		x[j] /= Ux[Up[j+1]-1]
-// 	}
-// 	//
-// 	// TODO (KI) : probably variable `x` is return var
-// 	//
-// 	return true
-// }
+// cs_utsolve - solve U'x=b where x and b are dense.  x=b on input, solution on output.
+func cs_utsolve(U *cs, x []float64) bool {
+	if !(U != nil && U.nz == -1) || x == nil {
+		// check inputs
+		return false
+	}
+	var (
+		n  = U.n
+		Up = U.p
+		Ui = U.i
+		Ux = U.x
+	)
+	for j := 0; j < n; j++ {
+		for p := Up[j]; p < Up[j+1]-1; p++ {
+			x[j] -= Ux[p] * x[Ui[p]]
+		}
+		x[j] /= Ux[Up[j+1]-1]
+	}
+	//
+	// TODO (KI) : probably variable `x` is return var
+	//
+	return true
+}

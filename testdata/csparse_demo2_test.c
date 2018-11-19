@@ -242,17 +242,20 @@ csi demo2 (problem *Prob)
 	/* test_cs_print(C,0); */
 
 	
-    /* for (order = 0 ; order <= 3 ; order += 3)   #<{(| natural and amd(A'*A) |)}># */
-    /* { */
-    /*     if (!order && m > 1000) continue ; */
-    /*     printf ("QR   ") ; */
-    /*     print_order (order) ; */
-    /*     rhs (x, b, m) ;                         #<{(| compute right-hand side |)}># */
-    /*     t = tic () ; */
-    /*     ok = cs_qrsol (order, C, x) ;           #<{(| min norm(Ax-b) with QR |)}># */
-    /*     printf ("time: %8.2f ", toc (t)) ; */
-    /*     print_resid (ok, C, x, b, resid) ;      #<{(| print residual |)}># */
-    /* } */
+    for (order = 0 ; order <= 3 ; order += 3)   /* natural and amd(A'*A) */
+    {
+		printf ("Order : %d\n",order);
+		printf ("M is : %d\n",m);
+        /* if (!order && m > 1000) continue ; */
+		printf ("Start order : %d\n",order);
+        printf ("QR   ") ;
+        print_order (order) ;
+        rhs (x, b, m) ;                         /* compute right-hand side */
+        t = tic () ;
+        ok = cs_qrsol (order, C, x) ;           /* min norm(Ax-b) with QR */
+        printf ("time: %8.2f ", toc (t)) ;
+        print_resid (ok, C, x, b, resid) ;      /* print residual */
+    }
 	
 
 	// (KI) debug info
