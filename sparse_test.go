@@ -456,27 +456,27 @@ func demo2(Prob *problem) bool {
 	// cs_print(C, false)
 
 	// natural and amd(A'*A)
-	// for order = 0; order <= 3; order += 3 {
-	// 	fmt.Printf("Order : %d\n", order)
-	// 	fmt.Printf("M is : %d\n", m)
-	// 	// if order != 0 && m > 1000 {
-	// 	// 	continue
-	// 	// }
-	// 	fmt.Printf("Start order : %d\n", order)
-	// 	fmt.Printf("QR   ")
-	// 	print_order(order)
-	// 	// compute right-hand side
-	// 	rhs(x, b, m)
-	// 	t = tic()
-	// 	// min norm(Ax-b) with QR
-	// 	ok = cs_qrsol(order, C, x)
-	// 	fmt.Printf("time: %8.2f ", toc(t))
-	// 	// print residual
-	// 	print_resid(ok, C, x, b, resid)
-	// 	for r := 0; r < m; r++ {
-	// 		fmt.Printf("x[%d] = %10e\n", r, x[r])
-	// 	}
-	// }
+	for order = 0; order <= 3; order += 3 {
+		fmt.Printf("Order : %d\n", order)
+		fmt.Printf("M is : %d\n", m)
+		// if order != 0 && m > 1000 {
+		// 	continue
+		// }
+		fmt.Printf("Start order : %d\n", order)
+		fmt.Printf("QR   ")
+		print_order(order)
+		// compute right-hand side
+		rhs(x, b, m)
+		t = tic()
+		// min norm(Ax-b) with QR
+		ok = cs_qrsol(order, C, x)
+		fmt.Printf("time: %8.2f ", toc(t))
+		// print residual
+		print_resid(ok, C, x, b, resid)
+		for r := 0; r < m; r++ {
+			fmt.Printf("x[%d] = %10e\n", r, x[r])
+		}
+	}
 
 	// (KI) debug info
 	// fmt.Printf("Matrix C after QR\n")
@@ -491,27 +491,27 @@ func demo2(Prob *problem) bool {
 	}
 
 	// try all orderings
-	// for order = 0; order <= 3; order++ {
-	// 	fmt.Printf("Order : %d\n", order)
-	// 	fmt.Printf("M is : %d\n", m)
-	// 	// if order != 0 && m > 1000 {
-	// 	// 	continue
-	// 	// }
-	// 	fmt.Printf("Start order : %d\n", order)
-	// 	fmt.Printf("LU   ")
-	// 	print_order(order)
-	// 	// compute right-hand side
-	// 	rhs(x, b, m)
-	// 	t = tic()
-	// 	// solve Ax=b with LU
-	// 	ok = cs_lusol(order, C, x, tol)
-	// 	fmt.Printf("time: %8.2f ", toc(t))
-	// 	// print residual
-	// 	print_resid(ok, C, x, b, resid)
-	// 	for r := 0; r < m; r++ {
-	// 		fmt.Printf("x[%d] = %10e\n", r, x[r])
-	// 	}
-	// }
+	for order = 0; order <= 3; order++ {
+		fmt.Printf("Order : %d\n", order)
+		fmt.Printf("M is : %d\n", m)
+		// if order != 0 && m > 1000 {
+		// 	continue
+		// }
+		fmt.Printf("Start order : %d\n", order)
+		fmt.Printf("LU   ")
+		print_order(order)
+		// compute right-hand side
+		rhs(x, b, m)
+		t = tic()
+		// solve Ax=b with LU
+		ok = cs_lusol(order, C, x, tol)
+		fmt.Printf("time: %8.2f ", toc(t))
+		// print residual
+		print_resid(ok, C, x, b, resid)
+		for r := 0; r < m; r++ {
+			fmt.Printf("x[%d] = %10e\n", r, x[r])
+		}
+	}
 
 	// (KI) debug info
 	// fmt.Printf("Matrix C after LU\n")

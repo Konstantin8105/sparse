@@ -10,7 +10,7 @@ Result of:
 75
 
 └─▪ cat sparse.go | grep -v "func()" | grep -v "function" | grep "func" |  grep -v "//" | wc -l
-62
+71
 ```
 
 #### **CSparse base on SuiteSparse 5.3.0**
