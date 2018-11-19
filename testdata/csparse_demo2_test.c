@@ -1,6 +1,44 @@
 #include "cs.h"
 #include <time.h>
 
+csi test_cs_print (const cs *A, csi brief)
+{
+    csi p, j, m, n, nzmax, nz, *Ap, *Ai ;
+    double *Ax ;
+    if (!A) { printf ("(null)\n") ; return (0) ; }
+    m = A->m ; n = A->n ; Ap = A->p ; Ai = A->i ; Ax = A->x ;
+    nzmax = A->nzmax ; nz = A->nz ;
+    printf ("CSparse Version %d.%d.%d, %s.  %s\n", CS_VER, CS_SUBVER,
+        CS_SUBSUB, CS_DATE, CS_COPYRIGHT) ;
+    if (nz < 0)
+    {
+        printf ("%g-by-%g, nzmax: %g nnz: %g, 1-norm: %10e\n", (double) m,
+            (double) n, (double) nzmax, (double) (Ap [n]), cs_norm (A)) ;
+        for (j = 0 ; j < n ; j++)
+        {
+            printf ("    col %g : locations %g to %g\n", (double) j, 
+                (double) (Ap [j]), (double) (Ap [j+1]-1)) ;
+            for (p = Ap [j] ; p < Ap [j+1] ; p++)
+            {
+                printf ("      %g : %10e\n", (double) (Ai [p]), Ax ? Ax [p] : 1) ;
+                if (brief && p > 20) { printf ("  ...\n") ; return (1) ; }
+            }
+        }
+    }
+    else
+    {
+        printf ("triplet: %g-by-%g, nzmax: %g nnz: %g\n", (double) m,
+            (double) n, (double) nzmax, (double) nz) ;
+        for (p = 0 ; p < nz ; p++)
+        {
+            printf ("    %g %g : %10e\n", (double) (Ai [p]), (double) (Ap [p]),
+                Ax ? Ax [p] : 1) ;
+            if (brief && p > 20) { printf ("  ...\n") ; return (1) ; }
+        }
+    }
+    return (1) ;
+}
+
 typedef struct problem_struct
 {
     cs *A ;
@@ -14,9 +52,9 @@ typedef struct problem_struct
 void print_problem(problem * P)
 {
 	printf("Matrix A:\n");
-	if (P->A) { cs_print(P->A,0);};
+	if (P->A) { test_cs_print(P->A,0);};
 	printf("Matrix C:\n");
-	if (P->C) { cs_print(P->C,0);};
+	if (P->C) { test_cs_print(P->C,0);};
 	printf("sym = %d\n",(int) P->sym);
 	
 	printf("Vector x\n");
@@ -101,8 +139,9 @@ static void print_resid (csi ok, cs *A, double *x, double *b, double *resid)
     m = A->m ; n = A->n ;
     for (i = 0 ; i < m ; i++) resid [i] = -b [i] ;  /* resid = -b */
     cs_gaxpy (A, x, resid) ;                        /* resid = resid + A*x  */
-    printf ("resid: %8.2e\n", norm (resid,m) / ((n == 0) ? 1 :
-        (cs_norm (A) * norm (x,n) + norm (b,m)))) ;
+    /* printf ("resid: %8.2e\n", norm (resid,m) / ((n == 0) ? 1 : */
+    /*     (cs_norm (A) * norm (x,n) + norm (b,m)))) ; */
+	printf("\n");
 }
 
 static void print_order (csi order)
@@ -178,14 +217,14 @@ csi demo2 (problem *Prob)
 	}
 	
 	// (KI): debug information
-	printf("Matrix D from function cs_dmperm\n");
-	{
-		if(D->p){printf("Vector p\n"); for(int i=0;i<m;i++) printf("p[%d] = %g\n",i,((double )D->p[i]));}
-		if(D->q){printf("Vector q\n"); for(int i=0;i<n;i++) printf("q[%d] = %g\n",i,((double )D->q[i]));}
-		if(D->nb){printf("nb = %g\n",((double)D->nb));}
-		if(D->rr){printf("Vector rr\n"); for(int i=0;i<5;i++) printf("rr[%d] = %g\n",i,((double)D->rr[i]));}
-		if(D->cc){printf("Vector cc\n"); for(int i=0;i<5;i++) printf("cc[%d] = %g\n",i,((double)D->cc[i]));}
-	}
+	/* printf("Matrix D from function cs_dmperm\n"); */
+	/* { */
+	/* 	if(D->p){printf("Vector p\n"); for(int i=0;i<m;i++) printf("p[%d] = %g\n",i,((double )D->p[i]));} */
+	/* 	if(D->q){printf("Vector q\n"); for(int i=0;i<n;i++) printf("q[%d] = %g\n",i,((double )D->q[i]));} */
+	/* 	if(D->nb){printf("nb = %g\n",((double)D->nb));} */
+	/* 	if(D->rr){printf("Vector rr\n"); for(int i=0;i<5;i++) printf("rr[%d] = %g\n",i,((double)D->rr[i]));} */
+	/* 	if(D->cc){printf("Vector cc\n"); for(int i=0;i<5;i++) printf("cc[%d] = %g\n",i,((double)D->cc[i]));} */
+	/* } */
 
 
     nb = D->nb ; r = D->r ; s = D->s ; rr = D->rr ;
@@ -197,19 +236,29 @@ csi demo2 (problem *Prob)
     printf ("blocks: %g singletons: %g structural rank: %g\n",
         (double) nb, (double) ns, (double) sprank) ;
     cs_dfree (D) ;
-    for (order = 0 ; order <= 3 ; order += 3)   /* natural and amd(A'*A) */
-    {
-        if (!order && m > 1000) continue ;
-        printf ("QR   ") ;
-        print_order (order) ;
-        rhs (x, b, m) ;                         /* compute right-hand side */
-        t = tic () ;
-        ok = cs_qrsol (order, C, x) ;           /* min norm(Ax-b) with QR */
-        printf ("time: %8.2f ", toc (t)) ;
-        print_resid (ok, C, x, b, resid) ;      /* print residual */
-    }
+
+	// (KI) debug info
+	/* printf("Matrix C before QR\n"); */
+	/* test_cs_print(C,0); */
+
+	
+    /* for (order = 0 ; order <= 3 ; order += 3)   #<{(| natural and amd(A'*A) |)}># */
+    /* { */
+    /*     if (!order && m > 1000) continue ; */
+    /*     printf ("QR   ") ; */
+    /*     print_order (order) ; */
+    /*     rhs (x, b, m) ;                         #<{(| compute right-hand side |)}># */
+    /*     t = tic () ; */
+    /*     ok = cs_qrsol (order, C, x) ;           #<{(| min norm(Ax-b) with QR |)}># */
+    /*     printf ("time: %8.2f ", toc (t)) ; */
+    /*     print_resid (ok, C, x, b, resid) ;      #<{(| print residual |)}># */
+    /* } */
 	
 
+	// (KI) debug info
+	// printf("Matrix C after QR\n");
+	// test_cs_print(C,0);
+	
 	// (KI) debug info
 	printf("m,n,sprank : %d:%d:%d\n", m,n,sprank);
 
@@ -224,19 +273,25 @@ csi demo2 (problem *Prob)
         ok = cs_lusol (order, C, x, tol) ;      /* solve Ax=b with LU */
         printf ("time: %8.2f ", toc (t)) ;
         print_resid (ok, C, x, b, resid) ;      /* print residual */
+		for (int r= 0;r<m;r++) printf("x[%d] = %10e\n",r,(double)x[r]);
     }
+
+	// (KI) debug info
+	// printf("Matrix C after LU\n");
+	// test_cs_print(C,0);
+
     if (!Prob->sym) return (1) ;
-    for (order = 0 ; order <= 1 ; order++)      /* natural and amd(A+A') */
-    {
-        if (!order && m > 1000) continue ;
-        printf ("Chol ") ;
-        print_order (order) ;
-        rhs (x, b, m) ;                         /* compute right-hand side */
-        t = tic () ;
-        ok = cs_cholsol (order, C, x) ;         /* solve Ax=b with Cholesky */
-        printf ("time: %8.2f ", toc (t)) ;
-        print_resid (ok, C, x, b, resid) ;      /* print residual */
-    }
+    /* for (order = 0 ; order <= 1 ; order++)      #<{(| natural and amd(A+A') |)}># */
+    /* { */
+    /*     if (!order && m > 1000) continue ; */
+    /*     printf ("Chol ") ; */
+    /*     print_order (order) ; */
+    /*     rhs (x, b, m) ;                         #<{(| compute right-hand side |)}># */
+    /*     t = tic () ; */
+    /*     ok = cs_cholsol (order, C, x) ;         #<{(| solve Ax=b with Cholesky |)}># */
+    /*     printf ("time: %8.2f ", toc (t)) ; */
+    /*     print_resid (ok, C, x, b, resid) ;      #<{(| print residual |)}># */
+    /* } */
     return (1) ;
 } 
 
@@ -245,7 +300,7 @@ csi demo2 (problem *Prob)
 int main (void)
 {
     problem *Prob = get_problem (stdin, 1e-14) ;
-	print_problem(Prob) ;
+	/* print_problem(Prob) ; */
     demo2 (Prob) ;
     free_problem (Prob) ;
     return (0) ;

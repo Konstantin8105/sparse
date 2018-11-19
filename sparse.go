@@ -144,7 +144,13 @@ type PtrdiffT = int
 
 // cs_amd - p = amd(A+A') if symmetric is true, or amd(A'A) otherwise
 // order 0:natural, 1:Chol, 2:LU, 3:QR
-func cs_amd(order int, A *cs) []int {
+func cs_amd(order int, A *cs) (result []int) {
+	// defer func() {
+	// 	// TODO (KI) remove - only for debug
+	// 	if result == nil {
+	// 		panic("cs_amd is nil")
+	// 	}
+	// }()
 	var C *cs
 	var A2 *cs
 	// var AT []cs
@@ -276,24 +282,21 @@ func cs_amd(order int, A *cs) []int {
 	// allocate result
 	P := make([]int, n+1)
 	// get workspace
-	var W [8][]int
-	for i := 0; i < 8; i++ {
-		W[i] = make([]int, n+1)
-	}
+	W := make([]int, 8*(n+1))
 	// add elbow room to C
-	t := cnz + cnz/5 + 2*n/8
-	if P == nil || cs_sprealloc(C, t) { //  || W == nil
+	t := cnz + cnz/5 + 2*n
+	if P == nil || W == nil || !cs_sprealloc(C, t) {
 		return cs_idone(P, C, W, false)
 	}
 	var (
-		len    = W[0]
-		nv     = W[1*(n+1)] //(*(*[1000000000]PtrdiffT)(unsafe.Pointer(uintptr(unsafe.Pointer(&W[0])) + (uintptr)(int(n+1))*unsafe.Sizeof(W[0]))))[:]
-		next   = W[2*(n+1)] // (*(*[1000000000]PtrdiffT)(unsafe.Pointer(uintptr(unsafe.Pointer(&W[0])) + (uintptr)(int(2*int(n+1)))*unsafe.Sizeof(W[0]))))[:]
-		head   = W[3*(n+1)] // (*(*[1000000000]PtrdiffT)(unsafe.Pointer(uintptr(unsafe.Pointer(&W[0])) + (uintptr)(int(3*int(n+1)))*unsafe.Sizeof(W[0]))))[:]
-		elen   = W[4*(n+1)] // (*(*[1000000000]PtrdiffT)(unsafe.Pointer(uintptr(unsafe.Pointer(&W[0])) + (uintptr)(int(4*int(n+1)))*unsafe.Sizeof(W[0]))))[:]
-		degree = W[5*(n+1)] // (*(*[1000000000]PtrdiffT)(unsafe.Pointer(uintptr(unsafe.Pointer(&W[0])) + (uintptr)(int(5*int(n+1)))*unsafe.Sizeof(W[0]))))[:]
-		w      = W[6*(n+1)] // (*(*[1000000000]PtrdiffT)(unsafe.Pointer(uintptr(unsafe.Pointer(&W[0])) + (uintptr)(int(6*int(n+1)))*unsafe.Sizeof(W[0]))))[:]
-		hhead  = W[7*(n+1)] // (*(*[1000000000]PtrdiffT)(unsafe.Pointer(uintptr(unsafe.Pointer(&W[0])) + (uintptr)(int(7*int(n+1)))*unsafe.Sizeof(W[0]))))[:]
+		len    = W[0:]
+		nv     = W[1*(n+1):] //(*(*[1000000000]PtrdiffT)(unsafe.Pointer(uintptr(unsafe.Pointer(&W[0])) + (uintptr)(int(n+1))*unsafe.Sizeof(W[0]))))[:]
+		next   = W[2*(n+1):] // (*(*[1000000000]PtrdiffT)(unsafe.Pointer(uintptr(unsafe.Pointer(&W[0])) + (uintptr)(int(2*int(n+1)))*unsafe.Sizeof(W[0]))))[:]
+		head   = W[3*(n+1):] // (*(*[1000000000]PtrdiffT)(unsafe.Pointer(uintptr(unsafe.Pointer(&W[0])) + (uintptr)(int(3*int(n+1)))*unsafe.Sizeof(W[0]))))[:]
+		elen   = W[4*(n+1):] // (*(*[1000000000]PtrdiffT)(unsafe.Pointer(uintptr(unsafe.Pointer(&W[0])) + (uintptr)(int(4*int(n+1)))*unsafe.Sizeof(W[0]))))[:]
+		degree = W[5*(n+1):] // (*(*[1000000000]PtrdiffT)(unsafe.Pointer(uintptr(unsafe.Pointer(&W[0])) + (uintptr)(int(5*int(n+1)))*unsafe.Sizeof(W[0]))))[:]
+		w      = W[6*(n+1):] // (*(*[1000000000]PtrdiffT)(unsafe.Pointer(uintptr(unsafe.Pointer(&W[0])) + (uintptr)(int(6*int(n+1)))*unsafe.Sizeof(W[0]))))[:]
+		hhead  = W[7*(n+1):] // (*(*[1000000000]PtrdiffT)(unsafe.Pointer(uintptr(unsafe.Pointer(&W[0])) + (uintptr)(int(7*int(n+1)))*unsafe.Sizeof(W[0]))))[:]
 
 		// use P as workspace for last
 		last = P
@@ -3819,7 +3822,13 @@ func cs_vcount(A *cs, S *css) bool {
 
 // cs_sqr - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_sqr.c:60
 // symbolic ordering and analysis for QR or LU
-func cs_sqr(order int, A *cs, qr bool) *css {
+func cs_sqr(order int, A *cs, qr bool) (result *css) {
+	// defer func() {
+	// 	// TODO (KI): remove debug info
+	// 	if result == nil {
+	// 		panic("cs_sqr == nil")
+	// 	}
+	// }()
 	var n PtrdiffT
 	var k PtrdiffT
 	var ok bool = true
@@ -3837,7 +3846,7 @@ func cs_sqr(order int, A *cs, qr bool) *css {
 		return nil
 	}
 	// fill-reducing ordering
-	S.q = cs_amd(PtrdiffT(order), A)
+	S.q = cs_amd(order, A)
 	if order != 0 && S.q == nil {
 		return (cs_sfree(S))
 	}
@@ -4290,7 +4299,13 @@ func cs_spalloc(m, n, nzmax int, values, triplet bool) *cs {
 }
 
 // cs_sprealloc - change the max # of entries sparse matrix
-func cs_sprealloc(A *cs, nzmax int) bool {
+func cs_sprealloc(A *cs, nzmax int) (result bool) {
+	// defer func() {
+	// 	// TODO (KI) : remove debug information
+	// 	if result == false {
+	// 		panic("cs_sprealloc is false")
+	// 	}
+	// }()
 	var oki bool
 	var okj bool = true
 	var okx bool = true

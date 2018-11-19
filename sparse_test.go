@@ -148,9 +148,9 @@ func TestDemo2(t *testing.T) {
 	for i := range matrixes {
 
 		// TODO : remove
-		if !strings.Contains(matrixes[i], "bcsstk01") {
-			continue
-		}
+		// if !strings.Contains(matrixes[i], "bcsstk01") {
+		// 	continue
+		// }
 
 		t.Run("Demo2: "+matrixes[i], func(t *testing.T) {
 			// data checking
@@ -169,7 +169,7 @@ func TestDemo2(t *testing.T) {
 			var stdin bytes.Buffer
 			stdin.Write(b)
 			prob := get_problem(&stdin, 1e-14)
-			print_problem(prob)
+			// print_problem(prob)
 			demo2(prob)
 
 			filename := tmpfile.Name()
@@ -410,26 +410,26 @@ func demo2(Prob *problem) bool {
 	}
 
 	// (KI): debug information
-	fmt.Println("Matrix D from function cs_dmperm")
-	{
-		fmt.Printf("Vector p\n")
-		for i := range D.p {
-			fmt.Printf("p[%d] = %d\n", i, D.p[i])
-		}
-		fmt.Printf("Vector q\n")
-		for i := range D.q {
-			fmt.Printf("q[%d] = %d\n", i, D.q[i])
-		}
-		fmt.Printf("nb = %d\n", D.nb)
-		fmt.Printf("Vector rr\n")
-		for i := 0; i < 5; i++ {
-			fmt.Printf("rr[%d] = %d\n", i, D.rr[i])
-		}
-		fmt.Printf("Vector cc\n")
-		for i := 0; i < 5; i++ {
-			fmt.Printf("cc[%d] = %d\n", i, D.cc[i])
-		}
-	}
+	// fmt.Println("Matrix D from function cs_dmperm")
+	// {
+	// 	fmt.Printf("Vector p\n")
+	// 	for i := range D.p {
+	// 		fmt.Printf("p[%d] = %d\n", i, D.p[i])
+	// 	}
+	// 	fmt.Printf("Vector q\n")
+	// 	for i := range D.q {
+	// 		fmt.Printf("q[%d] = %d\n", i, D.q[i])
+	// 	}
+	// 	fmt.Printf("nb = %d\n", D.nb)
+	// 	fmt.Printf("Vector rr\n")
+	// 	for i := 0; i < 5; i++ {
+	// 		fmt.Printf("rr[%d] = %d\n", i, D.rr[i])
+	// 	}
+	// 	fmt.Printf("Vector cc\n")
+	// 	for i := 0; i < 5; i++ {
+	// 		fmt.Printf("cc[%d] = %d\n", i, D.cc[i])
+	// 	}
+	// }
 
 	nb := D.nb
 	r := D.r
@@ -448,22 +448,30 @@ func demo2(Prob *problem) bool {
 	fmt.Printf("blocks: %d singletons: %d structural rank: %d\n", nb, ns, sprank)
 	cs_dfree(D)
 
+	// (KI) debug info
+	// fmt.Printf("Matrix C before QR\n")
+	// cs_print(C, false)
+
 	// natural and amd(A'*A)
-	for order = 0; order <= 3; order += 3 {
-		if order != 0 && m > 1000 {
-			continue
-		}
-		fmt.Printf("QR   ")
-		print_order(order)
-		// compute right-hand side
-		rhs(x, b, m)
-		t = tic()
-		// min norm(Ax-b) with QR
-		ok = cs_qrsol(order, C, x)
-		fmt.Printf("time: %8.2f ", toc(t))
-		// print residual
-		print_resid(ok, C, x, b, resid)
-	}
+	// for order = 0; order <= 3; order += 3 {
+	// 	if order != 0 && m > 1000 {
+	// 		continue
+	// 	}
+	// 	fmt.Printf("QR   ")
+	// 	print_order(order)
+	// 	// compute right-hand side
+	// 	rhs(x, b, m)
+	// 	t = tic()
+	// 	// min norm(Ax-b) with QR
+	// 	ok = cs_qrsol(order, C, x)
+	// 	fmt.Printf("time: %8.2f ", toc(t))
+	// 	// print residual
+	// 	print_resid(ok, C, x, b, resid)
+	// }
+
+	// (KI) debug info
+	// fmt.Printf("Matrix C after QR\n")
+	// cs_print(C, false)
 
 	// (KI) debug info
 	fmt.Printf("m,n,sprank : %d:%d:%d\n", m, n, sprank)
@@ -488,28 +496,35 @@ func demo2(Prob *problem) bool {
 		fmt.Printf("time: %8.2f ", toc(t))
 		// print residual
 		print_resid(ok, C, x, b, resid)
+		for r := 0; r < m; r++ {
+			fmt.Printf("x[%d] = %10e\n", r, x[r])
+		}
 	}
+
+	// (KI) debug info
+	// fmt.Printf("Matrix C after LU\n")
+	// cs_print(C, false)
 
 	if Prob.sym != 0 {
 		return true
 	}
 
 	// natural and amd(A+A')
-	for order = 0; order <= 1; order++ {
-		if order != 0 && m > 1000 {
-			continue
-		}
-		fmt.Printf("Chol ")
-		print_order(order)
-		// compute right-hand side
-		rhs(x, b, m)
-		t = tic()
-		// solve Ax=b with Cholesky
-		ok = cs_cholsol(order, C, x)
-		fmt.Printf("time: %8.2f ", toc(t))
-		// print residual
-		print_resid(ok, C, x, b, resid)
-	}
+	// for order = 0; order <= 1; order++ {
+	// 	if order != 0 && m > 1000 {
+	// 		continue
+	// 	}
+	// 	fmt.Printf("Chol ")
+	// 	print_order(order)
+	// 	// compute right-hand side
+	// 	rhs(x, b, m)
+	// 	t = tic()
+	// 	// solve Ax=b with Cholesky
+	// 	ok = cs_cholsol(order, C, x)
+	// 	fmt.Printf("time: %8.2f ", toc(t))
+	// 	// print residual
+	// 	print_resid(ok, C, x, b, resid)
+	// }
 
 	return true
 }
@@ -574,12 +589,14 @@ func print_resid(ok bool, A *cs, x []float64, b []float64, resid []float64) {
 
 	// resid = resid + A*x
 	cs_gaxpy(A, x, resid)
-	fmt.Printf("resid: %8.2e\n", norm(resid, m)/func() float64 {
-		if n == 0 {
-			return 1
-		}
-		return cs_norm(A)*norm(x, n) + norm(b, m)
-	}())
+	// fmt.Printf("resid: %8.2e\n", norm(resid, m)/func() float64 {
+	// 	if n == 0 {
+	// 		return 1
+	// 	}
+	// 	return cs_norm(A)*norm(x, n) + norm(b, m)
+	// }())
+	_ = n
+	fmt.Println()
 }
 
 // print_order - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/testdata/csparse_demo2_test.c:91
