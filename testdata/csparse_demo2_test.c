@@ -242,20 +242,21 @@ csi demo2 (problem *Prob)
 	/* test_cs_print(C,0); */
 
 	
-    for (order = 0 ; order <= 3 ; order += 3)   /* natural and amd(A'*A) */
-    {
-		printf ("Order : %d\n",order);
-		printf ("M is : %d\n",m);
-        /* if (!order && m > 1000) continue ; */
-		printf ("Start order : %d\n",order);
-        printf ("QR   ") ;
-        print_order (order) ;
-        rhs (x, b, m) ;                         /* compute right-hand side */
-        t = tic () ;
-        ok = cs_qrsol (order, C, x) ;           /* min norm(Ax-b) with QR */
-        printf ("time: %8.2f ", toc (t)) ;
-        print_resid (ok, C, x, b, resid) ;      /* print residual */
-    }
+    /* for (order = 0 ; order <= 3 ; order += 3)   #<{(| natural and amd(A'*A) |)}># */
+    /* { */
+	/* 	printf ("Order : %d\n",order); */
+	/* 	printf ("M is : %d\n",m); */
+    /*     #<{(| if (!order && m > 1000) continue ; |)}># */
+	/* 	printf ("Start order : %d\n",order); */
+    /*     printf ("QR   ") ; */
+    /*     print_order (order) ; */
+    /*     rhs (x, b, m) ;                         #<{(| compute right-hand side |)}># */
+    /*     t = tic () ; */
+    /*     ok = cs_qrsol (order, C, x) ;           #<{(| min norm(Ax-b) with QR |)}># */
+    /*     printf ("time: %8.2f ", toc (t)) ; */
+    /*     print_resid (ok, C, x, b, resid) ;      #<{(| print residual |)}># */
+	/* 	for (int r= 0;r<m;r++) printf("x[%d] = %10e\n",r,(double)x[r]); */
+    /* } */
 	
 
 	// (KI) debug info
@@ -266,38 +267,44 @@ csi demo2 (problem *Prob)
 	printf("m,n,sprank : %d:%d:%d\n", m,n,sprank);
 
     if (m != n || sprank < n) return (1) ;      /* return if rect. or singular*/
-    for (order = 0 ; order <= 3 ; order++)      /* try all orderings */
+    /* for (order = 0 ; order <= 3 ; order++)      #<{(| try all orderings |)}># */
+    /* { */
+	/* 	printf ("Order : %d\n",order); */
+	/* 	printf ("M is : %d\n",m); */
+    /*     #<{(| if (!order && m > 1000) continue ; |)}># */
+	/* 	printf ("Start order : %d\n",order); */
+    /*     printf ("LU   ") ; */
+    /*     print_order (order) ; */
+    /*     rhs (x, b, m) ;                         #<{(| compute right-hand side |)}># */
+    /*     t = tic () ; */
+    /*     ok = cs_lusol (order, C, x, tol) ;      #<{(| solve Ax=b with LU |)}># */
+    /*     printf ("time: %8.2f ", toc (t)) ; */
+    /*     print_resid (ok, C, x, b, resid) ;      #<{(| print residual |)}># */
+	/* 	for (int r= 0;r<m;r++) printf("x[%d] = %10e\n",r,(double)x[r]); */
+    /* } */
+
+	// (KI) debug info
+	// printf("Matrix C after LU\n");
+	// test_cs_print(C,0);
+	
+	printf("Problem sym is : %d\n",(int) Prob->sym); 
+
+    if (!Prob->sym) return (1) ;
+    for (order = 0 ; order <= 1 ; order++)      /* natural and amd(A+A') */
     {
 		printf ("Order : %d\n",order);
 		printf ("M is : %d\n",m);
         /* if (!order && m > 1000) continue ; */
 		printf ("Start order : %d\n",order);
-        printf ("LU   ") ;
+        printf ("Chol ") ;
         print_order (order) ;
         rhs (x, b, m) ;                         /* compute right-hand side */
         t = tic () ;
-        ok = cs_lusol (order, C, x, tol) ;      /* solve Ax=b with LU */
+        ok = cs_cholsol (order, C, x) ;         /* solve Ax=b with Cholesky */
         printf ("time: %8.2f ", toc (t)) ;
         print_resid (ok, C, x, b, resid) ;      /* print residual */
-		for (int r= 0;r<m;r++) printf("x[%d] = %10e\n",r,(double)x[r]);
+	 	for (int r= 0;r<m;r++) printf("x[%d] = %10e\n",r,(double)x[r]); 
     }
-
-	// (KI) debug info
-	// printf("Matrix C after LU\n");
-	// test_cs_print(C,0);
-
-    if (!Prob->sym) return (1) ;
-    /* for (order = 0 ; order <= 1 ; order++)      #<{(| natural and amd(A+A') |)}># */
-    /* { */
-    /*     if (!order && m > 1000) continue ; */
-    /*     printf ("Chol ") ; */
-    /*     print_order (order) ; */
-    /*     rhs (x, b, m) ;                         #<{(| compute right-hand side |)}># */
-    /*     t = tic () ; */
-    /*     ok = cs_cholsol (order, C, x) ;         #<{(| solve Ax=b with Cholesky |)}># */
-    /*     printf ("time: %8.2f ", toc (t)) ; */
-    /*     print_resid (ok, C, x, b, resid) ;      #<{(| print residual |)}># */
-    /* } */
     return (1) ;
 } 
 

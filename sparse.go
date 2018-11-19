@@ -213,6 +213,7 @@ func cs_amd(order int, A *cs) (result []int) {
 	if !(A != nil && A.nz == -1) || order <= 0 || order > 3 {
 		// --- Construct matrix C -----------------------------------------------
 		// check
+		// panic(fmt.Errorf("%v %v %v %v", A != nil, A.nz == -1, order <= 0, order > 3)) // TODO: (KI) remove
 		return nil
 	}
 	// compute A'
@@ -862,186 +863,185 @@ func cs_amd(order int, A *cs) (result []int) {
 	return cs_idone(P, C, W, true)
 }
 
-//
-// // cs_chol - L = chol (A, [pinv parent cp]), pinv is optional
-// func cs_chol(A []cs, S []css) []csn {
-// 	var d float64
-// 	var lki float64
-// 	var Lx []float64
-// 	var x []float64
-// 	var Cx []float64
-// 	var top int
-// 	var i int
-// 	var p int
-// 	var k int
-// 	var n int
-// 	var Li []int
-// 	var Lp []int
-// 	var cp []int
-// 	var pinv []int
-// 	var s []int
-// 	var c []int
-// 	var parent []int
-// 	var Cp []int
-// 	var Ci []int
-// 	var L []cs
-// 	var C []cs
-// 	var E []cs
-// 	var N []csn
-// 	if !(A != nil && A.nz == -1) || S == nil || S.cp == nil || S.parent == nil {
-// 		return nil
-// 	}
-// 	n = A.n
-// 	// allocate result
-// 	N = new(*csn) // cs_calloc(1, uint(32)).([]csn)
-// 	// get csi workspace
-// 	c = cs_malloc(PtrdiffT(2*int(n)/8), uint(0)).([]PtrdiffT)
-// 	// get double workspace
-// 	x = cs_malloc(n, uint(8)).([]float64)
-// 	cp = S.cp
-// 	pinv = S.pinv
-// 	parent = S.parent
-// 	C = func() []cs {
-// 		if pinv != nil {
-// 			return cs_symperm(A, pinv, 1)
-// 		}
-// 		return (A)
-// 	}()
-// 	// E is alias for A, or a copy E=A(p,p)
-// 	E = func() []cs {
-// 		if pinv != nil {
-// 			return C
-// 		}
-// 		return nil
-// 	}()
-// 	if N == nil || c == nil || x == nil || C == nil {
-// 		return (cs_ndone(N, E, c, x, 0))
-// 	}
-// 	s = (*(*[1000000000]PtrdiffT)(unsafe.Pointer(uintptr(unsafe.Pointer(&c[0])) + (uintptr)(int(n))*unsafe.Sizeof(c[0]))))[:]
-// 	Cp = C.p
-// 	Ci = C.i
-// 	Cx = C.x
-// 	L = cs_spalloc(n, n, PtrdiffT(cp[n]), 1, 0)
-// 	// allocate result
-// 	N.L = L
-// 	if L == nil {
-// 		return (cs_ndone(N, E, c, x, 0))
-// 	}
-// 	Lp = L.p
-// 	Li = L.i
-// 	Lx = L.x
-// 	for k = 0; k < n; k++ {
-// 		c[k] = cp[k]
-// 		Lp[k] = c[k]
-// 	}
-// 	{
-// 		// compute L(k,:) for L*L' = C
-// 		for k = 0; k < n; k++ {
-// 			// --- Nonzero pattern of L(k,:) ------------------------------------
-// 			// find pattern of L(k,:)
-// 			top = cs_ereach(C, PtrdiffT(k), parent, s, c)
-// 			// x (0:k) is now zero
-// 			x[k] = 0
-// 			{
-// 				// x = full(triu(C(:,k)))
-// 				for p = Cp[k]; p < Cp[k+1]; p++ {
-// 					if Ci[p] <= k {
-// 						x[Ci[p]] = Cx[p]
-// 					}
-// 				}
-// 			}
-// 			// d = C(k,k)
-// 			d = x[k]
-// 			// clear x for k+1st iteration
-// 			x[k] = 0
-// 			for ; top < n; top++ {
-// 				// --- Triangular solve ---------------------------------------------
-// 				// solve L(0:k-1,0:k-1) * x = C(:,k)
-// 				// s [top..n-1] is pattern of L(k,:)
-// 				i = s[top]
-// 				// L(k,i) = x (i) / L(i,i)
-// 				lki = x[i] / Lx[Lp[i]]
-// 				// clear x for k+1st iteration
-// 				x[i] = 0
-// 				for p = Lp[i] + 1; p < c[i]; p++ {
-// 					x[Li[p]] -= Lx[p] * lki
-// 				}
-// 				// d = d - L(k,i)*L(k,i)
-// 				d -= lki * lki
-// 				p = func() int {
-// 					tempVar := &c[i]
-// 					defer func() {
-// 						*tempVar++
-// 					}()
-// 					return *tempVar
-// 				}()
-// 				// store L(k,i) in column i
-// 				Li[p] = k
-// 				Lx[p] = lki
-// 			}
-// 			if d <= 0 {
-// 				// --- Compute L(k,k) -----------------------------------------------
-// 				// not pos def
-// 				return (cs_ndone(N, E, c, x, 0))
-// 			}
-// 			p = func() int {
-// 				tempVar := &c[k]
-// 				defer func() {
-// 					*tempVar++
-// 				}()
-// 				return *tempVar
-// 			}()
-// 			// store L(k,k) = sqrt (d) in column k
-// 			Li[p] = k
-// 			Lx[p] = math.Sqrt(d)
-// 		}
-// 	}
-// 	// finalize L
-// 	Lp[n] = cp[n]
-// 	// success: free E,s,x; return N
-// 	return (cs_ndone(N, E, c, x, 1))
-// }
-//
+// cs_chol - L = chol (A, [pinv parent cp]), pinv is optional
+func cs_chol(A *cs, S *css) *csn {
+	var d float64
+	var lki float64
+	var Lx []float64
+	var x []float64
+	var Cx []float64
+	var top int
+	var i int
+	var p int
+	var k int
+	var n int
+	var Li []int
+	var Lp []int
+	var cp []int
+	var pinv []int
+	var s []int
+	var c []int
+	var parent []int
+	var Cp []int
+	var Ci []int
+	var L *cs
+	var C *cs
+	var E *cs
+	var N *csn
+	if !(A != nil && A.nz == -1) || S == nil || S.cp == nil || S.parent == nil {
+		return nil
+	}
+	n = A.n
+	// allocate result
+	N = new(csn) // cs_calloc(1, uint(32)).([]csn)
+	// get csi workspace
+	c = make([]int, 2*n) //cs_malloc(PtrdiffT(2*int(n)/8), uint(0)).([]PtrdiffT)
+	// get double workspace
+	x = make([]float64, n) // cs_malloc(n, uint(8)).([]float64)
+	cp = S.cp
+	pinv = S.pinv
+	parent = S.parent
+	C = func() *cs {
+		if pinv != nil {
+			return cs_symperm(A, pinv, true)
+		}
+		return (A)
+	}()
+	// E is alias for A, or a copy E=A(p,p)
+	E = func() *cs {
+		if pinv != nil {
+			return C
+		}
+		return nil
+	}()
+	if N == nil || c == nil || x == nil || C == nil {
+		return (cs_ndone(N, E, c, x, false))
+	}
+	s = c[n:] // (*(*[1000000000]PtrdiffT)(unsafe.Pointer(uintptr(unsafe.Pointer(&c[0])) + (uintptr)(int(n))*unsafe.Sizeof(c[0]))))[:]
+	Cp = C.p
+	Ci = C.i
+	Cx = C.x
+	L = cs_spalloc(n, n, PtrdiffT(cp[n]), true, false)
+	// allocate result
+	N.L = L
+	if L == nil {
+		return (cs_ndone(N, E, c, x, false))
+	}
+	Lp = L.p
+	Li = L.i
+	Lx = L.x
+	for k = 0; k < n; k++ {
+		c[k] = cp[k]
+		Lp[k] = c[k]
+	}
+	{
+		// compute L(k,:) for L*L' = C
+		for k = 0; k < n; k++ {
+			// --- Nonzero pattern of L(k,:) ------------------------------------
+			// find pattern of L(k,:)
+			top = cs_ereach(C, PtrdiffT(k), parent, s, c)
+			// x (0:k) is now zero
+			x[k] = 0
+			{
+				// x = full(triu(C(:,k)))
+				for p = Cp[k]; p < Cp[k+1]; p++ {
+					if Ci[p] <= k {
+						x[Ci[p]] = Cx[p]
+					}
+				}
+			}
+			// d = C(k,k)
+			d = x[k]
+			// clear x for k+1st iteration
+			x[k] = 0
+			for ; top < n; top++ {
+				// --- Triangular solve ---------------------------------------------
+				// solve L(0:k-1,0:k-1) * x = C(:,k)
+				// s [top..n-1] is pattern of L(k,:)
+				i = s[top]
+				// L(k,i) = x (i) / L(i,i)
+				lki = x[i] / Lx[Lp[i]]
+				// clear x for k+1st iteration
+				x[i] = 0
+				for p = Lp[i] + 1; p < c[i]; p++ {
+					x[Li[p]] -= Lx[p] * lki
+				}
+				// d = d - L(k,i)*L(k,i)
+				d -= lki * lki
+				p = func() int {
+					tempVar := &c[i]
+					defer func() {
+						*tempVar++
+					}()
+					return *tempVar
+				}()
+				// store L(k,i) in column i
+				Li[p] = k
+				Lx[p] = lki
+			}
+			if d <= 0 {
+				// --- Compute L(k,k) -----------------------------------------------
+				// not pos def
+				return (cs_ndone(N, E, c, x, false))
+			}
+			p = func() int {
+				tempVar := &c[k]
+				defer func() {
+					*tempVar++
+				}()
+				return *tempVar
+			}()
+			// store L(k,k) = sqrt (d) in column k
+			Li[p] = k
+			Lx[p] = math.Sqrt(d)
+		}
+	}
+	// finalize L
+	Lp[n] = cp[n]
+	// success: free E,s,x; return N
+	return (cs_ndone(N, E, c, x, true))
+}
+
 // cs_cholsol - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_cholsol.c:3
 // x=A\b where A is symmetric positive definite; b overwritten with solution
-func cs_cholsol(order PtrdiffT, A *cs, b []float64) bool {
-
-	//
-	// TODO (KI): create
-	//
-	return false
-
-	// 	var x []float64
-	// 	var S []css
-	// 	var N []csn
-	// 	var n PtrdiffT
-	// 	var ok PtrdiffT
-	// 	if !(A != nil && A.nz == -1) || b == nil {
-	// 		// check inputs
-	// 		return 0
+func cs_cholsol(order PtrdiffT, A *cs, b []float64) (result bool) {
+	// defer func() {
+	// 	if result == false {
+	// 		// TODO (KI) : remove , only for debugging
+	// 		panic("cs_cholsol is false")
 	// 	}
-	// 	n = A.n
-	// 	// ordering and symbolic analysis
-	// 	S = cs_schol(PtrdiffT(order), A)
-	// 	// numeric Cholesky factorization
-	// 	N = cs_chol(A, S)
-	// 	// get workspace
-	// 	x = cs_malloc(n, uint(8)).([]float64)
-	// 	ok = PtrdiffT(S != nil && N != nil && x != nil)
-	// 	if bool(ok) {
-	// 		// x = P*b
-	// 		cs_ipvec(S.pinv, b, x, n)
-	// 		// x = L\x
-	// 		cs_lsolve(N.L, x)
-	// 		// x = L'\x
-	// 		cs_ltsolve(N.L, x)
-	// 		// b = P'*x
-	// 		cs_pvec(S.pinv, x, b, n)
-	// 	}
-	// 	cs_free(x)
-	// 	cs_sfree(S)
-	// 	cs_nfree(N)
-	// 	return PtrdiffT((ok))
+	// }()
+	var x []float64
+	var S *css
+	var N *csn
+	var n PtrdiffT
+	var ok bool
+	if !(A != nil && A.nz == -1) || b == nil {
+		// check inputs
+		return false
+	}
+	n = A.n
+	// ordering and symbolic analysis
+	S = cs_schol(order, A)
+	// numeric Cholesky factorization
+	N = cs_chol(A, S)
+	// get workspace
+	x = make([]float64, n) // cs_malloc(n, uint(8)).([]float64)
+	ok = (S != nil && N != nil && x != nil)
+	if ok {
+		// x = P*b
+		cs_ipvec(S.pinv, b, x, n)
+		// x = L\x
+		cs_lsolve(N.L, x)
+		// x = L'\x
+		cs_ltsolve(N.L, x)
+		// b = P'*x
+		cs_pvec(S.pinv, x, b, n)
+	}
+	cs_free(x)
+	cs_sfree(S)
+	cs_nfree(N)
+	return ok
 }
 
 // cs_compress - C = compressed-column form of a triplet matrix T
@@ -1279,9 +1279,9 @@ func cs_counts(A *cs, parent []PtrdiffT, post []PtrdiffT, ata bool) []PtrdiffT {
 }
 
 // cs_cumsum - p [0..n] = cumulative sum of c [0..n-1], and then copy p [0..n-1] into c
-func cs_cumsum(p []int, c []int, n int) int64 {
+func cs_cumsum(p []int, c []int, n int) int { // TODO (KI) : research nz2 to overflow
 	var nz int
-	var nz2 int64
+	var nz2 int
 	if p == nil || c == nil {
 		// check inputs
 		return -1
@@ -1290,13 +1290,13 @@ func cs_cumsum(p []int, c []int, n int) int64 {
 		p[i] = nz
 		nz += c[i]
 		// also in double to avoid csi overflow
-		nz2 += int64(c[i])
+		nz2 += c[i] // TODO (KI) : research nz2 to overflow
 		// also copy p[0..n-1] back into c[0..n-1]
 		c[i] = p[i]
 	}
 	p[n] = nz
 	// return sum (c [0..n-1])
-	return nz2
+	return nz2 // TODO (KI) : research nz2 to overflow
 }
 
 // cs_dfs - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_dfs.c:3
@@ -1797,75 +1797,75 @@ func cs_entry(T *cs, i, j int, x float64) bool {
 	return true
 }
 
-// // cs_ereach - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_ereach.c:3
-// // find nonzero pattern of Cholesky L(k,1:k-1) using etree and triu(A(:,k))
-// func cs_ereach(A []cs, k PtrdiffT, parent []PtrdiffT, s []PtrdiffT, w []PtrdiffT) PtrdiffT {
-// 	var i PtrdiffT
-// 	var p PtrdiffT
-// 	var n PtrdiffT
-// 	var len PtrdiffT
-// 	var top PtrdiffT
-// 	var Ap []PtrdiffT
-// 	var Ai []PtrdiffT
-// 	if !(A != nil && A.nz == -1) || parent == nil || s == nil || w == nil {
-// 		// check inputs
-// 		return -1
-// 	}
-// 	n = A.n
-// 	top = n
-// 	Ap = A.p
-// 	Ai = A.i
-// 	{
-// 		// mark node k as visited
-// 		w[k] = -PtrdiffT((w[k])) - 2
-// 	}
-// 	for p = Ap[k]; p < Ap[k+1]; p++ {
-// 		// A(i,k) is nonzero
-// 		i = Ai[p]
-// 		if i > k {
-// 			// only use upper triangular part of A
-// 			continue
-// 		}
-// 		{
-// 			// traverse up etree
-// 			for len = 0; !(w[i] < 0); i = parent[i] {
-// 				// L(k,i) is nonzero
-// 				s[func() int {
-// 					defer func() {
-// 						len++
-// 					}()
-// 					return len
-// 				}()] = i
-// 				{
-// 					// mark i as visited
-// 					w[i] = -PtrdiffT((w[i])) - 2
-// 				}
-// 			}
-// 		}
-// 		for len > 0 {
-// 			// push path onto stack
-// 			s[func() int {
-// 				top--
-// 				return top
-// 			}()] = s[func() int {
-// 				len--
-// 				return len
-// 			}()]
-// 		}
-// 	}
-// 	{
-// 		// unmark all nodes
-// 		for p = top; p < n; p++ {
-// 			w[s[p]] = -PtrdiffT((w[s[p]])) - 2
-// 		}
-// 	}
-// 	{
-// 		// unmark node k
-// 		w[k] = -PtrdiffT((w[k])) - 2
-// 	}
-// 	// s [top..n-1] contains pattern of L(k,:)
-// 	return PtrdiffT((top))
-// }
+// cs_ereach - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_ereach.c:3
+// find nonzero pattern of Cholesky L(k,1:k-1) using etree and triu(A(:,k))
+func cs_ereach(A *cs, k PtrdiffT, parent []PtrdiffT, s []PtrdiffT, w []PtrdiffT) PtrdiffT {
+	var i PtrdiffT
+	var p PtrdiffT
+	var n PtrdiffT
+	var len PtrdiffT
+	var top PtrdiffT
+	var Ap []PtrdiffT
+	var Ai []PtrdiffT
+	if !(A != nil && A.nz == -1) || parent == nil || s == nil || w == nil {
+		// check inputs
+		return -1
+	}
+	n = A.n
+	top = n
+	Ap = A.p
+	Ai = A.i
+	{
+		// mark node k as visited
+		w[k] = -PtrdiffT((w[k])) - 2
+	}
+	for p = Ap[k]; p < Ap[k+1]; p++ {
+		// A(i,k) is nonzero
+		i = Ai[p]
+		if i > k {
+			// only use upper triangular part of A
+			continue
+		}
+		{
+			// traverse up etree
+			for len = 0; !(w[i] < 0); i = parent[i] {
+				// L(k,i) is nonzero
+				s[func() int {
+					defer func() {
+						len++
+					}()
+					return len
+				}()] = i
+				{
+					// mark i as visited
+					w[i] = -PtrdiffT((w[i])) - 2
+				}
+			}
+		}
+		for len > 0 {
+			// push path onto stack
+			s[func() int {
+				top--
+				return top
+			}()] = s[func() int {
+				len--
+				return len
+			}()]
+		}
+	}
+	{
+		// unmark all nodes
+		for p = top; p < n; p++ {
+			w[s[p]] = -PtrdiffT((w[s[p]])) - 2
+		}
+	}
+	{
+		// unmark node k
+		w[k] = -PtrdiffT((w[k])) - 2
+	}
+	// s [top..n-1] contains pattern of L(k,:)
+	return PtrdiffT((top))
+}
 
 // cs_etree - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_etree.c:3
 // compute the etree of A (using triu(A), or A'A without forming A'A
@@ -2187,31 +2187,31 @@ func cs_lsolve(L *cs, x []float64) int {
 	return 1
 }
 
-// // cs_ltsolve - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_ltsolve.c:3
-// // solve L'x=b where x and b are dense.  x=b on input, solution on output.
-// func cs_ltsolve(L []cs, x []float64) PtrdiffT {
-// 	var p PtrdiffT
-// 	var j PtrdiffT
-// 	var n PtrdiffT
-// 	var Lp []PtrdiffT
-// 	var Li []PtrdiffT
-// 	var Lx []float64
-// 	if !(L != nil && PtrdiffT(L.nz) == -1) || x == nil {
-// 		// check inputs
-// 		return 0
-// 	}
-// 	n = L.n
-// 	Lp = L.p
-// 	Li = L.i
-// 	Lx = L.x
-// 	for j = n - 1; j >= 0; j-- {
-// 		for p = Lp[j] + 1; p < Lp[j+1]; p++ {
-// 			x[j] -= Lx[p] * x[Li[p]]
-// 		}
-// 		x[j] /= Lx[Lp[j]]
-// 	}
-// 	return 1
-// }
+// cs_ltsolve - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_ltsolve.c:3
+// solve L'x=b where x and b are dense.  x=b on input, solution on output.
+func cs_ltsolve(L *cs, x []float64) bool {
+	var p PtrdiffT
+	var j PtrdiffT
+	var n PtrdiffT
+	var Lp []PtrdiffT
+	var Li []PtrdiffT
+	var Lx []float64
+	if !(L != nil && PtrdiffT(L.nz) == -1) || x == nil {
+		// check inputs
+		return false
+	}
+	n = L.n
+	Lp = L.p
+	Li = L.i
+	Lx = L.x
+	for j = n - 1; j >= 0; j-- {
+		for p = Lp[j] + 1; p < Lp[j+1]; p++ {
+			x[j] -= Lx[p] * x[Li[p]]
+		}
+		x[j] /= Lx[Lp[j]]
+	}
+	return true
+}
 
 // cs_lu - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_lu.c:3
 // [L,U,pinv]=lu(A, [q lnz unz]). lnz and unz can be guess
@@ -2899,7 +2899,13 @@ func cs_permute(A *cs, pinv []int, q []int, values bool) *cs {
 
 // cs_pinv - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_pinv.c:3
 // pinv = p', or p = pinv'
-func cs_pinv(p []int, n int) []int {
+func cs_pinv(p []int, n int) (result []int) {
+	// defer func() {
+	// 	if result == nil {
+	// 		// TODO (KI) : remove debug
+	// 		panic("cs_pinv is null")
+	// 	}
+	// }()
 	var pinv []int
 	if p == nil {
 		// p = NULL denotes identity
@@ -3534,58 +3540,63 @@ func cs_scc(A *cs) *csd {
 	return (cs_ddone(D, AT, xi, true))
 }
 
-//
-// // cs_schol - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_schol.c:3
-// // ordering and symbolic analysis for a Cholesky factorization
-// func cs_schol(order PtrdiffT, A []cs) []css {
-// 	var n PtrdiffT
-// 	var c []PtrdiffT
-// 	var post []PtrdiffT
-// 	var P []PtrdiffT
-// 	var C []cs
-// 	var S []css
-// 	if !(A != nil && A.nz == -1) {
-// 		// check inputs
-// 		return nil
-// 	}
-// 	n = A.n
-// 	// allocate result S
-// 	S = cs_calloc(1, uint(0)).([]css)
-// 	if S == nil {
-// 		// out of memory
-// 		return nil
-// 	}
-// 	// P = amd(A+A'), or natural
-// 	P = cs_amd(PtrdiffT(order), A)
-// 	// find inverse permutation
-// 	S.pinv = cs_pinv(P, n)
-// 	cs_free(P)
-// 	if bool(order) && S.pinv == nil {
-// 		return (cs_sfree(S))
-// 	}
-// 	// C = spones(triu(A(P,P)))
-// 	C = cs_symperm(A, S.pinv, 0)
-// 	// find etree of C
-// 	S.parent = cs_etree(C, 0)
-// 	// postorder the etree
-// 	post = cs_post(S.parent, n)
-// 	// find column counts of chol(C)
-// 	c = cs_counts(C, S.parent, post, 0)
-// 	cs_free(post)
-// 	cs_spfree(C) // TODO (KI) : remove
-// 	// allocate result S->cp
-// 	S.cp = cs_malloc(n+1, uint(0)).([]PtrdiffT)
-// 	S.lnz = cs_cumsum(S.cp, c, n)
-// 	// find column pointers for L
-// 	S.unz = S.lnz
-// 	cs_free(c)
-// 	return (func() []css {
-// 		if S.lnz >= 0 {
-// 			return S
-// 		}
-// 		return cs_sfree(S)
-// 	}())
-// }
+// cs_schol - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_schol.c:3
+// ordering and symbolic analysis for a Cholesky factorization
+func cs_schol(order PtrdiffT, A *cs) (result *css) {
+	// defer func() {
+	// 	if result == nil {
+	// 		// TODO (KI) : remove debug
+	// 		panic("cs_schol is null")
+	// 	}
+	// }()
+	var n PtrdiffT
+	var c []PtrdiffT
+	var post []PtrdiffT
+	var P []PtrdiffT
+	var C *cs
+	var S *css
+	if !(A != nil && A.nz == -1) {
+		// check inputs
+		return nil
+	}
+	n = A.n
+	// allocate result S
+	S = new(css) // cs_calloc(1, uint(0)).([]css)
+	if S == nil {
+		// out of memory
+		return nil
+	}
+	// P = amd(A+A'), or natural
+	P = cs_amd(order, A)
+	// find inverse permutation
+	S.pinv = cs_pinv(P, n)
+	cs_free(P)
+	if order == 0 && S.pinv == nil {
+		return (cs_sfree(S))
+	}
+	// C = spones(triu(A(P,P)))
+	C = cs_symperm(A, S.pinv, false)
+	// find etree of C
+	S.parent = cs_etree(C, false)
+	// postorder the etree
+	post = cs_post(S.parent, n)
+	// find column counts of chol(C)
+	c = cs_counts(C, S.parent, post, false)
+	cs_free(post)
+	cs_spfree(C) // TODO (KI) : remove
+	// allocate result S->cp
+	S.cp = make([]int, n+1) // cs_malloc(n+1, uint(0)).([]PtrdiffT)
+	S.lnz = cs_cumsum(S.cp, c, n)
+	// find column pointers for L
+	S.unz = S.lnz
+	cs_free(c)
+	return (func() *css {
+		if S.lnz >= 0 {
+			return S
+		}
+		return cs_sfree(S)
+	}())
+}
 
 // cs_spsolve - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_spsolve.c:3
 // solve Gx=b(:,k), where G is either upper (lo=0) or lower (lo=1) triangular
@@ -3883,127 +3894,127 @@ func cs_sqr(order int, A *cs, qr bool) (result *css) {
 	}())
 }
 
-// // cs_symperm - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_symperm.c:3
-// // C = A(p,p) where A and C are symmetric the upper part stored; pinv not p
-// func cs_symperm(A []cs, pinv []PtrdiffT, values PtrdiffT) []cs {
-// 	var i PtrdiffT
-// 	var j PtrdiffT
-// 	var p PtrdiffT
-// 	var q PtrdiffT
-// 	var i2 PtrdiffT
-// 	var j2 PtrdiffT
-// 	var n PtrdiffT
-// 	var Ap []PtrdiffT
-// 	var Ai []PtrdiffT
-// 	var Cp []PtrdiffT
-// 	var Ci []PtrdiffT
-// 	var w []PtrdiffT
-// 	var Cx []float64
-// 	var Ax []float64
-// 	var C []cs
-// 	if !(A != nil && A.nz == -1) {
-// 		// check inputs
-// 		return nil
-// 	}
-// 	n = A.n
-// 	Ap = A.p
-// 	Ai = A.i
-// 	Ax = A.x
-// 	// alloc result
-// 	C = cs_spalloc(n, n, PtrdiffT(Ap[n]), PtrdiffT(bool(values) && Ax != nil), 0)
-// 	// get workspace
-// 	w = cs_calloc(n, uint(0)).([]PtrdiffT)
-// 	if C == nil || w == nil {
-// 		// out of memory
-// 		return (cs_done(C, w, nil, 0))
-// 	}
-// 	Cp = C.p
-// 	Ci = C.i
-// 	Cx = C.x
-// 	{
-// 		// count entries in each column of C
-// 		for j = 0; j < n; j++ {
-// 			// column j of A is column j2 of C
-// 			j2 = PtrdiffT(func() int {
-// 				if pinv != nil {
-// 					return ((pinv[j]))
-// 				}
-// 				return ((j))
-// 			}()  )
-// 			for p = Ap[j]; p < Ap[j+1]; p++ {
-// 				i = Ai[p]
-// 				if i > j {
-// 					// skip lower triangular part of A
-// 					continue
-// 				}
-// 				// row i of A is row i2 of C
-// 				i2 = PtrdiffT(func() int {
-// 					if pinv != nil {
-// 						return ((pinv[i]))
-// 					}
-// 					return ((i))
-// 				}()  )
-// 				// column count of C
-// 				w[func() int {
-// 					if i2 > j2 {
-// 						return (((i2)))
-// 					}
-// 					return (((j2)))
-// 				}()]++
-// 			}
-// 		}
-// 	}
-// 	// compute column pointers of C
-// 	cs_cumsum(Cp, w, n)
-// 	for j = 0; j < n; j++ {
-// 		// column j of A is column j2 of C
-// 		j2 = PtrdiffT(func() int {
-// 			if pinv != nil {
-// 				return ((pinv[j]))
-// 			}
-// 			return ((j))
-// 		}()  )
-// 		for p = Ap[j]; p < Ap[j+1]; p++ {
-// 			i = Ai[p]
-// 			if i > j {
-// 				// skip lower triangular part of A
-// 				continue
-// 			}
-// 			// row i of A is row i2 of C
-// 			i2 = PtrdiffT(func() int {
-// 				if pinv != nil {
-// 					return ((pinv[i]))
-// 				}
-// 				return ((i))
-// 			}()  )
-// 			Ci[(func() int {
-// 				q = func() int {
-// 					tempVar := &w[func() int {
-// 						if i2 > j2 {
-// 							return (((i2)))
-// 						}
-// 						return (((j2)))
-// 					}()]
-// 					defer func() {
-// 						*tempVar++
-// 					}()
-// 					return *tempVar
-// 				}()
-// 				return q
-// 			}())] = PtrdiffT(func() int {
-// 				if i2 < j2 {
-// 					return (((i2)))
-// 				}
-// 				return (((j2)))
-// 			}()  )
-// 			if Cx != nil {
-// 				Cx[q] = Ax[p]
-// 			}
-// 		}
-// 	}
-// 	// success; free workspace, return C
-// 	return (cs_done(C, w, nil, 1))
-// }
+// cs_symperm - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_symperm.c:3
+// C = A(p,p) where A and C are symmetric the upper part stored; pinv not p
+func cs_symperm(A *cs, pinv []PtrdiffT, values bool) *cs {
+	var i PtrdiffT
+	var j PtrdiffT
+	var p PtrdiffT
+	var q PtrdiffT
+	var i2 PtrdiffT
+	var j2 PtrdiffT
+	var n PtrdiffT
+	var Ap []PtrdiffT
+	var Ai []PtrdiffT
+	var Cp []PtrdiffT
+	var Ci []PtrdiffT
+	var w []PtrdiffT
+	var Cx []float64
+	var Ax []float64
+	var C *cs
+	if !(A != nil && A.nz == -1) {
+		// check inputs
+		return nil
+	}
+	n = A.n
+	Ap = A.p
+	Ai = A.i
+	Ax = A.x
+	// alloc result
+	C = cs_spalloc(n, n, Ap[n], values && Ax != nil, false)
+	// get workspace
+	w = make([]int, n) //  cs_calloc(n, uint(0)).([]PtrdiffT)
+	if C == nil || w == nil {
+		// out of memory
+		return (cs_done(C, w, nil, false))
+	}
+	Cp = C.p
+	Ci = C.i
+	Cx = C.x
+	{
+		// count entries in each column of C
+		for j = 0; j < n; j++ {
+			// column j of A is column j2 of C
+			j2 = PtrdiffT(func() int {
+				if pinv != nil {
+					return (pinv[j])
+				}
+				return (j)
+			}())
+			for p = Ap[j]; p < Ap[j+1]; p++ {
+				i = Ai[p]
+				if i > j {
+					// skip lower triangular part of A
+					continue
+				}
+				// row i of A is row i2 of C
+				i2 = PtrdiffT(func() int {
+					if pinv != nil {
+						return (pinv[i])
+					}
+					return (i)
+				}())
+				// column count of C
+				w[func() int {
+					if i2 > j2 {
+						return (i2)
+					}
+					return (j2)
+				}()]++
+			}
+		}
+	}
+	// compute column pointers of C
+	cs_cumsum(Cp, w, n)
+	for j = 0; j < n; j++ {
+		// column j of A is column j2 of C
+		j2 = PtrdiffT(func() int {
+			if pinv != nil {
+				return (pinv[j])
+			}
+			return (j)
+		}())
+		for p = Ap[j]; p < Ap[j+1]; p++ {
+			i = Ai[p]
+			if i > j {
+				// skip lower triangular part of A
+				continue
+			}
+			// row i of A is row i2 of C
+			i2 = PtrdiffT(func() int {
+				if pinv != nil {
+					return (pinv[i])
+				}
+				return (i)
+			}())
+			Ci[(func() int {
+				q = func() int {
+					tempVar := &w[func() int {
+						if i2 > j2 {
+							return (i2)
+						}
+						return (j2)
+					}()]
+					defer func() {
+						*tempVar++
+					}()
+					return *tempVar
+				}()
+				return q
+			}())] = PtrdiffT(func() int {
+				if i2 < j2 {
+					return (i2)
+				}
+				return (j2)
+			}())
+			if Cx != nil {
+				Cx[q] = Ax[p]
+			}
+		}
+	}
+	// success; free workspace, return C
+	return (cs_done(C, w, nil, true))
+}
 
 // cs_tdfs - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_tdfs.c:3
 // depth-first search and postorder of a tree rooted at node j
