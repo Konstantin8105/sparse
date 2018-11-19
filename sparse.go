@@ -1133,7 +1133,7 @@ func init_ata(AT *cs, post []PtrdiffT, w []PtrdiffT, head []PtrdiffT, next []Ptr
 						return (k)
 					}
 					return (w[ATi[p]])
-				}() / 8)
+				}())
 			}
 		}
 		// place row i in linked list k
@@ -1239,12 +1239,12 @@ func cs_counts(A *cs, parent []PtrdiffT, post []PtrdiffT, ata bool) []PtrdiffT {
 					return (head[k])
 				}
 				return (j)
-			}() / 8); J != -1; J = PtrdiffT(func() int {
+			}()); J != -1; J = PtrdiffT(func() int {
 				if ata {
 					return (next[J])
 				}
 				return int(-1)
-			}() / 8) {
+			}()) {
 				for p = ATp[J]; p < ATp[J+1]; p++ {
 					i = ATi[p]
 					q = cs_leaf(i, j, first, maxfirst, prevleaf, ancestor, &jleaf)
@@ -1924,7 +1924,7 @@ func cs_etree(A *cs, ata bool) []int {
 					return (prev[Ai[p]])
 				}
 				return (Ai[p])
-			}() / 8)
+			}())
 			{
 				// traverse from i to k
 				for ; i != -1 && i < k; i = inext {
@@ -3171,7 +3171,7 @@ func cs_print(A *cs, brief bool) bool {
 // 					return ((q[k]))
 // 				}
 // 				return ((k))
-// 			}() / 8)
+// 			}()  )
 // 			{
 // 				// find R(:,k) pattern
 // 				for p = Ap[col]; p < Ap[col+1]; p++ {
@@ -3651,7 +3651,7 @@ func cs_spsolve(G *cs, B *cs, k int, xi []int, x []float64, pinv []int, lo bool)
 				return (pinv[j])
 			}
 			return (j)
-		}() / 8)
+		}())
 		if J < 0 {
 			// column J is empty
 			continue
@@ -3669,14 +3669,14 @@ func cs_spsolve(G *cs, B *cs, k int, xi []int, x []float64, pinv []int, lo bool)
 				return (int(Gp[J] + 1))
 			}
 			return (Gp[J])
-		}() / 8)
+		}())
 		// up: U(j,j) last entry
 		q = PtrdiffT(func() int {
 			if lo {
 				return (Gp[J+1])
 			}
 			return (int(Gp[J+1] - 1))
-		}() / 8)
+		}())
 		for ; p < q; p++ {
 			// x(i) -= G(i,j) * x(j)
 			x[Gi[p]] -= Gx[p] * x[j]
@@ -3938,7 +3938,7 @@ func cs_sqr(order int, A *cs, qr bool) *css {
 // 					return ((pinv[j]))
 // 				}
 // 				return ((j))
-// 			}() / 8)
+// 			}()  )
 // 			for p = Ap[j]; p < Ap[j+1]; p++ {
 // 				i = Ai[p]
 // 				if i > j {
@@ -3951,7 +3951,7 @@ func cs_sqr(order int, A *cs, qr bool) *css {
 // 						return ((pinv[i]))
 // 					}
 // 					return ((i))
-// 				}() / 8)
+// 				}()  )
 // 				// column count of C
 // 				w[func() int {
 // 					if i2 > j2 {
@@ -3971,7 +3971,7 @@ func cs_sqr(order int, A *cs, qr bool) *css {
 // 				return ((pinv[j]))
 // 			}
 // 			return ((j))
-// 		}() / 8)
+// 		}()  )
 // 		for p = Ap[j]; p < Ap[j+1]; p++ {
 // 			i = Ai[p]
 // 			if i > j {
@@ -3984,7 +3984,7 @@ func cs_sqr(order int, A *cs, qr bool) *css {
 // 					return ((pinv[i]))
 // 				}
 // 				return ((i))
-// 			}() / 8)
+// 			}()  )
 // 			Ci[(func() int {
 // 				q = func() int {
 // 					tempVar := &w[func() int {
@@ -4004,7 +4004,7 @@ func cs_sqr(order int, A *cs, qr bool) *css {
 // 					return (((i2)))
 // 				}
 // 				return (((j2)))
-// 			}() / 8)
+// 			}()  )
 // 			if Cx != nil {
 // 				Cx[q] = Ax[p]
 // 			}
@@ -4173,7 +4173,7 @@ func cs_transpose(A *cs, values bool) *cs {
 // 				return int(f)
 // 			}
 // 			return (((Ci[p])))
-// 		}() / 8)
+// 		}()  )
 // 	}
 // 	{
 // 		// clear workspace w
