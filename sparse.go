@@ -1485,8 +1485,8 @@ func cs_matched(n int,
 	imatch []int,
 	p []int,
 	q []int,
-	cc [5]int,
-	rr [5]int,
+	cc *[5]int,
+	rr *[5]int,
 	set int,
 	mark int) {
 
@@ -1498,26 +1498,19 @@ func cs_matched(n int,
 			// skip if j is not in C set
 			continue
 		}
-		p[func() int {
-			defer func() {
-				kr++
-			}()
-			return kr
-		}()] = imatch[j]
-		q[func() int {
-			defer func() {
-				kc++
-			}()
-			return kc
-		}()] = j
+		p[kr] = imatch[j]
+		kr++
+		q[kc] = j
+		kc++
 	}
+
 	cc[set+1] = kc
 	rr[set] = kr
 }
 
 // cs_unmatched - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_dmperm.c:53
 // collect unmatched rows into the permutation vector p
-func cs_unmatched(m int, wi []int, p []int, rr [5]int, set int) {
+func cs_unmatched(m int, wi []int, p []int, rr *[5]int, set int) {
 	kr := rr[set]
 	for i := 0; i < m; i++ {
 		if wi[i] == 0 {
@@ -1569,8 +1562,8 @@ func cs_dmperm(A *cs, seed int) *csd {
 	q := D.q
 	r := D.r
 	s := D.s
-	cc := D.cc
-	rr := D.rr
+	cc := &D.cc
+	rr := &D.rr
 	// max transversal
 	jmatch := cs_maxtrans(A, seed)
 	// imatch = inverse of jmatch

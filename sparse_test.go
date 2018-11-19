@@ -8,6 +8,7 @@ import (
 	"math"
 	"os/exec"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"testing"
 	"time"
@@ -146,9 +147,9 @@ func TestDemo2(t *testing.T) {
 	for i := range matrixes {
 
 		// TODO : remove
-		// if !strings.Contains(matrixes[i], "t1") {
-		// 	continue
-		// }
+		if !strings.Contains(matrixes[i], "bcsstk01") {
+			continue
+		}
 
 		t.Run("Demo2: "+matrixes[i], func(t *testing.T) {
 			// data checking
@@ -160,9 +161,47 @@ func TestDemo2(t *testing.T) {
 			var stdin bytes.Buffer
 			stdin.Write(b)
 			prob := get_problem(&stdin, 1e-14)
-			demo2(prob)
+			c2, _ := demo2(prob)
+
+			// compare strings
+			if c != c2 {
+				t.Log(ShowDiff(c, c2))
+			}
 		})
 	}
+}
+
+// ShowDiff will print two strings vertically next to each other so that line
+// differences are easier to read.
+func ShowDiff(a, b string) string {
+	aLines := strings.Split(a, "\n")
+	bLines := strings.Split(b, "\n")
+	maxLines := int(math.Max(float64(len(aLines)), float64(len(bLines))))
+	out := "\n"
+
+	for lineNumber := 0; lineNumber < maxLines; lineNumber++ {
+		aLine := ""
+		bLine := ""
+
+		// Replace NULL characters with a dot. Otherwise the strings will look
+		// exactly the same but have different length (and therfore not be
+		// equal).
+		if lineNumber < len(aLines) {
+			aLine = strconv.Quote(aLines[lineNumber])
+		}
+		if lineNumber < len(bLines) {
+			bLine = strconv.Quote(bLines[lineNumber])
+		}
+
+		diffFlag := " "
+		if aLine != bLine {
+			diffFlag = "*"
+		}
+		out += fmt.Sprintf("%s %3d %-40s%s\n", diffFlag, lineNumber+1, aLine, bLine)
+
+	}
+
+	return out
 }
 
 type problem struct {
@@ -302,14 +341,14 @@ func get_problem(f io.Reader, tol float64) *problem {
 }
 
 // demo2 - solve a linear system using Cholesky, LU, and QR, with various orderings
-func demo2(Prob *problem) bool {
+func demo2(Prob *problem) (out string, _ bool) {
 	var t float64
 	var tol float64
 	var ok bool
 	var order int
 	var D *csd
 	if Prob == nil {
-		return false
+		return out, false
 	}
 	A := Prob.A
 	C := Prob.C
@@ -329,35 +368,35 @@ func demo2(Prob *problem) bool {
 	D = cs_dmperm(C, 1)
 	if D == nil {
 		fmt.Println("D is nil")
-		return false
+		return out, false
 	}
 
 	// (KI): debug information
-	fmt.Println("Matrix D from function cs_dmperm")
+	out += fmt.Sprintln("\n\nMatrix D from function cs_dmperm")
 	{
-		fmt.Printf("Vector p\n")
+		out += fmt.Sprintf("Vector p\n")
 		for i := range D.p {
-			fmt.Printf("p[%d] = %d\n", i, D.p[i])
+			out += fmt.Sprintf("p[%d] = %d\n", i, D.p[i])
 		}
-		fmt.Printf("Vector q\n")
+		out += fmt.Sprintf("Vector q\n")
 		for i := range D.q {
-			fmt.Printf("q[%d] = %d\n", i, D.q[i])
+			out += fmt.Sprintf("q[%d] = %d\n", i, D.q[i])
 		}
-		fmt.Printf("nb = %d\n", D.nb)
-		fmt.Printf("Vector rr\n")
+		out += fmt.Sprintf("nb = %d\n", D.nb)
+		out += fmt.Sprintf("Vector rr\n")
 		for i := 0; i < 5; i++ {
-			fmt.Printf("rr[%d] = %d\n", i, D.rr[i])
+			out += fmt.Sprintf("rr[%d] = %d\n", i, D.rr[i])
 		}
-		fmt.Printf("Vector cc\n")
+		out += fmt.Sprintf("Vector cc\n")
 		for i := 0; i < 5; i++ {
-			fmt.Printf("cc[%d] = %d\n", i, D.cc[i])
+			out += fmt.Sprintf("cc[%d] = %d\n", i, D.cc[i])
 		}
 	}
 
 	nb := D.nb
 	r := D.r
 	s := D.s
-	rr := D.rr
+	rr := &D.rr
 	sprank := rr[3]
 
 	ns := 0
@@ -393,7 +432,7 @@ func demo2(Prob *problem) bool {
 
 	if m != n || sprank < n {
 		// return if rect. or singular
-		return true
+		return out, true
 	}
 
 	// try all orderings
@@ -414,7 +453,7 @@ func demo2(Prob *problem) bool {
 	}
 
 	if Prob.sym != 0 {
-		return true
+		return out, true
 	}
 
 	// natural and amd(A+A')
@@ -434,7 +473,7 @@ func demo2(Prob *problem) bool {
 		print_resid(ok, C, x, b, resid)
 	}
 
-	return true
+	return out, true
 }
 
 // rhs - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/testdata/csparse_demo2_test.c:26
