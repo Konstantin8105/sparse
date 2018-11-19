@@ -379,14 +379,14 @@ func get_problem(f io.Reader, tol float64) *problem {
 }
 
 // demo2 - solve a linear system using Cholesky, LU, and QR, with various orderings
-func demo2(Prob *problem) (out string, _ bool) {
+func demo2(Prob *problem) bool {
 	var t float64
 	var tol float64
 	var ok bool
 	var order int
 	var D *csd
 	if Prob == nil {
-		return out, false
+		return false
 	}
 	A := Prob.A
 	C := Prob.C
@@ -406,28 +406,28 @@ func demo2(Prob *problem) (out string, _ bool) {
 	D = cs_dmperm(C, 1)
 	if D == nil {
 		fmt.Println("D is nil")
-		return out, false
+		return false
 	}
 
 	// (KI): debug information
-	out += fmt.Sprintln("\n\nMatrix D from function cs_dmperm")
+	fmt.Println("Matrix D from function cs_dmperm")
 	{
-		out += fmt.Sprintf("Vector p\n")
+		fmt.Printf("Vector p\n")
 		for i := range D.p {
-			out += fmt.Sprintf("p[%d] = %d\n", i, D.p[i])
+			fmt.Printf("p[%d] = %d\n", i, D.p[i])
 		}
-		out += fmt.Sprintf("Vector q\n")
+		fmt.Printf("Vector q\n")
 		for i := range D.q {
-			out += fmt.Sprintf("q[%d] = %d\n", i, D.q[i])
+			fmt.Printf("q[%d] = %d\n", i, D.q[i])
 		}
-		out += fmt.Sprintf("nb = %d\n", D.nb)
-		out += fmt.Sprintf("Vector rr\n")
+		fmt.Printf("nb = %d\n", D.nb)
+		fmt.Printf("Vector rr\n")
 		for i := 0; i < 5; i++ {
-			out += fmt.Sprintf("rr[%d] = %d\n", i, D.rr[i])
+			fmt.Printf("rr[%d] = %d\n", i, D.rr[i])
 		}
-		out += fmt.Sprintf("Vector cc\n")
+		fmt.Printf("Vector cc\n")
 		for i := 0; i < 5; i++ {
-			out += fmt.Sprintf("cc[%d] = %d\n", i, D.cc[i])
+			fmt.Printf("cc[%d] = %d\n", i, D.cc[i])
 		}
 	}
 
@@ -470,7 +470,7 @@ func demo2(Prob *problem) (out string, _ bool) {
 
 	if m != n || sprank < n {
 		// return if rect. or singular
-		return out, true
+		return true
 	}
 
 	// try all orderings
@@ -491,7 +491,7 @@ func demo2(Prob *problem) (out string, _ bool) {
 	}
 
 	if Prob.sym != 0 {
-		return out, true
+		return true
 	}
 
 	// natural and amd(A+A')
@@ -511,7 +511,7 @@ func demo2(Prob *problem) (out string, _ bool) {
 		print_resid(ok, C, x, b, resid)
 	}
 
-	return out, true
+	return true
 }
 
 // rhs - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/testdata/csparse_demo2_test.c:26
