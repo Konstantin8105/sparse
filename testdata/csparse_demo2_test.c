@@ -206,16 +206,6 @@ csi demo2(problem* Prob)
         return (0);
     }
 
-    // (KI): debug information
-    /* printf("Matrix D from function cs_dmperm\n"); */
-    /* { */
-    /* 	if(D->p){printf("Vector p\n"); for(int i=0;i<m;i++) printf("p[%d] = %g\n",i,((double )D->p[i]));} */
-    /* 	if(D->q){printf("Vector q\n"); for(int i=0;i<n;i++) printf("q[%d] = %g\n",i,((double )D->q[i]));} */
-    /* 	if(D->nb){printf("nb = %g\n",((double)D->nb));} */
-    /* 	if(D->rr){printf("Vector rr\n"); for(int i=0;i<5;i++) printf("rr[%d] = %g\n",i,((double)D->rr[i]));} */
-    /* 	if(D->cc){printf("Vector cc\n"); for(int i=0;i<5;i++) printf("cc[%d] = %g\n",i,((double)D->cc[i]));} */
-    /* } */
-
     nb = D->nb;
     r = D->r;
     s = D->s;
@@ -227,10 +217,6 @@ csi demo2(problem* Prob)
     printf("blocks: %g singletons: %g structural rank: %g\n",
         (double)nb, (double)ns, (double)sprank);
     cs_dfree(D);
-
-    // (KI) debug info
-    /* printf("Matrix C before QR\n"); */
-    /* test_cs_print(C,0); */
 
     for (order = 0; order <= 3; order += 3) /* natural and amd(A'*A) */
     {
@@ -251,11 +237,6 @@ csi demo2(problem* Prob)
         }
     }
 
-    // (KI) debug info
-    // printf("Matrix C after QR\n");
-    // test_cs_print(C,0);
-
-    // (KI) debug info
     printf("m,n,sprank : %d:%d:%d\n", m, n, sprank);
 
     if (m != n || sprank < n)
@@ -278,10 +259,6 @@ csi demo2(problem* Prob)
                 printf("x[%d] = %10e\n", r, (double)x[r]);
         }
     }
-
-    // (KI) debug info
-    // printf("Matrix C after LU\n");
-    // test_cs_print(C,0);
 
     printf("Problem sym is : %d\n", (int)Prob->sym);
 
