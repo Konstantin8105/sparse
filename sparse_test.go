@@ -421,13 +421,13 @@ func get_problem(f io.Reader, tol float64) *problem {
 	cs_dropzeros(A)
 	nz2 = A.p[n]
 
-	fmt.Printf("A before drop\n")
-	cs_print(A, false)
-
 	fmt.Printf("n   = %d\n", n)
 	fmt.Printf("nz1 = %d\n", nz1)
 	fmt.Printf("nz2 = %d\n", nz2)
 	fmt.Printf("A->p[%d] = %d\n", n, A.p[n])
+
+	fmt.Printf("A before drop\n")
+	cs_print(A, false)
 
 	fmt.Printf("tol = %.5e\n", tol)
 	if tol > 0 {
