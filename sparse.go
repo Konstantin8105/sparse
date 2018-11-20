@@ -4188,39 +4188,30 @@ func cs_spalloc(m, n, nzmax int, values, triplet bool) *cs {
 	// define dimensions and nzmax
 	A.m = m
 	A.n = n
-	nzmax = func() int {
-		if nzmax > 1 {
-			return nzmax
-		}
-		return 1
-	}()
+	if nzmax < 1 {
+		nzmax = 1
+	}
 	A.nzmax = nzmax
 	// allocate triplet or comp.col
-	A.nz = func() int {
-		if triplet {
-			return 0
-		}
-		return -1
-	}()
+	A.nz = -1
+	if triplet {
+		A.nz = 0
+	}
+	// allocation of p
 	if triplet {
 		A.p = make([]int, nzmax)
 	} else {
 		A.p = make([]int, n+1)
 	}
-	A.i = make([]int, nzmax) // cs_malloc(nzmax, uint(0)).([]int)
-	A.x = make([]float64, nzmax)
-	// func() interface{} {
-	// 	if values {
-	// 		return cs_malloc(nzmax, uint(8))
-	// 	}
-	// 	return nil
-	// }().([]float64)
-	return (func() *cs {
-		if A.p == nil || A.i == nil || values && A.x == nil {
-			return nil //cs_spfree(A) // TODO (KI) : remove
-		}
-		return A
-	}())
+	A.i = make([]int, nzmax)
+	A.x = nil
+	if values {
+		A.x = make([]float64, nzmax)
+	}
+	if A.p == nil || A.i == nil || values && A.x == nil {
+		return cs_spfree(A)
+	}
+	return A
 }
 
 // cs_sprealloc - change the max # of entries sparse matrix
