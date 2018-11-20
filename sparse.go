@@ -3981,60 +3981,44 @@ func cs_tdfs(j, k int, head []int, next []int, post []int, stack []int) int {
 
 // cs_transpose - C = A'
 func cs_transpose(A *cs, values bool) *cs {
-	var p int
-	var q int
-	var j int
-	var Cp []int
-	var Ci []int
-	var n int
-	var m int
-	var Ap []int
-	var Ai []int
-	var w []int
-	var Cx []float64
-	var Ax []float64
-	var C *cs
 	if !(A != nil && A.nz == -1) {
 		// check inputs
 		return nil
 	}
-	m = A.m
-	n = A.n
-	Ap = A.p
-	Ai = A.i
-	Ax = A.x
+	var (
+		m  = A.m
+		n  = A.n
+		Ap = A.p
+		Ai = A.i
+		Ax = A.x
+	)
 	// allocate result
-	C = cs_spalloc(n, m, Ap[n], values && Ax != nil, false)
+	C := cs_spalloc(n, m, Ap[n], values && Ax != nil, false)
 	// get workspace
-	w = make([]int, m)
+	w := make([]int, m)
 	if C == nil || w == nil {
 		// out of memory
 		return cs_done(C, w, nil, false)
 	}
-	Cp = C.p
-	Ci = C.i
-	Cx = C.x
+	var (
+		Cp = C.p
+		Ci = C.i
+		Cx = C.x
+	)
 
 	// row counts
-	for p = 0; p < Ap[n]; p++ {
+	for p := 0; p < Ap[n]; p++ {
 		w[Ai[p]]++
 	}
 
 	// row pointers
 	cs_cumsum(Cp, w, m)
-	for j = 0; j < n; j++ {
-		for p = Ap[j]; p < Ap[j+1]; p++ {
+	for j := 0; j < n; j++ {
+		for p := Ap[j]; p < Ap[j+1]; p++ {
 			// place A(i,j) as entry C(j,i)
-			Ci[(func() int {
-				q = func() int {
-					tempVar := &w[Ai[p]]
-					defer func() {
-						*tempVar++
-					}()
-					return *tempVar
-				}()
-				return q
-			}())] = j
+			q := &w[Ai[p]]
+			Ci[*q] = j
+			*q++
 			if Cx != nil {
 				Cx[q] = Ax[p]
 			}
