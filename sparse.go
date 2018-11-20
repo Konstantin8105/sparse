@@ -1258,9 +1258,9 @@ func cs_bfs(A *cs,
 	mark int) bool {
 
 	// check input data
-	if wi == nil || wj == nil || queue == nil || imatch == nil || jmatch == nil {
-		return false
-	}
+	// if wi == nil || wj == nil || queue == nil || imatch == nil || jmatch == nil {
+	// 	return false
+	// }
 
 	var head int
 	var tail int
@@ -3142,7 +3142,7 @@ func cs_qrsol(order int, A *cs, b []float64) bool {
 // * seed = -1 means p = n-1:-1:0.  seed = 0 means p = identity.  otherwise
 // * p = random permutation.
 func cs_randperm(n int, seed int) []int {
-	if seed == 0 || n < 1 {
+	if seed == 0 { // || n < 1 {
 		// return p = NULL (identity)
 		return nil
 	}
@@ -3467,9 +3467,9 @@ func cs_spsolve(G *cs, B *cs, k int, xi []int, x []float64, pinv []int, lo bool)
 // cs_vcount - compute nnz(V) = S->lnz, S->pinv, S->leftmost, S->m2 from A and S->parent
 func cs_vcount(A *cs, S *css) bool {
 
-	if A == nil || S == nil {
-		return false
-	}
+	// if A == nil || S == nil {
+	// 	return false
+	// }
 
 	var i int
 	var k int
@@ -3997,9 +3997,9 @@ func cs_usolve(U *cs, x []float64) bool {
 
 // cs_spalloc - allocate a sparse matrix (triplet form or compressed-column form)
 func cs_spalloc(m, n, nzmax int, values, triplet bool) *cs {
-	if m < 0 || n < 0 || nzmax < 0 {
-		return nil
-	}
+	// if m < 0 || n < 0 || nzmax < 0 {
+	// 	return nil
+	// }
 	A := new(cs)
 	if A == nil {
 		// allocate the cs struct
@@ -4089,9 +4089,9 @@ func cs_sfree(S *css) *css {
 
 // cs_dalloc - allocate a cs_dmperm or cs_scc result
 func cs_dalloc(m, n int) *csd {
-	if m < 1 || n < 1 {
-		return nil
-	}
+	// if m < 1 || n < 1 {
+	// 	return nil
+	// }
 	D := new(csd)
 	if D == nil {
 		return nil
