@@ -692,10 +692,8 @@ func cs_amd(order int, A *cs) (result []int) {
 		pk = pk1
 		for pk = pk1; pk < pk2; pk++ {
 			i = Ci[pk]
-			if (func() int {
-				nvi = -nv[i]
-				return nvi
-			}()) <= 0 {
+			nvi = -nv[i]
+			if nvi <= 0 {
 				// skip if i is dead
 				continue
 			}
