@@ -291,15 +291,6 @@ func cs_amd(order int, A *cs) (result []int) {
 	nzmax := C.nzmax
 	Ci := C.i
 
-	// type graph struct { // TODO (KI) : I think struct is look like that
-	// 	head   int
-	// 	last   int
-	// 	hhead  int
-	// 	nv     int
-	// 	elen   int
-	// 	degree int
-	// }
-
 	for i := 0; i <= n; i++ {
 		// degree list i is empty
 		head[i] = -1
@@ -387,10 +378,8 @@ func cs_amd(order int, A *cs) (result []int) {
 
 			// --- Garbage collection -------------------------------------------
 			for j = 0; j < n; j++ {
-				if (func() int {
-					p = Cp[j]
-					return p
-				}()) >= 0 {
+				p = Cp[j]
+				if p >= 0 {
 					// j is a live node or element
 					// save first entry of object
 					Cp[j] = Ci[p]
@@ -420,17 +409,9 @@ func cs_amd(order int, A *cs) (result []int) {
 					Cp[j] = q
 					q++
 					for k3 := 0; k3 < len[j]-1; k3++ {
-						Ci[func() int {
-							defer func() {
-								q++
-							}()
-							return q
-						}()] = Ci[func() int {
-							defer func() {
-								p++
-							}()
-							return p
-						}()]
+						Ci[q] = Ci[p]
+						q++
+						p++
 					}
 				}
 			}
@@ -444,12 +425,10 @@ func cs_amd(order int, A *cs) (result []int) {
 		nv[k] = -nvk
 		p = Cp[k]
 		// do in place if elen[k] == 0
-		pk1 = func() int {
-			if elenk == 0 {
-				return p
-			}
-			return cnz
-		}()
+		pk1 = cnz
+		if elenk == 0 {
+			pk1 = p
+		}
 		pk2 = pk1
 		for k1 := 1; k1 <= elenk+1; k1++ {
 			if k1 > elenk {
@@ -461,27 +440,17 @@ func cs_amd(order int, A *cs) (result []int) {
 				ln = len[k] - elenk
 			} else {
 				// search the nodes in e
-				e = Ci[func() int {
-					defer func() {
-						p++
-					}()
-					return p
-				}()]
+				e = Ci[p]
+				p++
 				pj = Cp[e]
 				// length of list of nodes in e
 				ln = len[e]
 			}
 			for k2 := 1; k2 <= ln; k2++ {
-				i := Ci[func() int {
-					defer func() {
-						pj++
-					}()
-					return pj
-				}()]
-				if (func() int {
-					nvi = nv[i]
-					return nvi
-				}()) <= 0 {
+				i := Ci[pj]
+				pj++
+				nvi = nv[i]
+				if nvi <= 0 {
 					// node i dead, or seen
 					continue
 				}
@@ -490,12 +459,8 @@ func cs_amd(order int, A *cs) (result []int) {
 				// negate nv[i] to denote i in Lk
 				nv[i] = -nvi
 				// place i in Lk
-				Ci[func() int {
-					defer func() {
-						pk2++
-					}()
-					return pk2
-				}()] = i
+				Ci[pk2] = i
+				pk2++
 				if next[i] != -1 {
 					last[next[i]] = last[i]
 				}
@@ -531,10 +496,8 @@ func cs_amd(order int, A *cs) (result []int) {
 		// scan 1: find |Le\Lk|
 		for pk = pk1; pk < pk2; pk++ {
 			i = Ci[pk]
-			if (func() int {
-				eln = elen[i]
-				return eln
-			}()) <= 0 {
+			eln = elen[i]
+			if eln <= 0 {
 				// skip if elen[i] empty
 				continue
 			}
@@ -580,12 +543,8 @@ func cs_amd(order int, A *cs) (result []int) {
 						// sum up the set differences
 						d += dext
 						// keep e in Ei
-						Ci[func() int {
-							defer func() {
-								pn++
-							}()
-							return pn
-						}()] = e
+						Ci[pn] = e
+						pn++
 						// compute the hash of node i
 						h += e
 					} else {
@@ -605,22 +564,16 @@ func cs_amd(order int, A *cs) (result []int) {
 			// prune edges in Ai
 			for p = p2 + 1; p < p4; p++ {
 				j = Ci[p]
-				if (func() int {
-					nvj = nv[j]
-					return nvj
-				}()) <= 0 {
+				nvj = nv[j]
+				if nvj <= 0 {
 					// node j dead or in Lk
 					continue
 				}
 				// degree(i) += |j|
 				d += nvj
 				// place j in node list of i
-				Ci[func() int {
-					defer func() {
-						pn++
-					}()
-					return pn
-				}()] = j
+				Ci[pn] = j
+				pn++
 				// compute hash for node i
 				h += j
 			}
@@ -847,54 +800,43 @@ func cs_chol(A *cs, S *css) *csn {
 	var d float64
 	var lki float64
 	var Lx []float64
-	var x []float64
 	var Cx []float64
 	var top int
 	var i int
 	var p int
 	var k int
-	var n int
 	var Li []int
 	var Lp []int
-	var cp []int
-	var pinv []int
 	var s []int
-	var c []int
-	var parent []int
 	var Cp []int
 	var Ci []int
 	var L *cs
-	var C *cs
-	var E *cs
-	var N *csn
 	if !(A != nil && A.nz == -1) || S == nil || S.cp == nil || S.parent == nil {
 		return nil
 	}
-	n = A.n
+	n := A.n
 	// allocate result
-	N = new(csn) // cs_calloc(1, uint(32)).([]csn)
+	N := new(csn)
 	// get csi workspace
-	c = make([]int, 2*n) //cs_malloc(int(2*int(n)/8), uint(0)).([]int)
+	c := make([]int, 2*n)
 	// get double workspace
-	x = make([]float64, n) // cs_malloc(n, uint(8)).([]float64)
-	cp = S.cp
-	pinv = S.pinv
-	parent = S.parent
-	C = func() *cs {
-		if pinv != nil {
-			return cs_symperm(A, pinv, true)
-		}
-		return (A)
-	}()
+	var (
+		x      = make([]float64, n)
+		cp     = S.cp
+		pinv   = S.pinv
+		parent = S.parent
+	)
+	C := A
+	if pinv != nil {
+		C = cs_symperm(A, pinv, true)
+	}
 	// E is alias for A, or a copy E=A(p,p)
-	E = func() *cs {
-		if pinv != nil {
-			return C
-		}
-		return nil
-	}()
+	var E *cs
+	if pinv != nil {
+		E = C
+	}
 	if N == nil || c == nil || x == nil || C == nil {
-		return (cs_ndone(N, E, c, x, false))
+		return cs_ndone(N, E, c, x, false)
 	}
 	s = c[n:]
 	Cp = C.p
@@ -921,14 +863,14 @@ func cs_chol(A *cs, S *css) *csn {
 		top = cs_ereach(C, int(k), parent, s, c)
 		// x (0:k) is now zero
 		x[k] = 0
-		{
-			// x = full(triu(C(:,k)))
-			for p = Cp[k]; p < Cp[k+1]; p++ {
-				if Ci[p] <= k {
-					x[Ci[p]] = Cx[p]
-				}
+
+		// x = full(triu(C(:,k)))
+		for p = Cp[k]; p < Cp[k+1]; p++ {
+			if Ci[p] <= k {
+				x[Ci[p]] = Cx[p]
 			}
 		}
+
 		// d = C(k,k)
 		d = x[k]
 		// clear x for k+1st iteration
@@ -947,13 +889,8 @@ func cs_chol(A *cs, S *css) *csn {
 			}
 			// d = d - L(k,i)*L(k,i)
 			d -= lki * lki
-			p = func() int {
-				tempVar := &c[i]
-				defer func() {
-					*tempVar++
-				}()
-				return *tempVar
-			}()
+			p = c[i]
+			c[i]++
 			// store L(k,i) in column i
 			Li[p] = k
 			Lx[p] = lki
@@ -961,15 +898,10 @@ func cs_chol(A *cs, S *css) *csn {
 		if d <= 0 {
 			// --- Compute L(k,k) -----------------------------------------------
 			// not pos def
-			return (cs_ndone(N, E, c, x, false))
+			return cs_ndone(N, E, c, x, false)
 		}
-		p = func() int {
-			tempVar := &c[k]
-			defer func() {
-				*tempVar++
-			}()
-			return *tempVar
-		}()
+		p = c[k]
+		c[k]++
 		// store L(k,k) = sqrt (d) in column k
 		Li[p] = k
 		Lx[p] = math.Sqrt(d)
@@ -978,28 +910,23 @@ func cs_chol(A *cs, S *css) *csn {
 	// finalize L
 	Lp[n] = cp[n]
 	// success: free E,s,x; return N
-	return (cs_ndone(N, E, c, x, true))
+	return cs_ndone(N, E, c, x, true)
 }
 
 // cs_cholsol - x=A\b where A is symmetric positive definite; b overwritten with solution
 func cs_cholsol(order int, A *cs, b []float64) (result bool) {
-	var x []float64
-	var S *css
-	var N *csn
-	var n int
-	var ok bool
 	if !(A != nil && A.nz == -1) || b == nil {
 		// check inputs
 		return false
 	}
-	n = A.n
+	n := A.n
 	// ordering and symbolic analysis
-	S = cs_schol(order, A)
+	S := cs_schol(order, A)
 	// numeric Cholesky factorization
-	N = cs_chol(A, S)
+	N := cs_chol(A, S)
 	// get workspace
-	x = make([]float64, n) // cs_malloc(n, uint(8)).([]float64)
-	ok = (S != nil && N != nil && x != nil)
+	x := make([]float64, n)
+	ok := (S != nil && N != nil && x != nil)
 	if ok {
 		// x = P*b
 		cs_ipvec(S.pinv, b, x, n)
@@ -1018,60 +945,44 @@ func cs_cholsol(order int, A *cs, b []float64) (result bool) {
 
 // cs_compress - C = compressed-column form of a triplet matrix T
 func cs_compress(T *cs) *cs {
-	var m int
-	var n int
-	var nz int
-	var p int
-	var k int
-	var Cp []int
-	var Ci []int
-	var w []int
-	var Ti []int
-	var Tj []int
-	var Cx []float64
-	var Tx []float64
-	var C *cs
 	if !(T != nil && T.nz >= 0) {
 		// check inputs
 		return nil
 	}
-	m = T.m
-	n = T.n
-	Ti = T.i
-	Tj = T.p
-	Tx = T.x
-	nz = T.nz
+	var (
+		m  = T.m
+		n  = T.n
+		Ti = T.i
+		Tj = T.p
+		Tx = T.x
+		nz = T.nz
+	)
 	// allocate result
-	C = cs_spalloc(m, n, nz, Tx != nil, false)
+	C := cs_spalloc(m, n, nz, Tx != nil, false)
 	// get workspace
-	w = make([]int, n)
+	w := make([]int, n)
 	if C == nil || w == nil {
 		// out of memory
 		return cs_done(C, w, nil, false)
 	}
-	Cp = C.p
-	Ci = C.i
-	Cx = C.x
+	var (
+		Cp = C.p
+		Ci = C.i
+		Cx = C.x
+	)
 
 	// column counts
-	for k = 0; k < nz; k++ {
+	for k := 0; k < nz; k++ {
 		w[Tj[k]]++
 	}
 
 	// column pointers
 	cs_cumsum(Cp, w, n)
-	for k = 0; k < nz; k++ {
+	for k := 0; k < nz; k++ {
 		// A(i,j) is the pth entry in C
-		Ci[(func() int {
-			p = func() int {
-				tempVar := &w[Tj[k]]
-				defer func() {
-					*tempVar++
-				}()
-				return *tempVar
-			}()
-			return p
-		}())] = Ti[k]
+		p := w[Tj[k]]
+		w[Tj[k]]++
+		Ci[p] = Ti[k]
 		if Cx != nil {
 			Cx[p] = Tx[k]
 		}
@@ -1082,32 +993,26 @@ func cs_compress(T *cs) *cs {
 
 // init_ata - column counts of LL'=A or LL'=A'A, given parent & post ordering
 func init_ata(AT *cs, post []int, w []int, head *[]int, next *[]int) {
-	var i int
-	var k int
-	var p int
-	var m int = int(AT.n)
-	var n int = int(AT.m)
-	var ATp []int = AT.p
-	var ATi []int = AT.i
+	var (
+		m   = AT.n
+		n   = AT.m
+		ATp = AT.p
+		ATi = AT.i
+	)
 	*head = w[4*n:]
 	*next = w[5*n+1:]
 
 	// invert post
-	for k = 0; k < n; k++ {
+	for k := 0; k < n; k++ {
 		w[post[k]] = k
 	}
 
-	for i = 0; i < m; i++ {
-
-		k = n
-		p = ATp[i]
-		for p = ATp[i]; p < ATp[i+1]; p++ {
-			k = int(func() int {
-				if k < w[ATi[p]] {
-					return (k)
-				}
-				return (w[ATi[p]])
-			}())
+	for i := 0; i < m; i++ {
+		k := n
+		for p := ATp[i]; p < ATp[i+1]; p++ {
+			if !(k < w[ATi[p]]) {
+				k = w[ATi[p]]
+			}
 		}
 
 		// place row i in linked list k
@@ -1118,89 +1023,72 @@ func init_ata(AT *cs, post []int, w []int, head *[]int, next *[]int) {
 
 // cs_counts -
 func cs_counts(A *cs, parent []int, post []int, ata bool) []int {
-	var i int
-	var j int
-	var k int
-	var n int
-	var m int
 	var J int
-	var s int
-	var p int
 	var q int
 	var jleaf int
-	var ATp []int
-	var ATi []int
-	var maxfirst []int
-	var prevleaf []int
-	var ancestor []int
 	var head []int
 	var next []int
-	var colcount []int
-	var w []int
-	var first []int
-	var delta []int
-	var AT *cs
 	if !(A != nil && A.nz == -1) || parent == nil || post == nil {
 		// check inputs
 		return nil
 	}
-	m = A.m
-	n = A.n
-	s = (4*int(n) + func() int {
-		if ata {
-			return (int(n + m + 1))
-		}
-		return 0
-	}())
-	colcount = make([]int, n)
-	// allocate result
-	delta = colcount
-	// get workspace
-	w = make([]int, s)
-	// AT = A'
-	AT = cs_transpose(A, false)
-	if AT == nil || colcount == nil || w == nil {
-		return (cs_idone(colcount, AT, w, false))
+	m := A.m
+	n := A.n
+	s := 4 * n
+	if ata {
+		s += (n + m + 1)
 	}
-	ancestor = w
-	maxfirst = w[n:]
-	prevleaf = w[2*n:]
-	first = w[3*n:]
+	// allocate result
+	colcount := make([]int, n)
+	delta := colcount
+	// get workspace
+	w := make([]int, s)
+	// AT = A'
+	AT := cs_transpose(A, false)
+	if AT == nil || colcount == nil || w == nil {
+		return cs_idone(colcount, AT, w, false)
+	}
+	var (
+		ancestor = w
+		maxfirst = w[n:]
+		prevleaf = w[2*n:]
+		first    = w[3*n:]
+	)
 
 	// clear workspace w [0..s-1]
-	for k = 0; k < s; k++ {
+	for k := 0; k < s; k++ {
 		w[k] = -1
 	}
 
 	// find first [j]
-	for k = 0; k < n; k++ {
-		j = post[k]
+	for k := 0; k < n; k++ {
+		j := post[k]
 		// delta[j]=1 if j is a leaf
-		delta[j] = int(func() int {
-			if first[j] == -1 {
-				return 1
-			}
-			return 0
-		}())
+		delta[j] = 0
+		if first[j] == -1 {
+			delta[j] = 1
+		}
 		for ; j != -1 && first[j] == -1; j = parent[j] {
 			first[j] = k
 		}
 	}
 
-	ATp = AT.p
-	ATi = AT.i
+	var (
+		ATp = AT.p
+		ATi = AT.i
+	)
 	if ata {
 		init_ata(AT, post, w, &head, &next)
 	}
 
 	// each node in its own set
-	for i = 0; i < n; i++ {
+	for i := 0; i < n; i++ {
 		ancestor[i] = i
 	}
 
-	for k = 0; k < n; k++ {
+	for k := 0; k < n; k++ {
 		// j is the kth node in postordered etree
-		j = post[k]
+		j := post[k]
 		if parent[j] != -1 {
 			// j is not a root
 			delta[parent[j]]--
@@ -1218,8 +1106,8 @@ func cs_counts(A *cs, parent []int, post []int, ata bool) []int {
 			}
 			return int(-1)
 		}()) {
-			for p = ATp[J]; p < ATp[J+1]; p++ {
-				i = ATi[p]
+			for p := ATp[J]; p < ATp[J+1]; p++ {
+				i := ATi[p]
 				q = cs_leaf(i, j, first, maxfirst, prevleaf, ancestor, &jleaf)
 				if jleaf >= 1 {
 					// A(i,j) is in skeleton
@@ -1238,7 +1126,7 @@ func cs_counts(A *cs, parent []int, post []int, ata bool) []int {
 	}
 
 	// sum up delta's of each child
-	for j = 0; j < n; j++ {
+	for j := 0; j < n; j++ {
 		if parent[j] != -1 {
 			colcount[parent[j]] += colcount[j]
 		}
@@ -2901,31 +2789,25 @@ func cs_post(parent []int, n int) []int {
 
 // cs_print - print a sparse matrix; use %g for integers to avoid differences with csi
 func cs_print(A *cs, brief bool) bool {
-	var p int
-	var m int
-	var n int
-	var nzmax int
-	var nz int
-	var Ap []int
-	var Ai []int
-	var Ax []float64
 	if A == nil {
 		fmt.Printf("(null)\n")
 		return false
 	}
-	m = A.m
-	n = A.n
-	Ap = A.p
-	Ai = A.i
-	Ax = A.x
-	nzmax = A.nzmax
-	nz = A.nz
+	var (
+		m     = A.m
+		n     = A.n
+		Ap    = A.p
+		Ai    = A.i
+		Ax    = A.x
+		nzmax = A.nzmax
+		nz    = A.nz
+	)
 	fmt.Printf("CSparse Version %d.%d.%d, %s.  %s\n", 3, 2, 0, "Sept 12, 2017", "Copyright (c) Timothy A. Davis, 2006-2016")
 	if nz < 0 {
 		fmt.Printf("%d-by-%d, nzmax: %d nnz: %d, 1-norm: %10e\n", m, n, nzmax, Ap[n], cs_norm(A))
 		for j := 0; j < n; j++ {
 			fmt.Printf("    col %d : locations %d to %d\n", j, Ap[j], Ap[j+1]-1)
-			for p = Ap[j]; p < Ap[j+1]; p++ {
+			for p := Ap[j]; p < Ap[j+1]; p++ {
 				fmt.Printf("      %d : %10e\n", Ai[p], func() float64 {
 					if Ax != nil {
 						return Ax[p]
@@ -2938,40 +2820,40 @@ func cs_print(A *cs, brief bool) bool {
 				}
 			}
 		}
-	} else {
-		fmt.Printf("triplet: %d-by-%d, nzmax: %d nnz: %d\n", m, n, nzmax, nz)
-		for p = 0; p < nz; p++ {
-			fmt.Printf("    %d %d : %10e\n", Ai[p], Ap[p], func() float64 {
-				if Ax != nil {
-					return Ax[p]
-				}
-				return 1
-			}())
-			if brief && p > 20 {
-				fmt.Printf("  ...\n")
-				return true
+		return true
+	}
+
+	fmt.Printf("triplet: %d-by-%d, nzmax: %d nnz: %d\n", m, n, nzmax, nz)
+	for p := 0; p < nz; p++ {
+		fmt.Printf("    %d %d : %10e\n", Ai[p], Ap[p], func() float64 {
+			if Ax != nil {
+				return Ax[p]
 			}
+			return 1
+		}())
+		if brief && p > 20 {
+			fmt.Printf("  ...\n")
+			return true
 		}
 	}
+
 	return true
 }
 
 // cs_pvec - x = b(p), for dense vectors x and b; p=NULL denotes identity
-func cs_pvec(p []int, b []float64, x []float64, n int) int {
-	var k int
+func cs_pvec(p []int, b []float64, x []float64, n int) bool {
 	if x == nil || b == nil {
 		// check inputs
-		return 0
+		return false
 	}
-	for k = 0; k < n; k++ {
-		x[k] = b[func() int {
-			if p != nil {
-				return (p[k])
-			}
-			return (k)
-		}()]
+	for k := 0; k < n; k++ {
+		if p != nil {
+			x[k] = b[p[k]]
+			continue
+		}
+		x[k] = b[k]
 	}
-	return 1
+	return true
 }
 
 // cs_qr - sparse QR factorization [V,beta,pinv,R] = qr (A)
@@ -3019,7 +2901,7 @@ func cs_qr(A *cs, S *css) *csn {
 	q = S.q
 	parent = S.parent
 	pinv = S.pinv
-	m2 = int(S.m2)
+	m2 = S.m2
 	vnz = S.lnz
 	rnz = S.unz
 	leftmost = S.leftmost
@@ -3094,18 +2976,18 @@ func cs_qr(A *cs, S *css) *csn {
 		for p = Ap[col]; p < Ap[col+1]; p++ {
 			// i = min(find(A(i,q)))
 			i = leftmost[Ai[p]]
-			{
-				// traverse up to k
-				for len = 0; w[i] != k; i = parent[i] {
-					s[func() int {
-						defer func() {
-							len++
-						}()
-						return len
-					}()] = i
-					w[i] = k
-				}
+
+			// traverse up to k
+			for len = 0; w[i] != k; i = parent[i] {
+				s[func() int {
+					defer func() {
+						len++
+					}()
+					return len
+				}()] = i
+				w[i] = k
 			}
+
 			for len > 0 {
 				// push path on stack
 				s[func() int {
@@ -3185,37 +3067,34 @@ func cs_qrsol(order int, A *cs, b []float64) bool {
 	var N *csn
 	var AT *cs
 	var k int
-	var m int
-	var n int
 	var ok bool
 	if !(A != nil && A.nz == -1) || b == nil {
 		// check inputs
 		return false
 	}
-	n = A.n
-	m = A.m
+	n := A.n
+	m := A.m
 	if m >= n {
 		// ordering and symbolic analysis
 		S = cs_sqr(order, A, true)
 		// numeric QR factorization
 		N = cs_qr(A, S)
 		// get workspace
-		x = make([]float64, func() int {
-			if S != nil {
-				return (S.m2)
-			}
-			return 1
-		}())
-		ok = S != nil && N != nil && x != nil
-		if bool(ok) {
+		if S != nil {
+			x = make([]float64, S.m2)
+		} else {
+			x = make([]float64, 1)
+		}
+		ok = (S != nil && N != nil && x != nil)
+		if ok {
 			// x(0:m-1) = b(p(0:m-1)
 			cs_ipvec(S.pinv, b, x, m)
-			{
-				// apply Householder refl. to x
-				for k = 0; k < n; k++ {
-					cs_happly(N.L, int(k), N.B[k], x)
-				}
+
+			// apply Householder refl. to x
+			for k = 0; k < n; k++ {
+				cs_happly(N.L, int(k), N.B[k], x)
 			}
+
 			// x = R\x
 			cs_usolve(N.U, x)
 			// b(q(0:n-1)) = x(0:n-1)
@@ -3229,24 +3108,23 @@ func cs_qrsol(order int, A *cs, b []float64) bool {
 		// numeric QR factorization of A'
 		N = cs_qr(AT, S)
 		// get workspace
-		x = make([]float64, func() int {
-			if S != nil {
-				return (S.m2)
-			}
-			return 1
-		}())
+		if S != nil {
+			x = make([]float64, S.m2)
+		} else {
+			x = make([]float64, 1)
+		}
 		ok = (AT != nil && S != nil && N != nil && x != nil)
 		if ok {
 			// x(q(0:m-1)) = b(0:m-1)
 			cs_pvec(S.q, b, x, m)
 			// x = R'\x
 			cs_utsolve(N.U, x)
-			{
-				// apply Householder refl. to x
-				for k = m - 1; k >= 0; k-- {
-					cs_happly(N.L, int(k), N.B[k], x)
-				}
+
+			// apply Householder refl. to x
+			for k = m - 1; k >= 0; k-- {
+				cs_happly(N.L, int(k), N.B[k], x)
 			}
+
 			// b(0:n-1) = x(p(0:n-1))
 			cs_pvec(S.pinv, x, b, n)
 		}
@@ -3254,7 +3132,7 @@ func cs_qrsol(order int, A *cs, b []float64) bool {
 	cs_free(x)
 	cs_sfree(S)
 	cs_nfree(N)
-	cs_spfree(AT) // TODO (KI) : remove
+	cs_spfree(AT)
 	return ok
 }
 
