@@ -3751,18 +3751,14 @@ func cs_vcount(A *cs, S *css) bool {
 
 // cs_sqr - symbolic ordering and analysis for QR or LU
 func cs_sqr(order int, A *cs, qr bool) (result *css) {
-	var n int
-	var k int
 	var ok bool = true
-	var post []int
-	var S *css
 	if !(A != nil && A.nz == -1) {
 		// check inputs
 		return nil
 	}
-	n = A.n
+	n := A.n
 	// allocate result S
-	S = new(css)
+	S := new(css)
 	if S == nil {
 		// out of memory
 		return nil
@@ -3770,32 +3766,29 @@ func cs_sqr(order int, A *cs, qr bool) (result *css) {
 	// fill-reducing ordering
 	S.q = cs_amd(order, A)
 	if order != 0 && S.q == nil {
-		return (cs_sfree(S))
+		return cs_sfree(S)
 	}
 	if qr {
-		var C *cs = func() *cs {
-			if order != 0 {
-				return cs_permute(A, nil, S.q, false)
-			}
-			return (A)
-		}()
+		C := A
+		if order != 0 {
+			C = cs_permute(A, nil, S.q, false)
+		}
 		// QR symbolic analysis
 		// etree of C'*C, where C=A(:,q)
 		S.parent = cs_etree(C, true)
-		post = cs_post(S.parent, n)
+		post := cs_post(S.parent, n)
 		// col counts chol(C'*C)
 		S.cp = cs_counts(C, S.parent, post, true)
 		cs_free(post)
-		ok = (C != nil && S.parent != nil && S.cp != nil && bool(cs_vcount(C, S)))
+		ok = (C != nil && S.parent != nil && S.cp != nil && cs_vcount(C, S))
 		if ok {
 			S.unz = 0
-			k = 0
-			for k = 0; k < n; k++ {
+			for k := 0; k < n; k++ {
 				S.unz += S.cp[k]
 			}
 		}
 		if order != 0 {
-			cs_spfree(C) // TODO (KI) : remove
+			cs_spfree(C)
 		}
 	} else {
 		// for LU factorization only,
@@ -3804,12 +3797,10 @@ func cs_sqr(order int, A *cs, qr bool) (result *css) {
 		S.lnz = S.unz
 	}
 	// return result S
-	return (func() *css {
-		if ok {
-			return S
-		}
-		return cs_sfree(S)
-	}())
+	if ok {
+		return S
+	}
+	return cs_sfree(S)
 }
 
 // cs_symperm - C = A(p,p) where A and C are symmetric the upper part stored; pinv not p
