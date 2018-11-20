@@ -207,11 +207,18 @@ problem* get_problem(FILE* f, double tol)
 	printf("nz2 = %d\n",(int) nz2);
 	printf("A->p[%d] = %d\n", (int)n,(int)A->p[(int)n]);
 
+	printf("A before drop\n");
+	test_cs_print(A,0);
+
 	printf("tol = %.5e\n", tol);
     if (tol > 0){
         int ok = cs_droptol(A, tol); // drop tiny entries (just to test) */
 		printf("droptol = %d\n", ok);
 	}
+
+	printf("A before make_sym\n");
+	test_cs_print(A,0);
+
 
     Prob->C = C = sym ? make_sym(A) : A; // C = A + triu(A,1)', or C=A */
     if (!C)

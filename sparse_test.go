@@ -421,6 +421,9 @@ func get_problem(f io.Reader, tol float64) *problem {
 	cs_dropzeros(A)
 	nz2 = A.p[n]
 
+	fmt.Printf("A before drop\n")
+	cs_print(A, false)
+
 	fmt.Printf("n   = %d\n", n)
 	fmt.Printf("nz1 = %d\n", nz1)
 	fmt.Printf("nz2 = %d\n", nz2)
@@ -432,6 +435,9 @@ func get_problem(f io.Reader, tol float64) *problem {
 		ok := cs_droptol(A, tol)
 		fmt.Printf("droptol = %d\n", ok)
 	}
+
+	fmt.Printf("A before make_sym\n")
+	cs_print(A, false)
 
 	// C = A + triu(A,1)', or C=A */
 	C := func() *cs {
