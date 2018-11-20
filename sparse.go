@@ -3644,12 +3644,12 @@ func cs_vcount(A *cs, S *css) bool {
 	head = w[m:]
 	tail = w[m+n:]
 	nque = w[m+2*n:]
-	{
-		// queue k is empty
-		for k = 0; k < n; k++ {
-			head[k] = -1
-		}
+
+	// queue k is empty
+	for k = 0; k < n; k++ {
+		head[k] = -1
 	}
+
 	for k = 0; k < n; k++ {
 		tail[k] = -1
 	}
@@ -3665,84 +3665,80 @@ func cs_vcount(A *cs, S *css) bool {
 			leftmost[Ai[p]] = k
 		}
 	}
-	{
-		// scan rows in reverse order
-		for i = m - 1; i >= 0; i-- {
-			// row i is not yet ordered
-			pinv[i] = -1
-			k = leftmost[i]
-			if k == -1 {
-				// row i is empty
-				continue
-			}
-			if func() int {
-				tempVar := &nque[k]
+
+	// scan rows in reverse order
+	for i = m - 1; i >= 0; i-- {
+		// row i is not yet ordered
+		pinv[i] = -1
+		k = leftmost[i]
+		if k == -1 {
+			// row i is empty
+			continue
+		}
+		if func() int {
+			tempVar := &nque[k]
+			defer func() {
+				*tempVar++
+			}()
+			return *tempVar
+		}() == 0 {
+			// first row in queue k
+			tail[k] = i
+		}
+		// put i at head of queue k
+		next[i] = head[k]
+		head[k] = i
+	}
+
+	S.lnz = 0
+	S.m2 = m
+
+	// find row permutation and nnz(V)
+	for k = 0; k < n; k++ {
+		// remove row i from queue k
+		i = head[k]
+		// count V(k,k) as nonzero
+		S.lnz++
+		if i < 0 {
+			// add a fictitious row
+			i = func() int {
+				tempVar := &S.m2
 				defer func() {
 					*tempVar++
 				}()
 				return *tempVar
-			}() == 0 {
-				// first row in queue k
-				tail[k] = i
+			}()
+		}
+		// associate row i with V(:,k)
+		pinv[i] = k
+		if func() int {
+			tempVar := &nque[k]
+			*tempVar--
+			return *tempVar
+		}() <= 0 {
+			// skip if V(k+1:m,k) is empty
+			continue
+		}
+		// nque [k] is nnz (V(k+1:m,k))
+		S.lnz += nque[k]
+		if (func() int {
+			pa = parent[k]
+			return pa
+		}()) != -1 {
+			if nque[pa] == 0 {
+				// move all rows to parent of k
+				tail[pa] = tail[k]
 			}
-			// put i at head of queue k
-			next[i] = head[k]
-			head[k] = i
+			next[tail[k]] = head[pa]
+			head[pa] = next[i]
+			nque[pa] += nque[k]
 		}
 	}
-	S.lnz = 0
-	S.m2 = m
-	{
-		// find row permutation and nnz(V)
-		for k = 0; k < n; k++ {
-			// remove row i from queue k
-			i = head[k]
-			// count V(k,k) as nonzero
-			S.lnz++
-			if i < 0 {
-				// add a fictitious row
-				i = func() int {
-					tempVar := &S.m2
-					defer func() {
-						*tempVar++
-					}()
-					return *tempVar
-				}()
-			}
-			// associate row i with V(:,k)
-			pinv[i] = k
-			if func() int {
-				tempVar := &nque[k]
-				*tempVar--
-				return *tempVar
-			}() <= 0 {
-				// skip if V(k+1:m,k) is empty
-				continue
-			}
-			// nque [k] is nnz (V(k+1:m,k))
-			S.lnz += nque[k]
-			if (func() int {
-				pa = parent[k]
-				return pa
-			}()) != -1 {
-				if nque[pa] == 0 {
-					// move all rows to parent of k
-					tail[pa] = tail[k]
-				}
-				next[tail[k]] = head[pa]
-				head[pa] = next[i]
-				nque[pa] += nque[k]
-			}
-		}
-	}
+
 	for i = 0; i < m; i++ {
 		if pinv[i] < 0 {
-			pinv[i] = func() int {
-				defer func() {
-					k++
-				}()
-				return k
-			}()
+			pinv[i] = k
+			k++
 		}
 	}
 	cs_free(w)
