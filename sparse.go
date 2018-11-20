@@ -1118,89 +1118,72 @@ func init_ata(AT *cs, post []int, w []int, head *[]int, next *[]int) {
 
 // cs_counts -
 func cs_counts(A *cs, parent []int, post []int, ata bool) []int {
-	var i int
-	var j int
-	var k int
-	var n int
-	var m int
 	var J int
-	var s int
-	var p int
 	var q int
 	var jleaf int
-	var ATp []int
-	var ATi []int
-	var maxfirst []int
-	var prevleaf []int
-	var ancestor []int
 	var head []int
 	var next []int
-	var colcount []int
-	var w []int
-	var first []int
-	var delta []int
-	var AT *cs
 	if !(A != nil && A.nz == -1) || parent == nil || post == nil {
 		// check inputs
 		return nil
 	}
-	m = A.m
-	n = A.n
-	s = (4*int(n) + func() int {
-		if ata {
-			return (int(n + m + 1))
-		}
-		return 0
-	}())
-	colcount = make([]int, n)
-	// allocate result
-	delta = colcount
-	// get workspace
-	w = make([]int, s)
-	// AT = A'
-	AT = cs_transpose(A, false)
-	if AT == nil || colcount == nil || w == nil {
-		return (cs_idone(colcount, AT, w, false))
+	m := A.m
+	n := A.n
+	s := 4 * n
+	if ata {
+		s += (n + m + 1)
 	}
-	ancestor = w
-	maxfirst = w[n:]
-	prevleaf = w[2*n:]
-	first = w[3*n:]
+	// allocate result
+	colcount := make([]int, n)
+	delta := colcount
+	// get workspace
+	w := make([]int, s)
+	// AT = A'
+	AT := cs_transpose(A, false)
+	if AT == nil || colcount == nil || w == nil {
+		return cs_idone(colcount, AT, w, false)
+	}
+	var (
+		ancestor = w
+		maxfirst = w[n:]
+		prevleaf = w[2*n:]
+		first    = w[3*n:]
+	)
 
 	// clear workspace w [0..s-1]
-	for k = 0; k < s; k++ {
+	for k := 0; k < s; k++ {
 		w[k] = -1
 	}
 
 	// find first [j]
-	for k = 0; k < n; k++ {
-		j = post[k]
+	for k := 0; k < n; k++ {
+		j := post[k]
 		// delta[j]=1 if j is a leaf
-		delta[j] = int(func() int {
-			if first[j] == -1 {
-				return 1
-			}
-			return 0
-		}())
+		delta[j] = 0
+		if first[j] == -1 {
+			delta[j] = 1
+		}
 		for ; j != -1 && first[j] == -1; j = parent[j] {
 			first[j] = k
 		}
 	}
 
-	ATp = AT.p
-	ATi = AT.i
+	var (
+		ATp = AT.p
+		ATi = AT.i
+	)
 	if ata {
 		init_ata(AT, post, w, &head, &next)
 	}
 
 	// each node in its own set
-	for i = 0; i < n; i++ {
+	for i := 0; i < n; i++ {
 		ancestor[i] = i
 	}
 
-	for k = 0; k < n; k++ {
+	for k := 0; k < n; k++ {
 		// j is the kth node in postordered etree
-		j = post[k]
+		j := post[k]
 		if parent[j] != -1 {
 			// j is not a root
 			delta[parent[j]]--
@@ -1218,8 +1201,8 @@ func cs_counts(A *cs, parent []int, post []int, ata bool) []int {
 			}
 			return int(-1)
 		}()) {
-			for p = ATp[J]; p < ATp[J+1]; p++ {
-				i = ATi[p]
+			for p := ATp[J]; p < ATp[J+1]; p++ {
+				i := ATi[p]
 				q = cs_leaf(i, j, first, maxfirst, prevleaf, ancestor, &jleaf)
 				if jleaf >= 1 {
 					// A(i,j) is in skeleton
@@ -1238,7 +1221,7 @@ func cs_counts(A *cs, parent []int, post []int, ata bool) []int {
 	}
 
 	// sum up delta's of each child
-	for j = 0; j < n; j++ {
+	for j := 0; j < n; j++ {
 		if parent[j] != -1 {
 			colcount[parent[j]] += colcount[j]
 		}
