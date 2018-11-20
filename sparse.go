@@ -4171,9 +4171,6 @@ func cs_usolve(U *cs, x []float64) bool {
 			x[Ui[p]] -= Ux[p] * x[j]
 		}
 	}
-	//
-	// TODO (KI) : probably var `x` is return var
-	//
 	return true
 }
 
