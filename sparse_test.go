@@ -867,6 +867,7 @@ func demo3(Prob *problem) int {
 }
 
 func TestNilCheck(t *testing.T) {
+	// TODO (KI): modify return types
 	if r := cs_add(nil, nil, 0, 0); r != nil {
 		t.Errorf("cs_add: not nil")
 	}
