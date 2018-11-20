@@ -245,7 +245,8 @@ func TestDemo3(t *testing.T) {
 			stdin.Write(b)
 			prob := get_problem(&stdin, 1e-14)
 			// print_problem(prob)
-			demo3(prob)
+			result := demo3(prob)
+			fmt.Printf("Result demo3 : %d\n", result)
 
 			filename := tmpfile.Name()
 			err = tmpfile.Close()

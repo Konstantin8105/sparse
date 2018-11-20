@@ -118,7 +118,8 @@ csi demo3 (problem *Prob)
 int main (void)
 {
     problem *Prob = get_problem (stdin, 1e-14) ;
-    demo3 (Prob) ;
+    int result = demo3 (Prob) ;
+	printf("Result demo3 : %d\n", result);
     free_problem (Prob) ;
     return (0) ;
 }
