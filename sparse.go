@@ -291,15 +291,6 @@ func cs_amd(order int, A *cs) (result []int) {
 	nzmax := C.nzmax
 	Ci := C.i
 
-	// type graph struct { // TODO (KI) : I think struct is look like that
-	// 	head   int
-	// 	last   int
-	// 	hhead  int
-	// 	nv     int
-	// 	elen   int
-	// 	degree int
-	// }
-
 	for i := 0; i <= n; i++ {
 		// degree list i is empty
 		head[i] = -1
@@ -3120,37 +3111,34 @@ func cs_qrsol(order int, A *cs, b []float64) bool {
 	var N *csn
 	var AT *cs
 	var k int
-	var m int
-	var n int
 	var ok bool
 	if !(A != nil && A.nz == -1) || b == nil {
 		// check inputs
 		return false
 	}
-	n = A.n
-	m = A.m
+	n := A.n
+	m := A.m
 	if m >= n {
 		// ordering and symbolic analysis
 		S = cs_sqr(order, A, true)
 		// numeric QR factorization
 		N = cs_qr(A, S)
 		// get workspace
-		x = make([]float64, func() int {
-			if S != nil {
-				return (S.m2)
-			}
-			return 1
-		}())
-		ok = S != nil && N != nil && x != nil
-		if bool(ok) {
+		if S != nil {
+			x = make([]float64, S.m2)
+		} else {
+			x = make([]float64, 1)
+		}
+		ok = (S != nil && N != nil && x != nil)
+		if ok {
 			// x(0:m-1) = b(p(0:m-1)
 			cs_ipvec(S.pinv, b, x, m)
-			{
-				// apply Householder refl. to x
-				for k = 0; k < n; k++ {
-					cs_happly(N.L, int(k), N.B[k], x)
-				}
+
+			// apply Householder refl. to x
+			for k = 0; k < n; k++ {
+				cs_happly(N.L, int(k), N.B[k], x)
 			}
+
 			// x = R\x
 			cs_usolve(N.U, x)
 			// b(q(0:n-1)) = x(0:n-1)
@@ -3164,24 +3152,23 @@ func cs_qrsol(order int, A *cs, b []float64) bool {
 		// numeric QR factorization of A'
 		N = cs_qr(AT, S)
 		// get workspace
-		x = make([]float64, func() int {
-			if S != nil {
-				return (S.m2)
-			}
-			return 1
-		}())
+		if S != nil {
+			x = make([]float64, S.m2)
+		} else {
+			x = make([]float64, 1)
+		}
 		ok = (AT != nil && S != nil && N != nil && x != nil)
 		if ok {
 			// x(q(0:m-1)) = b(0:m-1)
 			cs_pvec(S.q, b, x, m)
 			// x = R'\x
 			cs_utsolve(N.U, x)
-			{
-				// apply Householder refl. to x
-				for k = m - 1; k >= 0; k-- {
-					cs_happly(N.L, int(k), N.B[k], x)
-				}
+
+			// apply Householder refl. to x
+			for k = m - 1; k >= 0; k-- {
+				cs_happly(N.L, int(k), N.B[k], x)
 			}
+
 			// b(0:n-1) = x(p(0:n-1))
 			cs_pvec(S.pinv, x, b, n)
 		}
@@ -3189,7 +3176,7 @@ func cs_qrsol(order int, A *cs, b []float64) bool {
 	cs_free(x)
 	cs_sfree(S)
 	cs_nfree(N)
-	cs_spfree(AT) // TODO (KI) : remove
+	cs_spfree(AT)
 	return ok
 }
 
