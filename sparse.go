@@ -125,21 +125,12 @@ func cs_wclear(mark, lemax int, w []int, n int) int {
 
 // cs_diag - keep off-diagonal entries; drop diagonal entries
 func cs_diag(i, j int, aij float64, other interface{}) bool {
-
-	// TODO (KI) : remove arguments aij, other
-
 	return (i != j)
 }
 
 // cs_amd - p = amd(A+A') if symmetric is true, or amd(A'A) otherwise
 // order 0:natural, 1:Chol, 2:LU, 3:QR
 func cs_amd(order int, A *cs) (result []int) {
-	// defer func() {
-	// 	// TODO (KI) remove - only for debug
-	// 	if result == nil {
-	// 		panic("cs_amd is nil")
-	// 	}
-	// }()
 	var C *cs
 	var A2 *cs
 	// var AT []cs
@@ -202,7 +193,6 @@ func cs_amd(order int, A *cs) (result []int) {
 	if !(A != nil && A.nz == -1) || order <= 0 || order > 3 {
 		// --- Construct matrix C -----------------------------------------------
 		// check
-		// panic(fmt.Errorf("%v %v %v %v", A != nil, A.nz == -1, order <= 0, order > 3)) // TODO: (KI) remove
 		return nil
 	}
 	// compute A'
@@ -280,13 +270,13 @@ func cs_amd(order int, A *cs) (result []int) {
 	}
 	var (
 		len    = W[0:]
-		nv     = W[1*(n+1):] //(*(*[1000000000]int)(unsafe.Pointer(uintptr(unsafe.Pointer(&W[0])) + (uintptr)(int(n+1))*unsafe.Sizeof(W[0]))))[:]
-		next   = W[2*(n+1):] // (*(*[1000000000]int)(unsafe.Pointer(uintptr(unsafe.Pointer(&W[0])) + (uintptr)(int(2*int(n+1)))*unsafe.Sizeof(W[0]))))[:]
-		head   = W[3*(n+1):] // (*(*[1000000000]int)(unsafe.Pointer(uintptr(unsafe.Pointer(&W[0])) + (uintptr)(int(3*int(n+1)))*unsafe.Sizeof(W[0]))))[:]
-		elen   = W[4*(n+1):] // (*(*[1000000000]int)(unsafe.Pointer(uintptr(unsafe.Pointer(&W[0])) + (uintptr)(int(4*int(n+1)))*unsafe.Sizeof(W[0]))))[:]
-		degree = W[5*(n+1):] // (*(*[1000000000]int)(unsafe.Pointer(uintptr(unsafe.Pointer(&W[0])) + (uintptr)(int(5*int(n+1)))*unsafe.Sizeof(W[0]))))[:]
-		w      = W[6*(n+1):] // (*(*[1000000000]int)(unsafe.Pointer(uintptr(unsafe.Pointer(&W[0])) + (uintptr)(int(6*int(n+1)))*unsafe.Sizeof(W[0]))))[:]
-		hhead  = W[7*(n+1):] // (*(*[1000000000]int)(unsafe.Pointer(uintptr(unsafe.Pointer(&W[0])) + (uintptr)(int(7*int(n+1)))*unsafe.Sizeof(W[0]))))[:]
+		nv     = W[1*(n+1):]
+		next   = W[2*(n+1):]
+		head   = W[3*(n+1):]
+		elen   = W[4*(n+1):]
+		degree = W[5*(n+1):]
+		w      = W[6*(n+1):]
+		hhead  = W[7*(n+1):]
 
 		// use P as workspace for last
 		last = P
@@ -906,7 +896,7 @@ func cs_chol(A *cs, S *css) *csn {
 	if N == nil || c == nil || x == nil || C == nil {
 		return (cs_ndone(N, E, c, x, false))
 	}
-	s = c[n:] // (*(*[1000000000]int)(unsafe.Pointer(uintptr(unsafe.Pointer(&c[0])) + (uintptr)(int(n))*unsafe.Sizeof(c[0]))))[:]
+	s = c[n:]
 	Cp = C.p
 	Ci = C.i
 	Cx = C.x
@@ -3058,7 +3048,7 @@ func cs_qr(A *cs, S *css) *csn {
 		return (cs_ndone(N, nil, w, x, false))
 	}
 	// s is size n
-	s = w[m2:] //  (*(*[1000000000]int)(unsafe.Pointer(uintptr(unsafe.Pointer(&w[0])) + (uintptr)(int(m2))*unsafe.Sizeof(w[0]))))[:]
+	s = w[m2:]
 	{
 		// clear workspace x
 		for k = 0; k < m2; k++ {
@@ -3194,7 +3184,7 @@ func cs_qr(A *cs, S *css) *csn {
 					rnz++
 				}()
 				return rnz
-			}()] = cs_house(Vx[p1:], Beta[k:], vnz-p1) // cs_house((*(*[1000000000]float64)(unsafe.Pointer(uintptr(unsafe.Pointer(&Vx[0])) + (uintptr)(int(p1))*unsafe.Sizeof(Vx[0]))))[:], (*(*[1000000000]float64)(unsafe.Pointer(uintptr(unsafe.Pointer(&Beta[0])) + (uintptr)(int(k))*unsafe.Sizeof(Beta[0]))))[:], vnz-p1)
+			}()] = cs_house(Vx[p1:], Beta[k:], vnz-p1)
 		}
 	}
 	// finalize R
