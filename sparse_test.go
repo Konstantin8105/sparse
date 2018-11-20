@@ -187,7 +187,12 @@ func TestDemo2(t *testing.T) {
 			stdin.Write(b)
 			prob := get_problem(&stdin, 1e-14)
 			// print_problem(prob)
-			demo2(prob)
+			result := demo2(prob)
+			if result {
+				fmt.Printf("Result demo2 : 1\n")
+			} else {
+				fmt.Printf("Result demo2 : 0\n")
+			}
 
 			filename := tmpfile.Name()
 			err = tmpfile.Close()
@@ -421,18 +426,12 @@ func get_problem(f io.Reader, tol float64) *problem {
 	fmt.Printf("nz2 = %d\n", nz2)
 	fmt.Printf("A->p[%d] = %d\n", n, A.p[n])
 
-	fmt.Printf("A before drop\n")
-	cs_print(A, false)
-
 	fmt.Printf("tol = %.5e\n", tol)
 	if tol > 0 {
 		// drop tiny entries (just to test) */
 		ok := cs_droptol(A, tol)
 		fmt.Printf("droptol = %d\n", ok)
 	}
-
-	fmt.Printf("A before make_sym\n")
-	cs_print(A, false)
 
 	// C = A + triu(A,1)', or C=A */
 	C := func() *cs {
