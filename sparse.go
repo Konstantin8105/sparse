@@ -3751,12 +3751,6 @@ func cs_vcount(A *cs, S *css) bool {
 
 // cs_sqr - symbolic ordering and analysis for QR or LU
 func cs_sqr(order int, A *cs, qr bool) (result *css) {
-	// defer func() {
-	// 	// TODO (KI): remove debug info
-	// 	if result == nil {
-	// 		panic("cs_sqr == nil")
-	// 	}
-	// }()
 	var n int
 	var k int
 	var ok bool = true
@@ -4010,9 +4004,9 @@ func cs_transpose(A *cs, values bool) *cs {
 	for j := 0; j < n; j++ {
 		for p := Ap[j]; p < Ap[j+1]; p++ {
 			// place A(i,j) as entry C(j,i)
-			q := &w[Ai[p]]
-			Ci[*q] = j
-			*q++
+			q := w[Ai[p]]
+			Ci[q] = j
+			w[Ai[p]]++
 			if Cx != nil {
 				Cx[q] = Ax[p]
 			}
@@ -4191,12 +4185,6 @@ func cs_spalloc(m, n, nzmax int, values, triplet bool) *cs {
 
 // cs_sprealloc - change the max # of entries sparse matrix
 func cs_sprealloc(A *cs, nzmax int) (result bool) {
-	// defer func() {
-	// 	// TODO (KI) : remove debug information
-	// 	if result == false {
-	// 		panic("cs_sprealloc is false")
-	// 	}
-	// }()
 	var oki bool
 	var okj bool = true
 	var okx bool = true
@@ -4276,10 +4264,7 @@ func cs_dfree(D *csd) *csd {
 
 // cs_done - free workspace and return a sparse matrix result
 func cs_done(C *cs, w []int, x []float64, ok bool) *cs {
-	//
-	// TODO(KI): remove w,x
-	//
-
+	// TODO (KI) : reused memory
 	// return result if OK, else free it
 	if ok {
 		return C
@@ -4289,10 +4274,7 @@ func cs_done(C *cs, w []int, x []float64, ok bool) *cs {
 
 // cs_idone - free workspace and return csi array result
 func cs_idone(p []int, C *cs, w interface{}, ok bool) []int {
-	//
-	// TODO (KI) : remove C, w
-	//
-
+	// TODO (KI) : reused memory
 	// return result, or free it
 	if ok {
 		return p
@@ -4302,6 +4284,7 @@ func cs_idone(p []int, C *cs, w interface{}, ok bool) []int {
 
 // cs_ndone - free workspace and return a numeric factorization (Cholesky, LU, or QR)
 func cs_ndone(N *csn, C *cs, w interface{}, x interface{}, ok bool) *csn {
+	// TODO (KI) : reused memory
 	// return result if OK, else free it
 	if ok {
 		return N
@@ -4311,6 +4294,7 @@ func cs_ndone(N *csn, C *cs, w interface{}, x interface{}, ok bool) *csn {
 
 // cs_ddone - free workspace and return a csd result
 func cs_ddone(D *csd, C *cs, w interface{}, ok bool) *csd {
+	// TODO (KI) : reused memory
 	// return result if OK, else free it
 	if ok {
 		return D
@@ -4336,8 +4320,5 @@ func cs_utsolve(U *cs, x []float64) bool {
 		}
 		x[j] /= Ux[Up[j+1]-1]
 	}
-	//
-	// TODO (KI) : probably variable `x` is return var
-	//
 	return true
 }
