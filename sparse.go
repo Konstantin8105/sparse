@@ -2827,31 +2827,25 @@ func cs_post(parent []int, n int) []int {
 
 // cs_print - print a sparse matrix; use %g for integers to avoid differences with csi
 func cs_print(A *cs, brief bool) bool {
-	var p int
-	var m int
-	var n int
-	var nzmax int
-	var nz int
-	var Ap []int
-	var Ai []int
-	var Ax []float64
 	if A == nil {
 		fmt.Printf("(null)\n")
 		return false
 	}
-	m = A.m
-	n = A.n
-	Ap = A.p
-	Ai = A.i
-	Ax = A.x
-	nzmax = A.nzmax
-	nz = A.nz
+	var (
+		m     = A.m
+		n     = A.n
+		Ap    = A.p
+		Ai    = A.i
+		Ax    = A.x
+		nzmax = A.nzmax
+		nz    = A.nz
+	)
 	fmt.Printf("CSparse Version %d.%d.%d, %s.  %s\n", 3, 2, 0, "Sept 12, 2017", "Copyright (c) Timothy A. Davis, 2006-2016")
 	if nz < 0 {
 		fmt.Printf("%d-by-%d, nzmax: %d nnz: %d, 1-norm: %10e\n", m, n, nzmax, Ap[n], cs_norm(A))
 		for j := 0; j < n; j++ {
 			fmt.Printf("    col %d : locations %d to %d\n", j, Ap[j], Ap[j+1]-1)
-			for p = Ap[j]; p < Ap[j+1]; p++ {
+			for p := Ap[j]; p < Ap[j+1]; p++ {
 				fmt.Printf("      %d : %10e\n", Ai[p], func() float64 {
 					if Ax != nil {
 						return Ax[p]
@@ -2864,40 +2858,40 @@ func cs_print(A *cs, brief bool) bool {
 				}
 			}
 		}
-	} else {
-		fmt.Printf("triplet: %d-by-%d, nzmax: %d nnz: %d\n", m, n, nzmax, nz)
-		for p = 0; p < nz; p++ {
-			fmt.Printf("    %d %d : %10e\n", Ai[p], Ap[p], func() float64 {
-				if Ax != nil {
-					return Ax[p]
-				}
-				return 1
-			}())
-			if brief && p > 20 {
-				fmt.Printf("  ...\n")
-				return true
+		return true
+	}
+
+	fmt.Printf("triplet: %d-by-%d, nzmax: %d nnz: %d\n", m, n, nzmax, nz)
+	for p := 0; p < nz; p++ {
+		fmt.Printf("    %d %d : %10e\n", Ai[p], Ap[p], func() float64 {
+			if Ax != nil {
+				return Ax[p]
 			}
+			return 1
+		}())
+		if brief && p > 20 {
+			fmt.Printf("  ...\n")
+			return true
 		}
 	}
+
 	return true
 }
 
 // cs_pvec - x = b(p), for dense vectors x and b; p=NULL denotes identity
-func cs_pvec(p []int, b []float64, x []float64, n int) int {
-	var k int
+func cs_pvec(p []int, b []float64, x []float64, n int) bool {
 	if x == nil || b == nil {
 		// check inputs
-		return 0
+		return false
 	}
-	for k = 0; k < n; k++ {
-		x[k] = b[func() int {
-			if p != nil {
-				return (p[k])
-			}
-			return (k)
-		}()]
+	for k := 0; k < n; k++ {
+		if p != nil {
+			x[k] = b[p[k]]
+			continue
+		}
+		x[k] = b[k]
 	}
-	return 1
+	return true
 }
 
 // cs_qr - sparse QR factorization [V,beta,pinv,R] = qr (A)
@@ -2945,7 +2939,7 @@ func cs_qr(A *cs, S *css) *csn {
 	q = S.q
 	parent = S.parent
 	pinv = S.pinv
-	m2 = int(S.m2)
+	m2 = S.m2
 	vnz = S.lnz
 	rnz = S.unz
 	leftmost = S.leftmost
@@ -3020,18 +3014,18 @@ func cs_qr(A *cs, S *css) *csn {
 		for p = Ap[col]; p < Ap[col+1]; p++ {
 			// i = min(find(A(i,q)))
 			i = leftmost[Ai[p]]
-			{
-				// traverse up to k
-				for len = 0; w[i] != k; i = parent[i] {
-					s[func() int {
-						defer func() {
-							len++
-						}()
-						return len
-					}()] = i
-					w[i] = k
-				}
+
+			// traverse up to k
+			for len = 0; w[i] != k; i = parent[i] {
+				s[func() int {
+					defer func() {
+						len++
+					}()
+					return len
+				}()] = i
+				w[i] = k
 			}
+
 			for len > 0 {
 				// push path on stack
 				s[func() int {
