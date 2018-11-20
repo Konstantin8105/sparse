@@ -865,3 +865,195 @@ func demo3(Prob *problem) int {
 	print_resid(true, C, x, b, resid)
 	return 1 // int((done3(1, S, N, y, W, E, p)))
 }
+
+func TestNilCheck(t *testing.T) {
+	if r := cs_add(nil, nil, 0, 0); r != nil {
+		t.Errorf("cs_add: not nil")
+	}
+	if r := cs_amd(-1, nil); r != nil {
+		t.Errorf("cs_amd: not nil")
+	}
+	if r := cs_chol(nil, nil); r != nil {
+		t.Errorf("cs_chol: not nil")
+	}
+	if r := cs_cholsol(-1, nil, nil); r == true {
+		t.Errorf("cs_cholsol: not nil")
+	}
+	if r := cs_compress(nil); r != nil {
+		t.Errorf("cs_compress: not nil")
+	}
+	if r := cs_counts(nil, nil, nil, false); r != nil {
+		t.Errorf("cs_counts: not nil")
+	}
+	if r := cs_cumsum(nil, nil, 0); r != -1 {
+		t.Errorf("cs_cumsum: not nil")
+	}
+	if r := cs_dfs(0, nil, -1, nil, nil, nil); r != -1 {
+		t.Errorf("cs_dfs: not nil")
+	}
+	if r := cs_bfs(nil, -1, nil, nil, nil, nil, nil, -1); r == true {
+		t.Errorf("cs_bfs: not nil")
+	}
+	if r := cs_dmperm(nil, -1); r != nil {
+		t.Errorf("cs_dmperm: not nil")
+	}
+	if r := cs_droptol(nil, -1); r != -1 {
+		t.Errorf("cs_droptol: not nil")
+	}
+	if r := cs_dropzeros(nil); r != -1 {
+		t.Errorf("cs_dropzeros: not nil")
+	}
+	if r := cs_dupl(nil); r == true {
+		t.Errorf("cs_dupl: not nil")
+	}
+	if r := cs_entry(nil, -1, -1, 0); r == true {
+		t.Errorf("cs_entry: not nil")
+	}
+	if r := cs_ereach(nil, -1, nil, nil, nil); r == 1 {
+		t.Errorf("cs_ereach: not nil")
+	}
+	if r := cs_etree(nil, false); r != nil {
+		t.Errorf("cs_etree: not nil")
+	}
+	if r := cs_fkeep(nil, nil, nil); r == 1 {
+		t.Errorf("cs_fkeep: not nil")
+	}
+	if r := cs_gaxpy(nil, nil, nil); r == true {
+		t.Errorf("cs_gaxpy: not nil")
+	}
+	if r := cs_happly(nil, -1, -1, nil); r == 1 {
+		t.Errorf("cs_happly: not nil")
+	}
+	if r := cs_house(nil, nil, -1); r != -1 {
+		t.Errorf("cs_house: not nil")
+	}
+	if r := cs_ipvec(nil, nil, nil, -1); r == true {
+		t.Errorf("cs_ipvec: not nil")
+	}
+	if r := cs_leaf(-1, -1, nil, nil, nil, nil, nil); r != -1 {
+		t.Errorf("cs_leaf: not nil")
+	}
+	if r := cs_load(nil); r != nil {
+		t.Errorf("cs_load: not nil")
+	}
+	if r := cs_lsolve(nil, nil); r != false {
+		t.Errorf("cs_lsolve: not nil")
+	}
+	if r := cs_ltsolve(nil, nil); r == true {
+		t.Errorf("cs_ltsolve: not nil")
+	}
+	if r := cs_lu(nil, nil, -1); r != nil {
+		t.Errorf("cs_lu: not nil")
+	}
+	if r := cs_lusol(-1, nil, nil, -1); r == true {
+		t.Errorf("cs_lusol: not nil")
+	}
+	if r := cs_free(nil); r != nil {
+		t.Errorf("cs_free: not nil")
+	}
+	if r := cs_realloc(nil, -1, nil); r != nil {
+		t.Errorf("cs_realloc: not nil")
+	}
+	if r := cs_maxtrans(nil, -1); r != nil {
+		t.Errorf("cs_maxtrans: not nil")
+	}
+	if r := cs_multiply(nil, nil); r != nil {
+		t.Errorf("cs_multiply: not nil")
+	}
+	if r := cs_norm(nil); r != -1 {
+		t.Errorf("cs_norm: not nil")
+	}
+	if r := cs_permute(nil, nil, nil, false); r != nil {
+		t.Errorf("cs_permute: not nil")
+	}
+	if r := cs_pinv(nil, -1); r != nil {
+		t.Errorf("cs_pinv: not nil")
+	}
+	if r := cs_post(nil, -1); r != nil {
+		t.Errorf("cs_post: not nil")
+	}
+	if r := cs_print(nil, false); r == true {
+		t.Errorf("cs_print: not nil")
+	}
+	if r := cs_pvec(nil, nil, nil, -1); r == true {
+		t.Errorf("cs_pvec: not nil")
+	}
+	if r := cs_qr(nil, nil); r != nil {
+		t.Errorf("cs_qr: not nil")
+	}
+	if r := cs_qrsol(-1, nil, nil); r == true {
+		t.Errorf("cs_qrsol: not nil")
+	}
+	if r := cs_randperm(-1, -1); r != nil {
+		t.Errorf("cs_randperm: not nil")
+	}
+	if r := cs_reach(nil, nil, -1, nil, nil); r != -1 {
+		t.Errorf("cs_reach: not nil")
+	}
+	if r := cs_scatter(nil, -1, -1, nil, nil, -1, nil, -1); r != -1 {
+		t.Errorf("cs_scatter: not nil")
+	}
+	if r := cs_scc(nil); r != nil {
+		t.Errorf("cs_scc: not nil")
+	}
+	if r := cs_schol(-1, nil); r != nil {
+		t.Errorf("cs_schol: not nil")
+	}
+	if r := cs_spsolve(nil, nil, -1, nil, nil, nil, false); r != -1 {
+		t.Errorf("cs_spsolve: not nil")
+	}
+	if r := cs_vcount(nil, nil); r == true {
+		t.Errorf("cs_vcount: not nil")
+	}
+	if r := cs_sqr(-1, nil, false); r != nil {
+		t.Errorf("cs_sqr: not nil")
+	}
+	if r := cs_symperm(nil, nil, false); r != nil {
+		t.Errorf("cs_symperm: not nil")
+	}
+	if r := cs_tdfs(-1, -1, nil, nil, nil, nil); r != -1 {
+		t.Errorf("cs_tdfs: not nil")
+	}
+	if r := cs_transpose(nil, false); r != nil {
+		t.Errorf("cs_transpose: not nil")
+	}
+	if r := cs_updown(nil, -1, nil, nil); r != 0 {
+		t.Errorf("cs_updown: not nil")
+	}
+	if r := cs_usolve(nil, nil); r == true {
+		t.Errorf("cs_usolve: not nil")
+	}
+	if r := cs_spalloc(-1, -1, -1, false, false); r != nil {
+		t.Errorf("cs_spalloc: not nil")
+	}
+	if r := cs_sprealloc(nil, -1); r == true {
+		t.Errorf("cs_sprealloc: not nil")
+	}
+	if r := cs_spfree(nil); r != nil {
+		t.Errorf("cs_spfree: not nil")
+	}
+	if r := cs_nfree(nil); r != nil {
+		t.Errorf("cs_nfree: not nil")
+	}
+	if r := cs_sfree(nil); r != nil {
+		t.Errorf("cs_sfree: not nil")
+	}
+	if r := cs_dalloc(-1, -1); r != nil {
+		t.Errorf("cs_dalloc: not nil")
+	}
+	if r := cs_dfree(nil); r != nil {
+		t.Errorf("cs_dfree: not nil")
+	}
+	if r := cs_done(nil, nil, nil, false); r != nil {
+		t.Errorf("cs_done: not nil")
+	}
+	if r := cs_idone(nil, nil, nil, false); r != nil {
+		t.Errorf("cs_idone: not nil")
+	}
+	if r := cs_ndone(nil, nil, nil, nil, false); r != nil {
+		t.Errorf("cs_ndone: not nil")
+	}
+	if r := cs_utsolve(nil, nil); r == true {
+		t.Errorf("cs_utsolve: not nil")
+	}
+}
