@@ -1018,60 +1018,44 @@ func cs_cholsol(order int, A *cs, b []float64) (result bool) {
 
 // cs_compress - C = compressed-column form of a triplet matrix T
 func cs_compress(T *cs) *cs {
-	var m int
-	var n int
-	var nz int
-	var p int
-	var k int
-	var Cp []int
-	var Ci []int
-	var w []int
-	var Ti []int
-	var Tj []int
-	var Cx []float64
-	var Tx []float64
-	var C *cs
 	if !(T != nil && T.nz >= 0) {
 		// check inputs
 		return nil
 	}
-	m = T.m
-	n = T.n
-	Ti = T.i
-	Tj = T.p
-	Tx = T.x
-	nz = T.nz
+	var (
+		m  = T.m
+		n  = T.n
+		Ti = T.i
+		Tj = T.p
+		Tx = T.x
+		nz = T.nz
+	)
 	// allocate result
-	C = cs_spalloc(m, n, nz, Tx != nil, false)
+	C := cs_spalloc(m, n, nz, Tx != nil, false)
 	// get workspace
-	w = make([]int, n)
+	w := make([]int, n)
 	if C == nil || w == nil {
 		// out of memory
 		return cs_done(C, w, nil, false)
 	}
-	Cp = C.p
-	Ci = C.i
-	Cx = C.x
+	var (
+		Cp = C.p
+		Ci = C.i
+		Cx = C.x
+	)
 
 	// column counts
-	for k = 0; k < nz; k++ {
+	for k := 0; k < nz; k++ {
 		w[Tj[k]]++
 	}
 
 	// column pointers
 	cs_cumsum(Cp, w, n)
-	for k = 0; k < nz; k++ {
+	for k := 0; k < nz; k++ {
 		// A(i,j) is the pth entry in C
-		Ci[(func() int {
-			p = func() int {
-				tempVar := &w[Tj[k]]
-				defer func() {
-					*tempVar++
-				}()
-				return *tempVar
-			}()
-			return p
-		}())] = Ti[k]
+		p := w[Tj[k]]
+		w[Tj[k]]++
+		Ci[p] = Ti[k]
 		if Cx != nil {
 			Cx[p] = Tx[k]
 		}
