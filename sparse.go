@@ -3960,23 +3960,17 @@ func cs_tdfs(j, k int, head []int, next []int, post []int, stack []int) int {
 			// p has no unordered children left
 			top--
 			// node p is the kth postordered node
-			post[func() int {
-				defer func() {
-					k++
-				}()
-				return k
-			}()] = p
+			post[k] = p
+			k++
 		} else {
 			// remove i from children of p
 			head[p] = next[i]
 			// start dfs on child node i
-			stack[func() int {
-				top++
-				return top
-			}()] = i
+			top++
+			stack[top] = i
 		}
 	}
-	return int((k))
+	return k
 }
 
 // cs_transpose - C = A'
