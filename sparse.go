@@ -133,15 +133,6 @@ func cs_diag(i, j int, aij float64, other interface{}) bool {
 	return (i != j)
 }
 
-const (
-	Natural int = iota
-	Chol
-	LU
-	QR
-)
-
-type PtrdiffT = int
-
 // cs_amd - p = amd(A+A') if symmetric is true, or amd(A'A) otherwise
 // order 0:natural, 1:Chol, 2:LU, 3:QR
 func cs_amd(order int, A *cs) (result []int) {
@@ -155,61 +146,61 @@ func cs_amd(order int, A *cs) (result []int) {
 	var A2 *cs
 	// var AT []cs
 	// var Cp []int
-	// var Ci []PtrdiffT
-	// var last []PtrdiffT
-	// var W []PtrdiffT
-	// var len []PtrdiffT
-	// var nv []PtrdiffT
-	// var next []PtrdiffT
-	// var P []PtrdiffT
-	// var head []PtrdiffT
-	// var elen []PtrdiffT
-	// var degree []PtrdiffT
-	// var w []PtrdiffT
-	// var hhead []PtrdiffT
+	// var Ci []int
+	// var last []int
+	// var W []int
+	// var len []int
+	// var nv []int
+	// var next []int
+	// var P []int
+	// var head []int
+	// var elen []int
+	// var degree []int
+	// var w []int
+	// var hhead []int
 	var ATp []int
 	var ATi []int
-	var d int     // PtrdiffT
-	var dk int    // PtrdiffT
-	var dext int  // PtrdiffT
-	var lemax int // PtrdiffT
-	var e int     // PtrdiffT
-	// var elenk PtrdiffT
-	var eln int // PtrdiffT
-	var i int   // PtrdiffT
+	var d int     // int
+	var dk int    // int
+	var dext int  // int
+	var lemax int // int
+	var e int     // int
+	// var elenk int
+	var eln int // int
+	var i int   // int
 	var j int
-	// var k PtrdiffT
-	// var k1 int // PtrdiffT
-	// var k2 int // PtrdiffT
-	// var k3 PtrdiffT
-	var jlast int // PtrdiffT
-	var ln int    // PtrdiffT
-	// var dense PtrdiffT
-	// var nzmax PtrdiffT
-	// var mindeg PtrdiffT
-	var nvi int // PtrdiffT
-	var nvj int // PtrdiffT
-	// var nvk PtrdiffT
-	var mark int //  PtrdiffT
-	var wnvi int // PtrdiffT
-	var ok bool  // PtrdiffT
-	// var cnz PtrdiffT
-	var nel int // PtrdiffT
+	// var k int
+	// var k1 int // int
+	// var k2 int // int
+	// var k3 int
+	var jlast int // int
+	var ln int    // int
+	// var dense int
+	// var nzmax int
+	// var mindeg int
+	var nvi int // int
+	var nvj int // int
+	// var nvk int
+	var mark int //  int
+	var wnvi int // int
+	var ok bool  // int
+	// var cnz int
+	var nel int // int
 	var p int
-	var p1 int // PtrdiffT
+	var p1 int // int
 	var p2 int
-	var p3 int  // PtrdiffT
-	var p4 int  // PtrdiffT
-	var pj int  // PtrdiffT
-	var pk int  // PtrdiffT
-	var pk1 int // PtrdiffT
-	var pk2 int // PtrdiffT
-	var pn int  // PtrdiffT
-	// var q PtrdiffT
-	// var n PtrdiffT
-	// var m PtrdiffT
-	// var t PtrdiffT
-	var h int // PtrdiffT
+	var p3 int  // int
+	var p4 int  // int
+	var pj int  // int
+	var pk int  // int
+	var pk1 int // int
+	var pk2 int // int
+	var pn int  // int
+	// var q int
+	// var n int
+	// var m int
+	// var t int
+	var h int // int
 	if !(A != nil && A.nz == -1) || order <= 0 || order > 3 {
 		// --- Construct matrix C -----------------------------------------------
 		// check
@@ -291,13 +282,13 @@ func cs_amd(order int, A *cs) (result []int) {
 	}
 	var (
 		len    = W[0:]
-		nv     = W[1*(n+1):] //(*(*[1000000000]PtrdiffT)(unsafe.Pointer(uintptr(unsafe.Pointer(&W[0])) + (uintptr)(int(n+1))*unsafe.Sizeof(W[0]))))[:]
-		next   = W[2*(n+1):] // (*(*[1000000000]PtrdiffT)(unsafe.Pointer(uintptr(unsafe.Pointer(&W[0])) + (uintptr)(int(2*int(n+1)))*unsafe.Sizeof(W[0]))))[:]
-		head   = W[3*(n+1):] // (*(*[1000000000]PtrdiffT)(unsafe.Pointer(uintptr(unsafe.Pointer(&W[0])) + (uintptr)(int(3*int(n+1)))*unsafe.Sizeof(W[0]))))[:]
-		elen   = W[4*(n+1):] // (*(*[1000000000]PtrdiffT)(unsafe.Pointer(uintptr(unsafe.Pointer(&W[0])) + (uintptr)(int(4*int(n+1)))*unsafe.Sizeof(W[0]))))[:]
-		degree = W[5*(n+1):] // (*(*[1000000000]PtrdiffT)(unsafe.Pointer(uintptr(unsafe.Pointer(&W[0])) + (uintptr)(int(5*int(n+1)))*unsafe.Sizeof(W[0]))))[:]
-		w      = W[6*(n+1):] // (*(*[1000000000]PtrdiffT)(unsafe.Pointer(uintptr(unsafe.Pointer(&W[0])) + (uintptr)(int(6*int(n+1)))*unsafe.Sizeof(W[0]))))[:]
-		hhead  = W[7*(n+1):] // (*(*[1000000000]PtrdiffT)(unsafe.Pointer(uintptr(unsafe.Pointer(&W[0])) + (uintptr)(int(7*int(n+1)))*unsafe.Sizeof(W[0]))))[:]
+		nv     = W[1*(n+1):] //(*(*[1000000000]int)(unsafe.Pointer(uintptr(unsafe.Pointer(&W[0])) + (uintptr)(int(n+1))*unsafe.Sizeof(W[0]))))[:]
+		next   = W[2*(n+1):] // (*(*[1000000000]int)(unsafe.Pointer(uintptr(unsafe.Pointer(&W[0])) + (uintptr)(int(2*int(n+1)))*unsafe.Sizeof(W[0]))))[:]
+		head   = W[3*(n+1):] // (*(*[1000000000]int)(unsafe.Pointer(uintptr(unsafe.Pointer(&W[0])) + (uintptr)(int(3*int(n+1)))*unsafe.Sizeof(W[0]))))[:]
+		elen   = W[4*(n+1):] // (*(*[1000000000]int)(unsafe.Pointer(uintptr(unsafe.Pointer(&W[0])) + (uintptr)(int(4*int(n+1)))*unsafe.Sizeof(W[0]))))[:]
+		degree = W[5*(n+1):] // (*(*[1000000000]int)(unsafe.Pointer(uintptr(unsafe.Pointer(&W[0])) + (uintptr)(int(5*int(n+1)))*unsafe.Sizeof(W[0]))))[:]
+		w      = W[6*(n+1):] // (*(*[1000000000]int)(unsafe.Pointer(uintptr(unsafe.Pointer(&W[0])) + (uintptr)(int(6*int(n+1)))*unsafe.Sizeof(W[0]))))[:]
+		hhead  = W[7*(n+1):] // (*(*[1000000000]int)(unsafe.Pointer(uintptr(unsafe.Pointer(&W[0])) + (uintptr)(int(7*int(n+1)))*unsafe.Sizeof(W[0]))))[:]
 
 		// use P as workspace for last
 		last = P
@@ -895,7 +886,7 @@ func cs_chol(A *cs, S *css) *csn {
 	// allocate result
 	N = new(csn) // cs_calloc(1, uint(32)).([]csn)
 	// get csi workspace
-	c = make([]int, 2*n) //cs_malloc(PtrdiffT(2*int(n)/8), uint(0)).([]PtrdiffT)
+	c = make([]int, 2*n) //cs_malloc(int(2*int(n)/8), uint(0)).([]int)
 	// get double workspace
 	x = make([]float64, n) // cs_malloc(n, uint(8)).([]float64)
 	cp = S.cp
@@ -917,11 +908,11 @@ func cs_chol(A *cs, S *css) *csn {
 	if N == nil || c == nil || x == nil || C == nil {
 		return (cs_ndone(N, E, c, x, false))
 	}
-	s = c[n:] // (*(*[1000000000]PtrdiffT)(unsafe.Pointer(uintptr(unsafe.Pointer(&c[0])) + (uintptr)(int(n))*unsafe.Sizeof(c[0]))))[:]
+	s = c[n:] // (*(*[1000000000]int)(unsafe.Pointer(uintptr(unsafe.Pointer(&c[0])) + (uintptr)(int(n))*unsafe.Sizeof(c[0]))))[:]
 	Cp = C.p
 	Ci = C.i
 	Cx = C.x
-	L = cs_spalloc(n, n, PtrdiffT(cp[n]), true, false)
+	L = cs_spalloc(n, n, int(cp[n]), true, false)
 	// allocate result
 	N.L = L
 	if L == nil {
@@ -939,7 +930,7 @@ func cs_chol(A *cs, S *css) *csn {
 		for k = 0; k < n; k++ {
 			// --- Nonzero pattern of L(k,:) ------------------------------------
 			// find pattern of L(k,:)
-			top = cs_ereach(C, PtrdiffT(k), parent, s, c)
+			top = cs_ereach(C, int(k), parent, s, c)
 			// x (0:k) is now zero
 			x[k] = 0
 			{
@@ -1004,7 +995,7 @@ func cs_chol(A *cs, S *css) *csn {
 
 // cs_cholsol - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_cholsol.c:3
 // x=A\b where A is symmetric positive definite; b overwritten with solution
-func cs_cholsol(order PtrdiffT, A *cs, b []float64) (result bool) {
+func cs_cholsol(order int, A *cs, b []float64) (result bool) {
 	// defer func() {
 	// 	if result == false {
 	// 		// TODO (KI) : remove , only for debugging
@@ -1014,7 +1005,7 @@ func cs_cholsol(order PtrdiffT, A *cs, b []float64) (result bool) {
 	var x []float64
 	var S *css
 	var N *csn
-	var n PtrdiffT
+	var n int
 	var ok bool
 	if !(A != nil && A.nz == -1) || b == nil {
 		// check inputs
@@ -1110,14 +1101,14 @@ func cs_compress(T *cs) *cs {
 
 // init_ata - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_counts.c:5
 // column counts of LL'=A or LL'=A'A, given parent & post ordering
-func init_ata(AT *cs, post []PtrdiffT, w []PtrdiffT, head *[]PtrdiffT, next *[]PtrdiffT) {
-	var i PtrdiffT
-	var k PtrdiffT
-	var p PtrdiffT
-	var m PtrdiffT = PtrdiffT(AT.n)
-	var n PtrdiffT = PtrdiffT(AT.m)
-	var ATp []PtrdiffT = AT.p
-	var ATi []PtrdiffT = AT.i
+func init_ata(AT *cs, post []int, w []int, head *[]int, next *[]int) {
+	var i int
+	var k int
+	var p int
+	var m int = int(AT.n)
+	var n int = int(AT.m)
+	var ATp []int = AT.p
+	var ATi []int = AT.i
 	*head = w[4*n:]
 	*next = w[5*n+1:]
 	{
@@ -1131,7 +1122,7 @@ func init_ata(AT *cs, post []PtrdiffT, w []PtrdiffT, head *[]PtrdiffT, next *[]P
 			k = n
 			p = ATp[i]
 			for p = ATp[i]; p < ATp[i+1]; p++ {
-				k = PtrdiffT(func() int {
+				k = int(func() int {
 					if k < w[ATi[p]] {
 						return (k)
 					}
@@ -1146,28 +1137,28 @@ func init_ata(AT *cs, post []PtrdiffT, w []PtrdiffT, head *[]PtrdiffT, next *[]P
 }
 
 // cs_counts - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_counts.c:17
-func cs_counts(A *cs, parent []PtrdiffT, post []PtrdiffT, ata bool) []PtrdiffT {
-	var i PtrdiffT
-	var j PtrdiffT
-	var k PtrdiffT
-	var n PtrdiffT
-	var m PtrdiffT
-	var J PtrdiffT
-	var s PtrdiffT
-	var p PtrdiffT
-	var q PtrdiffT
-	var jleaf PtrdiffT
-	var ATp []PtrdiffT
-	var ATi []PtrdiffT
-	var maxfirst []PtrdiffT
-	var prevleaf []PtrdiffT
-	var ancestor []PtrdiffT
-	var head []PtrdiffT
-	var next []PtrdiffT
-	var colcount []PtrdiffT
-	var w []PtrdiffT
-	var first []PtrdiffT
-	var delta []PtrdiffT
+func cs_counts(A *cs, parent []int, post []int, ata bool) []int {
+	var i int
+	var j int
+	var k int
+	var n int
+	var m int
+	var J int
+	var s int
+	var p int
+	var q int
+	var jleaf int
+	var ATp []int
+	var ATi []int
+	var maxfirst []int
+	var prevleaf []int
+	var ancestor []int
+	var head []int
+	var next []int
+	var colcount []int
+	var w []int
+	var first []int
+	var delta []int
 	var AT *cs
 	if !(A != nil && A.nz == -1) || parent == nil || post == nil {
 		// check inputs
@@ -1206,7 +1197,7 @@ func cs_counts(A *cs, parent []PtrdiffT, post []PtrdiffT, ata bool) []PtrdiffT {
 		for k = 0; k < n; k++ {
 			j = post[k]
 			// delta[j]=1 if j is a leaf
-			delta[j] = PtrdiffT(func() int {
+			delta[j] = int(func() int {
 				if first[j] == -1 {
 					return 1
 				}
@@ -1237,12 +1228,12 @@ func cs_counts(A *cs, parent []PtrdiffT, post []PtrdiffT, ata bool) []PtrdiffT {
 		}
 		{
 			// J=j for LL'=A case
-			for J = PtrdiffT(func() int {
+			for J = int(func() int {
 				if ata {
 					return (head[k])
 				}
 				return (j)
-			}()); J != -1; J = PtrdiffT(func() int {
+			}()); J != -1; J = int(func() int {
 				if ata {
 					return (next[J])
 				}
@@ -1539,14 +1530,14 @@ func cs_rprune(i, j int, aij float64, other interface{}) bool {
 // Given A, compute coarse and then fine dmperm
 func cs_dmperm(A *cs, seed int) *csd {
 	var cnz int
-	// var nc PtrdiffT
-	// var pinv []PtrdiffT
-	// var Cp []PtrdiffT
-	// var Ci []PtrdiffT
-	// var ps []PtrdiffT
-	// var rs []PtrdiffT
-	// var nb1 PtrdiffT
-	// var nb2 PtrdiffT
+	// var nc int
+	// var pinv []int
+	// var Cp []int
+	// var Ci []int
+	// var ps []int
+	// var rs []int
+	// var nb1 int
+	// var nb2 int
 	// var C []cs
 	// var scc []csd
 	if !(A != nil && A.nz == -1) {
@@ -1799,14 +1790,14 @@ func cs_entry(T *cs, i, j int, x float64) bool {
 
 // cs_ereach - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_ereach.c:3
 // find nonzero pattern of Cholesky L(k,1:k-1) using etree and triu(A(:,k))
-func cs_ereach(A *cs, k PtrdiffT, parent []PtrdiffT, s []PtrdiffT, w []PtrdiffT) PtrdiffT {
-	var i PtrdiffT
-	var p PtrdiffT
-	var n PtrdiffT
-	var len PtrdiffT
-	var top PtrdiffT
-	var Ap []PtrdiffT
-	var Ai []PtrdiffT
+func cs_ereach(A *cs, k int, parent []int, s []int, w []int) int {
+	var i int
+	var p int
+	var n int
+	var len int
+	var top int
+	var Ap []int
+	var Ai []int
 	if !(A != nil && A.nz == -1) || parent == nil || s == nil || w == nil {
 		// check inputs
 		return -1
@@ -1817,7 +1808,7 @@ func cs_ereach(A *cs, k PtrdiffT, parent []PtrdiffT, s []PtrdiffT, w []PtrdiffT)
 	Ai = A.i
 	{
 		// mark node k as visited
-		w[k] = -PtrdiffT((w[k])) - 2
+		w[k] = -int((w[k])) - 2
 	}
 	for p = Ap[k]; p < Ap[k+1]; p++ {
 		// A(i,k) is nonzero
@@ -1838,7 +1829,7 @@ func cs_ereach(A *cs, k PtrdiffT, parent []PtrdiffT, s []PtrdiffT, w []PtrdiffT)
 				}()] = i
 				{
 					// mark i as visited
-					w[i] = -PtrdiffT((w[i])) - 2
+					w[i] = -int((w[i])) - 2
 				}
 			}
 		}
@@ -1856,32 +1847,32 @@ func cs_ereach(A *cs, k PtrdiffT, parent []PtrdiffT, s []PtrdiffT, w []PtrdiffT)
 	{
 		// unmark all nodes
 		for p = top; p < n; p++ {
-			w[s[p]] = -PtrdiffT((w[s[p]])) - 2
+			w[s[p]] = -int((w[s[p]])) - 2
 		}
 	}
 	{
 		// unmark node k
-		w[k] = -PtrdiffT((w[k])) - 2
+		w[k] = -int((w[k])) - 2
 	}
 	// s [top..n-1] contains pattern of L(k,:)
-	return PtrdiffT((top))
+	return int((top))
 }
 
 // cs_etree - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_etree.c:3
 // compute the etree of A (using triu(A), or A'A without forming A'A
 func cs_etree(A *cs, ata bool) []int {
-	var i PtrdiffT
-	var k PtrdiffT
-	var p PtrdiffT
-	var m PtrdiffT
-	var n PtrdiffT
-	var inext PtrdiffT
-	var Ap []PtrdiffT
-	var Ai []PtrdiffT
-	var w []PtrdiffT
-	var parent []PtrdiffT
-	var ancestor []PtrdiffT
-	var prev []PtrdiffT
+	var i int
+	var k int
+	var p int
+	var m int
+	var n int
+	var inext int
+	var Ap []int
+	var Ai []int
+	var w []int
+	var parent []int
+	var ancestor []int
+	var prev []int
 	if !(A != nil && A.nz == -1) {
 		// check inputs
 		return nil
@@ -1915,7 +1906,7 @@ func cs_etree(A *cs, ata bool) []int {
 		// nor does k have an ancestor
 		ancestor[k] = -1
 		for p = Ap[k]; p < Ap[k+1]; p++ {
-			i = PtrdiffT(func() int {
+			i = int(func() int {
 				if ata {
 					return (prev[Ai[p]])
 				}
@@ -2005,13 +1996,13 @@ func cs_gaxpy(A *cs, x []float64, y []float64) bool {
 
 // cs_happly - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_happly.c:3
 // apply the ith Householder vector to x
-func cs_happly(V *cs, i PtrdiffT, beta float64, x []float64) PtrdiffT {
-	var p PtrdiffT
-	var Vp []PtrdiffT
-	var Vi []PtrdiffT
+func cs_happly(V *cs, i int, beta float64, x []float64) int {
+	var p int
+	var Vp []int
+	var Vi []int
 	var Vx []float64
 	var tau float64
-	if !(V != nil && PtrdiffT(V.nz) == -1) || x == nil {
+	if !(V != nil && int(V.nz) == -1) || x == nil {
 		// check inputs
 		return 0
 	}
@@ -2038,10 +2029,10 @@ func cs_happly(V *cs, i PtrdiffT, beta float64, x []float64) PtrdiffT {
 // cs_house - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_house.c:4
 // create a Householder reflection [v,beta,s]=house(x), overwrite x with v,
 // * where (I-beta*v*v')*x = s*e1.  See Algo 5.1.1, Golub & Van Loan, 3rd ed.
-func cs_house(x []float64, beta []float64, n PtrdiffT) float64 {
+func cs_house(x []float64, beta []float64, n int) float64 {
 	var s float64
 	var sigma float64
-	var i PtrdiffT
+	var i int
 	if x == nil || beta == nil {
 		// check inputs
 		return float64((-1))
@@ -2093,11 +2084,11 @@ func cs_ipvec(p []int, b []float64, x []float64, n int) bool {
 
 // cs_leaf - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_leaf.c:3
 // consider A(i,j), node j in ith row subtree and return lca(jprev,j)
-func cs_leaf(i PtrdiffT, j PtrdiffT, first []PtrdiffT, maxfirst []PtrdiffT, prevleaf []PtrdiffT, ancestor []PtrdiffT, jleaf *PtrdiffT) PtrdiffT {
-	var q PtrdiffT
-	var s PtrdiffT
-	var sparent PtrdiffT
-	var jprev PtrdiffT
+func cs_leaf(i int, j int, first []int, maxfirst []int, prevleaf []int, ancestor []int, jleaf *int) int {
+	var q int
+	var s int
+	var sparent int
+	var jprev int
 	if first == nil || maxfirst == nil || prevleaf == nil || ancestor == nil || jleaf == nil {
 		return -1
 	}
@@ -2112,7 +2103,7 @@ func cs_leaf(i PtrdiffT, j PtrdiffT, first []PtrdiffT, maxfirst []PtrdiffT, prev
 	jprev = prevleaf[i]
 	prevleaf[i] = j
 	// j is first or subsequent leaf
-	*jleaf = PtrdiffT(func() int {
+	*jleaf = int(func() int {
 		if jprev == -1 {
 			return 1
 		}
@@ -2120,7 +2111,7 @@ func cs_leaf(i PtrdiffT, j PtrdiffT, first []PtrdiffT, maxfirst []PtrdiffT, prev
 	}())
 	if *jleaf == 1 {
 		// if 1st leaf, q = root of ith subtree
-		return PtrdiffT((i))
+		return int((i))
 	}
 	for q = jprev; q != ancestor[q]; q = ancestor[q] {
 	}
@@ -2130,7 +2121,7 @@ func cs_leaf(i PtrdiffT, j PtrdiffT, first []PtrdiffT, maxfirst []PtrdiffT, prev
 		ancestor[s] = q
 	}
 	// q = least common ancester (jprev,j)
-	return PtrdiffT((q))
+	return int((q))
 }
 
 // cs_load - load a triplet matrix from a file
@@ -2164,13 +2155,13 @@ func cs_load(f io.Reader) *cs {
 // cs_lsolve - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_lsolve.c:3
 // solve Lx=b where x and b are dense.  x=b on input, solution on output.
 func cs_lsolve(L *cs, x []float64) int {
-	var p PtrdiffT
-	var j PtrdiffT
-	var n PtrdiffT
-	var Lp []PtrdiffT
-	var Li []PtrdiffT
+	var p int
+	var j int
+	var n int
+	var Lp []int
+	var Li []int
 	var Lx []float64
-	if !(L != nil && PtrdiffT(L.nz) == -1) || x == nil {
+	if !(L != nil && int(L.nz) == -1) || x == nil {
 		// check inputs
 		return 0
 	}
@@ -2190,13 +2181,13 @@ func cs_lsolve(L *cs, x []float64) int {
 // cs_ltsolve - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_ltsolve.c:3
 // solve L'x=b where x and b are dense.  x=b on input, solution on output.
 func cs_ltsolve(L *cs, x []float64) bool {
-	var p PtrdiffT
-	var j PtrdiffT
-	var n PtrdiffT
-	var Lp []PtrdiffT
-	var Li []PtrdiffT
+	var p int
+	var j int
+	var n int
+	var Lp []int
+	var Li []int
 	var Lx []float64
-	if !(L != nil && PtrdiffT(L.nz) == -1) || x == nil {
+	if !(L != nil && int(L.nz) == -1) || x == nil {
 		// check inputs
 		return false
 	}
@@ -2223,18 +2214,18 @@ func cs_lu(A *cs, S *css, tol float64) *csn {
 	var Ux []float64
 	var a float64
 	var t float64
-	var Lp []PtrdiffT
-	var Li []PtrdiffT
-	var Up []PtrdiffT
-	var Ui []PtrdiffT
-	var pinv []PtrdiffT
-	var xi []PtrdiffT
-	var ipiv PtrdiffT
-	var k PtrdiffT
-	var top PtrdiffT
-	var p PtrdiffT
-	var i PtrdiffT
-	var col PtrdiffT
+	var Lp []int
+	var Li []int
+	var Up []int
+	var Ui []int
+	var pinv []int
+	var xi []int
+	var ipiv int
+	var k int
+	var top int
+	var p int
+	var i int
+	var col int
 	if !(A != nil && A.nz == -1) || S == nil {
 		// check inputs
 		return nil
@@ -2433,7 +2424,7 @@ func cs_lusol(order int, A *cs, b []float64, tol float64) bool {
 
 // // cs_malloc - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_malloc.c:10
 // // wrapper for malloc
-// func cs_malloc(n PtrdiffT, size uint) interface{} {
+// func cs_malloc(n int, size uint) interface{} {
 // 	return (make([]byte, uint(func() int {
 // 		if n > 1 {
 // 			return (((n)))
@@ -2444,7 +2435,7 @@ func cs_lusol(order int, A *cs, b []float64, tol float64) bool {
 //
 // // cs_calloc - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_malloc.c:16
 // // wrapper for calloc
-// func cs_calloc(n PtrdiffT, size uint) interface{} {
+// func cs_calloc(n int, size uint) interface{} {
 // 	return (make([]byte, (size)*(uint(uint((func() int {
 // 		if n > 1 {
 // 			return (((n)))
@@ -2573,19 +2564,19 @@ func cs_maxtrans(A *cs, seed int) []int {
 	var i int
 	var j int
 	var k int
-	// var n PtrdiffT
-	// var m PtrdiffT
+	// var n int
+	// var m int
 	var p int
 	// var n2 int
 	var m2 int
-	// var Ap []PtrdiffT
+	// var Ap []int
 	// var jimatch []int
-	// var w []PtrdiffT
+	// var w []int
 	var cheap []int
 	var js []int
 	var is []int
 	var ps []int
-	// var Ai []PtrdiffT
+	// var Ai []int
 	var Cp []int
 	var jmatch []int
 	var imatch []int
@@ -2599,7 +2590,7 @@ func cs_maxtrans(A *cs, seed int) []int {
 	m := A.m
 	Ap := A.p
 	Ai := A.i
-	jimatch := make([]int, m+n) // cs_calloc(m+n, uint(0)).([]PtrdiffT)
+	jimatch := make([]int, m+n) // cs_calloc(m+n, uint(0)).([]int)
 	// allocate result
 	w := jimatch
 	if jimatch == nil {
@@ -2678,7 +2669,7 @@ func cs_maxtrans(A *cs, seed int) []int {
 		return jimatch[m:]
 	}()
 	// get workspace
-	w = make([]int, 5*n) // cs_malloc(PtrdiffT(5*int(n)/8), uint(0)).([]PtrdiffT)
+	w = make([]int, 5*n) // cs_malloc(int(5*int(n)/8), uint(0)).([]int)
 	if w == nil {
 		return (cs_idone(jimatch, func() *cs {
 			if m2 < n2 {
@@ -2912,7 +2903,7 @@ func cs_pinv(p []int, n int) (result []int) {
 		return nil
 	}
 	// allocate result
-	pinv = make([]int, n) // cs_malloc(n, uint(0)).([]PtrdiffT)
+	pinv = make([]int, n) // cs_malloc(n, uint(0)).([]int)
 	if pinv == nil {
 		// out of memory
 		return nil
@@ -2930,13 +2921,13 @@ func cs_pinv(p []int, n int) (result []int) {
 // cs_post - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_post.c:3
 // post order a forest
 func cs_post(parent []int, n int) []int {
-	var j PtrdiffT
-	var k PtrdiffT
-	var post []PtrdiffT
-	var w []PtrdiffT
-	var head []PtrdiffT
-	var next []PtrdiffT
-	var stack []PtrdiffT
+	var j int
+	var k int
+	var post []int
+	var w []int
+	var head []int
+	var next []int
+	var stack []int
 	if parent == nil {
 		// check inputs
 		return nil
@@ -2974,7 +2965,7 @@ func cs_post(parent []int, n int) []int {
 			// skip j if it is not a root
 			continue
 		}
-		k = cs_tdfs(PtrdiffT(j), PtrdiffT(k), head, next, post, stack)
+		k = cs_tdfs(int(j), int(k), head, next, post, stack)
 	}
 	// success; free w, return post
 	return (cs_idone(post, nil, w, true))
@@ -3040,8 +3031,8 @@ func cs_print(A *cs, brief bool) bool {
 
 // cs_pvec - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_pvec.c:3
 // x = b(p), for dense vectors x and b; p=NULL denotes identity
-func cs_pvec(p []PtrdiffT, b []float64, x []float64, n PtrdiffT) PtrdiffT {
-	var k PtrdiffT
+func cs_pvec(p []int, b []float64, x []float64, n int) int {
+	var k int
 	if x == nil || b == nil {
 		// check inputs
 		return 0
@@ -3065,30 +3056,30 @@ func cs_qr(A *cs, S *css) *csn {
 	var Ax []float64
 	var x []float64
 	var Beta []float64
-	var i PtrdiffT
-	var k PtrdiffT
-	var p PtrdiffT
-	// var m PtrdiffT
-	var n PtrdiffT
-	var vnz PtrdiffT
-	var p1 PtrdiffT
-	var top PtrdiffT
-	var m2 PtrdiffT
-	var len PtrdiffT
-	var col PtrdiffT
-	var rnz PtrdiffT
-	var s []PtrdiffT
-	var leftmost []PtrdiffT
-	var Ap []PtrdiffT
-	var Ai []PtrdiffT
-	var parent []PtrdiffT
-	var Rp []PtrdiffT
-	var Ri []PtrdiffT
-	var Vp []PtrdiffT
-	var Vi []PtrdiffT
-	var w []PtrdiffT
-	var pinv []PtrdiffT
-	var q []PtrdiffT
+	var i int
+	var k int
+	var p int
+	// var m int
+	var n int
+	var vnz int
+	var p1 int
+	var top int
+	var m2 int
+	var len int
+	var col int
+	var rnz int
+	var s []int
+	var leftmost []int
+	var Ap []int
+	var Ai []int
+	var parent []int
+	var Rp []int
+	var Ri []int
+	var Vp []int
+	var Vi []int
+	var w []int
+	var pinv []int
+	var q []int
 	var R *cs
 	var V *cs
 	var N *csn
@@ -3103,31 +3094,31 @@ func cs_qr(A *cs, S *css) *csn {
 	q = S.q
 	parent = S.parent
 	pinv = S.pinv
-	m2 = PtrdiffT(S.m2)
+	m2 = int(S.m2)
 	vnz = S.lnz
 	rnz = S.unz
 	leftmost = S.leftmost
 	// get csi workspace
-	w = make([]int, m2+n) // cs_malloc(m2+n, uint(0)).([]PtrdiffT)
+	w = make([]int, m2+n) // cs_malloc(m2+n, uint(0)).([]int)
 	// get double workspace
-	x = make([]float64, m2) // cs_malloc(PtrdiffT(m2), uint(8)).([]float64)
+	x = make([]float64, m2) // cs_malloc(int(m2), uint(8)).([]float64)
 	// allocate result
 	N = new(csn) // cs_calloc(1, uint(32)).([]csn)
 	if w == nil || x == nil || N == nil {
 		return (cs_ndone(N, nil, w, x, false))
 	}
 	// s is size n
-	s = w[m2:] //  (*(*[1000000000]PtrdiffT)(unsafe.Pointer(uintptr(unsafe.Pointer(&w[0])) + (uintptr)(int(m2))*unsafe.Sizeof(w[0]))))[:]
+	s = w[m2:] //  (*(*[1000000000]int)(unsafe.Pointer(uintptr(unsafe.Pointer(&w[0])) + (uintptr)(int(m2))*unsafe.Sizeof(w[0]))))[:]
 	{
 		// clear workspace x
 		for k = 0; k < m2; k++ {
 			x[k] = 0
 		}
 	}
-	V = cs_spalloc(PtrdiffT(m2), n, PtrdiffT(vnz), true, false)
+	V = cs_spalloc(int(m2), n, int(vnz), true, false)
 	// allocate result V
 	N.L = V
-	R = cs_spalloc(PtrdiffT(m2), n, PtrdiffT(rnz), true, false)
+	R = cs_spalloc(int(m2), n, int(rnz), true, false)
 	// allocate result R
 	N.U = R
 	Beta = make([]float64, n) // cs_malloc(n, uint(8)).([]float64)
@@ -3167,7 +3158,7 @@ func cs_qr(A *cs, S *css) *csn {
 				return vnz
 			}()] = k
 			top = n
-			col = PtrdiffT(func() int {
+			col = int(func() int {
 				if q != nil {
 					return (q[k])
 				}
@@ -3223,7 +3214,7 @@ func cs_qr(A *cs, S *css) *csn {
 					// R(i,k) is nonzero
 					i = s[p]
 					// apply (V(i),Beta(i)) to x
-					cs_happly(V, PtrdiffT(i), Beta[i], x)
+					cs_happly(V, int(i), Beta[i], x)
 					// R(i,k) = x(i)
 					Ri[rnz] = i
 					Rx[func() int {
@@ -3234,7 +3225,7 @@ func cs_qr(A *cs, S *css) *csn {
 					}()] = x[i]
 					x[i] = 0
 					if parent[i] == k {
-						vnz = cs_scatter(V, PtrdiffT(i), 0, w, nil, PtrdiffT(k), V, PtrdiffT(vnz))
+						vnz = cs_scatter(V, int(i), 0, w, nil, int(k), V, int(vnz))
 					}
 				}
 			}
@@ -3266,14 +3257,14 @@ func cs_qr(A *cs, S *css) *csn {
 
 // cs_qrsol - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_qrsol.c:3
 // x=A\b where A can be rectangular; b overwritten with solution
-func cs_qrsol(order PtrdiffT, A *cs, b []float64) bool {
+func cs_qrsol(order int, A *cs, b []float64) bool {
 	var x []float64
 	var S *css
 	var N *csn
 	var AT *cs
-	var k PtrdiffT
-	var m PtrdiffT
-	var n PtrdiffT
+	var k int
+	var m int
+	var n int
 	var ok bool
 	if !(A != nil && A.nz == -1) || b == nil {
 		// check inputs
@@ -3300,7 +3291,7 @@ func cs_qrsol(order PtrdiffT, A *cs, b []float64) bool {
 			{
 				// apply Householder refl. to x
 				for k = 0; k < n; k++ {
-					cs_happly(N.L, PtrdiffT(k), N.B[k], x)
+					cs_happly(N.L, int(k), N.B[k], x)
 				}
 			}
 			// x = R\x
@@ -3312,7 +3303,7 @@ func cs_qrsol(order PtrdiffT, A *cs, b []float64) bool {
 		// Ax=b is underdetermined
 		AT = cs_transpose(A, true)
 		// ordering and symbolic analysis
-		S = cs_sqr(PtrdiffT(order), AT, true)
+		S = cs_sqr(int(order), AT, true)
 		// numeric QR factorization of A'
 		N = cs_qr(AT, S)
 		// get workspace
@@ -3331,7 +3322,7 @@ func cs_qrsol(order PtrdiffT, A *cs, b []float64) bool {
 			{
 				// apply Householder refl. to x
 				for k = m - 1; k >= 0; k-- {
-					cs_happly(N.L, PtrdiffT(k), N.B[k], x)
+					cs_happly(N.L, int(k), N.B[k], x)
 				}
 			}
 			// b(0:n-1) = x(p(0:n-1))
@@ -3381,18 +3372,18 @@ func cs_randperm(n int, seed int) []int {
 // cs_reach - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_reach.c:4
 // xi [top...n-1] = nodes reachable from graph of G*P' via nodes in B(:,k).
 // * xi [n...2n-1] used as workspace
-func cs_reach(G *cs, B *cs, k PtrdiffT, xi []PtrdiffT, pinv []PtrdiffT) PtrdiffT {
-	var p PtrdiffT
-	var n PtrdiffT
-	var top PtrdiffT
-	var Bp []PtrdiffT
-	var Bi []PtrdiffT
-	var Gp []PtrdiffT
-	if !(G != nil && PtrdiffT(G.nz) == -1) || !(B != nil && PtrdiffT(B.nz) == -1) || xi == nil {
+func cs_reach(G *cs, B *cs, k int, xi []int, pinv []int) int {
+	var p int
+	var n int
+	var top int
+	var Bp []int
+	var Bi []int
+	var Gp []int
+	if !(G != nil && int(G.nz) == -1) || !(B != nil && int(B.nz) == -1) || xi == nil {
 		// check inputs
 		return -1
 	}
-	n = PtrdiffT(G.n)
+	n = int(G.n)
 	Bp = B.p
 	Bi = B.i
 	Gp = G.p
@@ -3406,10 +3397,10 @@ func cs_reach(G *cs, B *cs, k PtrdiffT, xi []PtrdiffT, pinv []PtrdiffT) PtrdiffT
 	{
 		// restore G
 		for p = top; p < n; p++ {
-			Gp[xi[p]] = -PtrdiffT((Gp[xi[p]])) - 2
+			Gp[xi[p]] = -int((Gp[xi[p]])) - 2
 		}
 	}
-	return PtrdiffT((top))
+	return int((top))
 }
 
 // cs_scatter - x = x + beta * A(:,j), where x is a dense vector and A(:,j) is sparse
@@ -3542,17 +3533,17 @@ func cs_scc(A *cs) *csd {
 
 // cs_schol - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_schol.c:3
 // ordering and symbolic analysis for a Cholesky factorization
-func cs_schol(order PtrdiffT, A *cs) (result *css) {
+func cs_schol(order int, A *cs) (result *css) {
 	// defer func() {
 	// 	if result == nil {
 	// 		// TODO (KI) : remove debug
 	// 		panic("cs_schol is null")
 	// 	}
 	// }()
-	var n PtrdiffT
-	var c []PtrdiffT
-	var post []PtrdiffT
-	var P []PtrdiffT
+	var n int
+	var c []int
+	var post []int
+	var P []int
 	var C *cs
 	var S *css
 	if !(A != nil && A.nz == -1) {
@@ -3585,7 +3576,7 @@ func cs_schol(order PtrdiffT, A *cs) (result *css) {
 	cs_free(post)
 	cs_spfree(C) // TODO (KI) : remove
 	// allocate result S->cp
-	S.cp = make([]int, n+1) // cs_malloc(n+1, uint(0)).([]PtrdiffT)
+	S.cp = make([]int, n+1) // cs_malloc(n+1, uint(0)).([]int)
 	S.lnz = cs_cumsum(S.cp, c, n)
 	// find column pointers for L
 	S.unz = S.lnz
@@ -3601,31 +3592,31 @@ func cs_schol(order PtrdiffT, A *cs) (result *css) {
 // cs_spsolve - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_spsolve.c:3
 // solve Gx=b(:,k), where G is either upper (lo=0) or lower (lo=1) triangular
 func cs_spsolve(G *cs, B *cs, k int, xi []int, x []float64, pinv []int, lo bool) int {
-	var j PtrdiffT
-	var J PtrdiffT
-	var p PtrdiffT
-	var q PtrdiffT
-	var px PtrdiffT
-	var top PtrdiffT
-	var n PtrdiffT
-	var Gp []PtrdiffT
-	var Gi []PtrdiffT
-	var Bp []PtrdiffT
-	var Bi []PtrdiffT
+	var j int
+	var J int
+	var p int
+	var q int
+	var px int
+	var top int
+	var n int
+	var Gp []int
+	var Gi []int
+	var Bp []int
+	var Bi []int
 	var Gx []float64
 	var Bx []float64
-	if !(G != nil && PtrdiffT(G.nz) == -1) || !(B != nil && PtrdiffT(B.nz) == -1) || xi == nil || x == nil {
+	if !(G != nil && int(G.nz) == -1) || !(B != nil && int(B.nz) == -1) || xi == nil || x == nil {
 		return -1
 	}
 	Gp = G.p
 	Gi = G.i
 	Gx = G.x
-	n = PtrdiffT(G.n)
+	n = int(G.n)
 	Bp = B.p
 	Bi = B.i
 	Bx = B.x
 	// xi[top..n-1]=Reach(B(:,k))
-	top = cs_reach(G, B, PtrdiffT(k), xi, pinv)
+	top = cs_reach(G, B, int(k), xi, pinv)
 	{
 		// clear x
 		for p = top; p < n; p++ {
@@ -3642,7 +3633,7 @@ func cs_spsolve(G *cs, B *cs, k int, xi []int, x []float64, pinv []int, lo bool)
 		// x(j) is nonzero
 		j = xi[px]
 		// j maps to col J of G
-		J = PtrdiffT(func() int {
+		J = int(func() int {
 			if pinv != nil {
 				return (pinv[j])
 			}
@@ -3660,14 +3651,14 @@ func cs_spsolve(G *cs, B *cs, k int, xi []int, x []float64, pinv []int, lo bool)
 			return (int(Gp[J+1] - 1))
 		}()]
 		// lo: L(j,j) 1st entry
-		p = PtrdiffT(func() int {
+		p = int(func() int {
 			if lo {
 				return (int(Gp[J] + 1))
 			}
 			return (Gp[J])
 		}())
 		// up: U(j,j) last entry
-		q = PtrdiffT(func() int {
+		q = int(func() int {
 			if lo {
 				return (Gp[J+1])
 			}
@@ -3679,28 +3670,28 @@ func cs_spsolve(G *cs, B *cs, k int, xi []int, x []float64, pinv []int, lo bool)
 		}
 	}
 	// return top of stack
-	return PtrdiffT((top))
+	return int((top))
 }
 
 // cs_vcount - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_sqr.c:3
 // compute nnz(V) = S->lnz, S->pinv, S->leftmost, S->m2 from A and S->parent
 func cs_vcount(A *cs, S *css) bool {
-	var i PtrdiffT
-	var k PtrdiffT
-	var p PtrdiffT
-	var pa PtrdiffT
-	var n PtrdiffT = A.n
-	var m PtrdiffT = A.m
-	var Ap []PtrdiffT = A.p
-	var Ai []PtrdiffT = A.i
-	var next []PtrdiffT
-	var head []PtrdiffT
-	var tail []PtrdiffT
-	var nque []PtrdiffT
-	var pinv []PtrdiffT
-	var leftmost []PtrdiffT
-	var w []PtrdiffT
-	var parent []PtrdiffT = S.parent
+	var i int
+	var k int
+	var p int
+	var pa int
+	var n int = A.n
+	var m int = A.m
+	var Ap []int = A.p
+	var Ai []int = A.i
+	var next []int
+	var head []int
+	var tail []int
+	var nque []int
+	var pinv []int
+	var leftmost []int
+	var w []int
+	var parent []int = S.parent
 	pinv = make([]int, m+n)
 	// allocate pinv,
 	S.pinv = pinv
@@ -3833,10 +3824,10 @@ func cs_sqr(order int, A *cs, qr bool) (result *css) {
 	// 		panic("cs_sqr == nil")
 	// 	}
 	// }()
-	var n PtrdiffT
-	var k PtrdiffT
+	var n int
+	var k int
 	var ok bool = true
-	var post []PtrdiffT
+	var post []int
 	var S *css
 	if !(A != nil && A.nz == -1) {
 		// check inputs
@@ -3896,19 +3887,19 @@ func cs_sqr(order int, A *cs, qr bool) (result *css) {
 
 // cs_symperm - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_symperm.c:3
 // C = A(p,p) where A and C are symmetric the upper part stored; pinv not p
-func cs_symperm(A *cs, pinv []PtrdiffT, values bool) *cs {
-	var i PtrdiffT
-	var j PtrdiffT
-	var p PtrdiffT
-	var q PtrdiffT
-	var i2 PtrdiffT
-	var j2 PtrdiffT
-	var n PtrdiffT
-	var Ap []PtrdiffT
-	var Ai []PtrdiffT
-	var Cp []PtrdiffT
-	var Ci []PtrdiffT
-	var w []PtrdiffT
+func cs_symperm(A *cs, pinv []int, values bool) *cs {
+	var i int
+	var j int
+	var p int
+	var q int
+	var i2 int
+	var j2 int
+	var n int
+	var Ap []int
+	var Ai []int
+	var Cp []int
+	var Ci []int
+	var w []int
 	var Cx []float64
 	var Ax []float64
 	var C *cs
@@ -3923,7 +3914,7 @@ func cs_symperm(A *cs, pinv []PtrdiffT, values bool) *cs {
 	// alloc result
 	C = cs_spalloc(n, n, Ap[n], values && Ax != nil, false)
 	// get workspace
-	w = make([]int, n) //  cs_calloc(n, uint(0)).([]PtrdiffT)
+	w = make([]int, n) //  cs_calloc(n, uint(0)).([]int)
 	if C == nil || w == nil {
 		// out of memory
 		return (cs_done(C, w, nil, false))
@@ -3935,7 +3926,7 @@ func cs_symperm(A *cs, pinv []PtrdiffT, values bool) *cs {
 		// count entries in each column of C
 		for j = 0; j < n; j++ {
 			// column j of A is column j2 of C
-			j2 = PtrdiffT(func() int {
+			j2 = int(func() int {
 				if pinv != nil {
 					return (pinv[j])
 				}
@@ -3948,7 +3939,7 @@ func cs_symperm(A *cs, pinv []PtrdiffT, values bool) *cs {
 					continue
 				}
 				// row i of A is row i2 of C
-				i2 = PtrdiffT(func() int {
+				i2 = int(func() int {
 					if pinv != nil {
 						return (pinv[i])
 					}
@@ -3968,7 +3959,7 @@ func cs_symperm(A *cs, pinv []PtrdiffT, values bool) *cs {
 	cs_cumsum(Cp, w, n)
 	for j = 0; j < n; j++ {
 		// column j of A is column j2 of C
-		j2 = PtrdiffT(func() int {
+		j2 = int(func() int {
 			if pinv != nil {
 				return (pinv[j])
 			}
@@ -3981,7 +3972,7 @@ func cs_symperm(A *cs, pinv []PtrdiffT, values bool) *cs {
 				continue
 			}
 			// row i of A is row i2 of C
-			i2 = PtrdiffT(func() int {
+			i2 = int(func() int {
 				if pinv != nil {
 					return (pinv[i])
 				}
@@ -4001,7 +3992,7 @@ func cs_symperm(A *cs, pinv []PtrdiffT, values bool) *cs {
 					return *tempVar
 				}()
 				return q
-			}())] = PtrdiffT(func() int {
+			}())] = int(func() int {
 				if i2 < j2 {
 					return (i2)
 				}
@@ -4019,9 +4010,9 @@ func cs_symperm(A *cs, pinv []PtrdiffT, values bool) *cs {
 // cs_tdfs - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_tdfs.c:3
 // depth-first search and postorder of a tree rooted at node j
 func cs_tdfs(j, k int, head []int, next []int, post []int, stack []int) int {
-	var i PtrdiffT
-	var p PtrdiffT
-	var top PtrdiffT
+	var i int
+	var p int
+	var top int
 	if head == nil || next == nil || post == nil || stack == nil {
 		// check inputs
 		return -1
@@ -4054,7 +4045,7 @@ func cs_tdfs(j, k int, head []int, next []int, post []int, stack []int) int {
 			}()] = i
 		}
 	}
-	return PtrdiffT((k))
+	return int((k))
 }
 
 // cs_transpose - C = A'
@@ -4124,15 +4115,15 @@ func cs_transpose(A *cs, values bool) *cs {
 
 // // cs_updown - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_updown.c:3
 // // sparse Cholesky update/downdate, L*L' + sigma*w*w' (sigma = +1 or -1)
-// func cs_updown(L []cs, sigma PtrdiffT, C []cs, parent []PtrdiffT) PtrdiffT {
-// 	var n PtrdiffT
-// 	var p PtrdiffT
-// 	var f PtrdiffT
-// 	var j PtrdiffT
-// 	var Lp []PtrdiffT
-// 	var Li []PtrdiffT
-// 	var Cp []PtrdiffT
-// 	var Ci []PtrdiffT
+// func cs_updown(L []cs, sigma int, C []cs, parent []int) int {
+// 	var n int
+// 	var p int
+// 	var f int
+// 	var j int
+// 	var Lp []int
+// 	var Li []int
+// 	var Cp []int
+// 	var Ci []int
 // 	var Lx []float64
 // 	var Cx []float64
 // 	var alpha float64
@@ -4143,7 +4134,7 @@ func cs_transpose(A *cs, values bool) *cs {
 // 	var w2 float64
 // 	var w []float64
 // 	var beta2 float64 = 1
-// 	if !(L != nil && PtrdiffT(L.nz) == -1) || !(C != nil && PtrdiffT(C.nz) == -1) || parent == nil {
+// 	if !(L != nil && int(L.nz) == -1) || !(C != nil && int(C.nz) == -1) || parent == nil {
 // 		// check inputs
 // 		return 0
 // 	}
@@ -4170,7 +4161,7 @@ func cs_transpose(A *cs, values bool) *cs {
 // 	f = Ci[p]
 // 	for ; p < Cp[1]; p++ {
 // 		// f = min (find (C))
-// 		f = PtrdiffT(func() int {
+// 		f = int(func() int {
 // 			if f < Ci[p] {
 // 				return int(f)
 // 			}
@@ -4229,7 +4220,7 @@ func cs_transpose(A *cs, values bool) *cs {
 // 		}
 // 	}
 // 	cs_free(w)
-// 	return PtrdiffT((beta2 > 0))
+// 	return int((beta2 > 0))
 // }
 
 // cs_usolve - solve Ux=b where x and b are dense.  x=b on input, solution on output.
@@ -4286,7 +4277,7 @@ func cs_spalloc(m, n, nzmax int, values, triplet bool) *cs {
 	} else {
 		A.p = make([]int, n+1)
 	}
-	A.i = make([]int, nzmax) // cs_malloc(nzmax, uint(0)).([]PtrdiffT)
+	A.i = make([]int, nzmax) // cs_malloc(nzmax, uint(0)).([]int)
 	A.x = make([]float64, nzmax)
 	// func() interface{} {
 	// 	if values {
