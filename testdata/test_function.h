@@ -200,17 +200,41 @@ problem* get_problem(FILE* f, double tol)
     mn = CS_MAX(m, n);
     nz1 = A->p[n];
     cs_dropzeros(A); // drop zero entries */
-    nz2 = A->p[n];
-    if (tol > 0)
-        cs_droptol(A, tol); // drop tiny entries (just to test) */
+	nz2 = A->p[n];
+
+	printf("n   = %d\n",(int) n  );
+	printf("nz1 = %d\n",(int) nz1);
+	printf("nz2 = %d\n",(int) nz2);
+	printf("A->p[%d] = %d\n", (int)n,(int)A->p[(int)n]);
+	
+	printf("A before drop\n");
+	test_cs_print(A,0);
+
+	printf("tol = %.5e\n", tol);
+    if (tol > 0){
+        int ok = cs_droptol(A, tol); // drop tiny entries (just to test) */
+		printf("droptol = %d\n", ok);
+	}
+	
+	printf("A before make_sym\n");
+	test_cs_print(A,0);
+
+
     Prob->C = C = sym ? make_sym(A) : A; // C = A + triu(A,1)', or C=A */
     if (!C)
         return (free_problem(Prob));
     printf("\n--- Matrix: %g-by-%g, nnz: %g (sym: %g: nnz %g), norm: %8.2e\n",
         (double)m, (double)n, (double)(A->p[n]), (double)sym,
-        (double)(sym ? C->p[n] : 0), cs_norm(C));
+        (double)(sym ? C->p[n] : 0), 
+		(double) 0);
+		// cs_norm(C));
     if (nz1 != nz2)
         printf("zero entries dropped: %g\n", (double)(nz1 - nz2));
+	
+	test_cs_print(A,0);
+
+	printf("nz2 = %d\n",(int) nz2);
+	printf("A->p[%d] = %d\n", (int) n,(int) A->p[(int) n]);
     if (nz2 != A->p[n])
         printf("tiny entries dropped: %g\n",
             (double)(nz2 - A->p[n]));

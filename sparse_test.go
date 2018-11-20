@@ -6,7 +6,6 @@ import (
 	"io"
 	"io/ioutil"
 	"math"
-	"math/rand"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -222,6 +221,12 @@ func TestDemo3(t *testing.T) {
 	}
 
 	for i := range matrixes {
+
+		// TODO : remove, not clear - Why it is soo long?
+		if strings.Contains(matrixes[i], "bcsstk16") {
+			continue
+		}
+
 		t.Run("Demo3: "+matrixes[i], func(t *testing.T) {
 			// data checking
 			b, c := getCresult(t, matrixes[i])
@@ -409,10 +414,25 @@ func get_problem(f io.Reader, tol float64) *problem {
 	// drop zero entries */
 	cs_dropzeros(A)
 	nz2 = A.p[n]
+
+	fmt.Printf("n   = %d\n", n)
+	fmt.Printf("nz1 = %d\n", nz1)
+	fmt.Printf("nz2 = %d\n", nz2)
+	fmt.Printf("A->p[%d] = %d\n", n, A.p[n])
+
+	fmt.Printf("A before drop\n")
+	cs_print(A, false)
+
+	fmt.Printf("tol = %.5e\n", tol)
 	if tol > 0 {
 		// drop tiny entries (just to test) */
-		cs_droptol(A, tol)
+		ok := cs_droptol(A, tol)
+		fmt.Printf("droptol = %d\n", ok)
 	}
+
+	fmt.Printf("A before make_sym\n")
+	cs_print(A, false)
+
 	// C = A + triu(A,1)', or C=A */
 	C := func() *cs {
 		if sym != 0 {
@@ -434,10 +454,17 @@ func get_problem(f io.Reader, tol float64) *problem {
 				return C.p[n]
 			}
 			return 0
-		}())), cs_norm(C))
+		}())),
+		0.0)
+	// cs_norm(C))
 	if nz1 != nz2 {
 		fmt.Printf("zero entries dropped: %g\n", float64(nz1-nz2))
 	}
+
+	cs_print(A, false)
+
+	fmt.Printf("nz2 = %d\n", nz2)
+	fmt.Printf("A->p[%d] = %d\n", n, A.p[n])
 	if nz2 != A.p[n] {
 		fmt.Printf("tiny entries dropped: %g\n", float64((int32(nz2 - A.p[n]))))
 	}
@@ -752,11 +779,13 @@ func demo3(Prob *problem) int {
 	p1 = Lp[k]
 	Wp[1] = Lp[k+1] - p1
 	s = Lx[p1]
-	rand.Seed(int64(1))
+	// rand.Seed(int64(1))
+	counter := 0.001
 	for ; p1 < Lp[k+1]; p1++ {
 		p2 = p1 - Lp[k]
 		Wi[p2] = Li[p1]
-		Wx[p2] = s * float64(rand.Int()) / float64(2147483647)
+		Wx[p2] = s * counter // float64(rand.Int()) / float64(2147483647)
+		counter *= 1.05
 	}
 	t = tic()
 	// update: L*L'+W*W'
@@ -796,6 +825,7 @@ func demo3(Prob *problem) int {
 	t = tic()
 	// numeric Cholesky
 	N = cs_chol(E, S)
+	cs_print(E, false)
 	if N == nil {
 		return 0 //int((done3(0, S, N, y, W, E, p)))
 	}

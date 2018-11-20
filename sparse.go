@@ -1797,10 +1797,12 @@ func cs_fkeep(A *cs, fkeep func(int, int, float64, interface{}) bool, other inte
 		// check inputs
 		return -1
 	}
-	n := A.n
-	Ap := A.p
-	Ai := A.i
-	Ax := A.x
+	var (
+		n  = A.n
+		Ap = A.p
+		Ai = A.i
+		Ax = A.x
+	)
 	for j := 0; j < n; j++ {
 		// get current location of col j
 		p := Ap[j]
@@ -1817,12 +1819,8 @@ func cs_fkeep(A *cs, fkeep func(int, int, float64, interface{}) bool, other inte
 					// keep A(i,j)
 					Ax[nz] = Ax[p]
 				}
-				Ai[func() int {
-					defer func() {
-						nz++
-					}()
-					return nz
-				}()] = Ai[p]
+				Ai[nz] = Ai[p]
+				nz++
 			}
 		}
 	}
@@ -4040,12 +4038,9 @@ func cs_sprealloc(A *cs, nzmax int) (result bool) {
 			return A.nz
 		}()
 	}
-	nzmax = func() int {
-		if nzmax > 1 {
-			return nzmax
-		}
-		return 1
-	}()
+	if nzmax < 1 {
+		nzmax = 1
+	}
 
 	A.i = cs_realloc(A.i, nzmax, &oki).([]int)
 	if A != nil && A.nz >= 0 {

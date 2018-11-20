@@ -52,12 +52,14 @@ csi demo3 (problem *Prob)
     p1 = Lp [k] ;
     Wp [1] = Lp [k+1] - p1 ;
     s = Lx [p1] ;
-    srand (1) ;
+    // srand (1) ;
+	double counter = 0.001;
     for ( ; p1 < Lp [k+1] ; p1++)
     {
         p2 = p1 - Lp [k] ;
         Wi [p2] = Li [p1] ;
-        Wx [p2] = s * rand () / ((double) RAND_MAX) ;
+        Wx [p2] = s * counter; // rand () / ((double) RAND_MAX) ;
+		counter *= 1.05;
     }
     t = tic () ;
     ok = cs_updown (N->L, +1, W, S->parent) ;   /* update: L*L'+W*W' */
@@ -72,10 +74,11 @@ csi demo3 (problem *Prob)
     t = toc (t) ;
     p = cs_pinv (S->pinv, n) ;
     W2 = cs_permute (W, p, NULL, 1) ;           /* E = C + (P'W)*(P'W)' */
-    WT = cs_transpose (W2,1) ;
+	WT = cs_transpose (W2,1) ;
     WW = cs_multiply (W2, WT) ;
     cs_spfree (WT) ;
     cs_spfree (W2) ;
+
     E = cs_add (C, WW, 1, 1) ;
     cs_spfree (WW) ;
     if (!E || !p) return (done3 (0, S, N, y, W, E, p)) ;
@@ -84,6 +87,8 @@ csi demo3 (problem *Prob)
     cs_nfree (N) ;                              /* clear N */
     t = tic () ;
     N = cs_chol (E, S) ;                        /* numeric Cholesky */
+
+	test_cs_print(E,0);
     if (!N) return (done3 (0, S, N, y, W, E, p)) ;
     cs_ipvec (S->pinv, b, y, n) ;               /* y = P*b */
     cs_lsolve (N->L, y) ;                       /* y = L\y */
@@ -112,7 +117,7 @@ csi demo3 (problem *Prob)
 /* cs_demo3: read a matrix and test Cholesky update/downdate */
 int main (void)
 {
-    problem *Prob = get_problem (stdin, 0) ;
+    problem *Prob = get_problem (stdin, 1e-14) ;
     demo3 (Prob) ;
     free_problem (Prob) ;
     return (0) ;
