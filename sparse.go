@@ -983,23 +983,18 @@ func cs_chol(A *cs, S *css) *csn {
 
 // cs_cholsol - x=A\b where A is symmetric positive definite; b overwritten with solution
 func cs_cholsol(order int, A *cs, b []float64) (result bool) {
-	var x []float64
-	var S *css
-	var N *csn
-	var n int
-	var ok bool
 	if !(A != nil && A.nz == -1) || b == nil {
 		// check inputs
 		return false
 	}
-	n = A.n
+	n := A.n
 	// ordering and symbolic analysis
-	S = cs_schol(order, A)
+	S := cs_schol(order, A)
 	// numeric Cholesky factorization
-	N = cs_chol(A, S)
+	N := cs_chol(A, S)
 	// get workspace
-	x = make([]float64, n) // cs_malloc(n, uint(8)).([]float64)
-	ok = (S != nil && N != nil && x != nil)
+	x := make([]float64, n)
+	ok := (S != nil && N != nil && x != nil)
 	if ok {
 		// x = P*b
 		cs_ipvec(S.pinv, b, x, n)
