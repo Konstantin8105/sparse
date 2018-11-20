@@ -581,8 +581,7 @@ func demo2(Prob *problem) bool {
 	return true
 }
 
-// rhs - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/testdata/csparse_demo2_test.c:26
-// create a right-hand side
+// rhs - create a right-hand side
 func rhs(x []float64, b []float64, m int) {
 	for i := 0; i < m; i++ {
 		b[i] = 1 + float64(i)/float64(m)
@@ -592,8 +591,7 @@ func rhs(x []float64, b []float64, m int) {
 	}
 }
 
-// norm - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/testdata/csparse_demo2_test.c:16
-// infinity-norm of x
+// norm - infinity-norm of x
 func norm(x []float64, n int) float64 {
 	var normx float64
 	for i := 0; i < n; i++ {
@@ -607,14 +605,14 @@ func norm(x []float64, n int) float64 {
 	return normx
 }
 
-// tic - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/testdata/csparse_demo2_test.c:136
+// tic -
 func tic() float64 {
 	return 0
 	// t := time.Now()
 	// return float64(t.Unix())
 }
 
-// toc - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/testdata/csparse_demo2_test.c:137
+// toc -
 func toc(t float64) float64 {
 	return 0
 	// s := tic()
@@ -626,8 +624,7 @@ func toc(t float64) float64 {
 	// }())
 }
 
-// print_resid - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/testdata/csparse_demo2_test.c:80
-// compute residual, norm(A*x-b,inf) / (norm(A,1)*norm(x,inf) + norm(b,inf))
+// print_resid - compute residual, norm(A*x-b,inf) / (norm(A,1)*norm(x,inf) + norm(b,inf))
 func print_resid(ok bool, A *cs, x []float64, b []float64, resid []float64) {
 	if !ok {
 		fmt.Printf("    (failed)\n")
@@ -653,7 +650,7 @@ func print_resid(ok bool, A *cs, x []float64, b []float64, resid []float64) {
 	fmt.Println()
 }
 
-// print_order - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/testdata/csparse_demo2_test.c:91
+// print_order -
 func print_order(order int) {
 	switch order {
 	case 0:

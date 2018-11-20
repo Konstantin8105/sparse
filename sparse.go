@@ -52,8 +52,6 @@ type csd struct { // struct cs_dmperm_results
 	cc [5]int // coarse column decomposition
 }
 
-// TODO(KI) : remove comments like "transpiled function from ..."
-
 // cs_add - C = alpha*A + beta*B
 func cs_add(A *cs, B *cs, alpha float64, beta float64) *cs {
 	var x []float64
@@ -993,8 +991,7 @@ func cs_chol(A *cs, S *css) *csn {
 	return (cs_ndone(N, E, c, x, true))
 }
 
-// cs_cholsol - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_cholsol.c:3
-// x=A\b where A is symmetric positive definite; b overwritten with solution
+// cs_cholsol - x=A\b where A is symmetric positive definite; b overwritten with solution
 func cs_cholsol(order int, A *cs, b []float64) (result bool) {
 	// defer func() {
 	// 	if result == false {
@@ -1099,8 +1096,7 @@ func cs_compress(T *cs) *cs {
 	return cs_done(C, w, nil, true)
 }
 
-// init_ata - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_counts.c:5
-// column counts of LL'=A or LL'=A'A, given parent & post ordering
+// init_ata - column counts of LL'=A or LL'=A'A, given parent & post ordering
 func init_ata(AT *cs, post []int, w []int, head *[]int, next *[]int) {
 	var i int
 	var k int
@@ -1136,7 +1132,7 @@ func init_ata(AT *cs, post []int, w []int, head *[]int, next *[]int) {
 	}
 }
 
-// cs_counts - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_counts.c:17
+// cs_counts -
 func cs_counts(A *cs, parent []int, post []int, ata bool) []int {
 	var i int
 	var j int
@@ -1290,8 +1286,7 @@ func cs_cumsum(p []int, c []int, n int) int { // TODO (KI) : research nz2 to ove
 	return nz2 // TODO (KI) : research nz2 to overflow
 }
 
-// cs_dfs - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_dfs.c:3
-// depth-first-search of the graph of a matrix, starting at node j
+// cs_dfs - depth-first-search of the graph of a matrix, starting at node j
 func cs_dfs(j int, G *cs, top int, xi []int, pstack []int, pinv []int) int {
 	var i int
 	var p int
@@ -1382,8 +1377,7 @@ func cs_dfs(j int, G *cs, top int, xi []int, pstack []int, pinv []int) int {
 	return top
 }
 
-// cs_bfs - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_dmperm.c:3
-// breadth-first search for coarse decomposition (C0,C1,R1 or R0,R3,C3)
+// cs_bfs - breadth-first search for coarse decomposition (C0,C1,R1 or R0,R3,C3)
 func cs_bfs(A *cs,
 	n int,
 	wi []int,
@@ -1472,8 +1466,7 @@ func cs_bfs(A *cs,
 	return true
 }
 
-// cs_matched - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_dmperm.c:37
-// collect matched rows and columns into p and q
+// cs_matched - collect matched rows and columns into p and q
 func cs_matched(n int,
 	wj []int,
 	imatch []int,
@@ -1502,8 +1495,7 @@ func cs_matched(n int,
 	rr[set] = kr
 }
 
-// cs_unmatched - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_dmperm.c:53
-// collect unmatched rows into the permutation vector p
+// cs_unmatched - collect unmatched rows into the permutation vector p
 func cs_unmatched(m int, wi []int, p []int, rr *[5]int, set int) {
 	kr := rr[set]
 	for i := 0; i < m; i++ {
@@ -1519,15 +1511,13 @@ func cs_unmatched(m int, wi []int, p []int, rr *[5]int, set int) {
 	rr[set+1] = kr
 }
 
-// cs_rprune - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_dmperm.c:61
-// return 1 if row i is in R2
+// cs_rprune - return 1 if row i is in R2
 func cs_rprune(i, j int, aij float64, other interface{}) bool {
 	rr := other.(*[5]int)
 	return (i >= rr[1] && i < rr[2])
 }
 
-// cs_dmperm - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_dmperm.c:68
-// Given A, compute coarse and then fine dmperm
+// cs_dmperm - Given A, compute coarse and then fine dmperm
 func cs_dmperm(A *cs, seed int) *csd {
 	var cnz int
 	// var nc int
@@ -1685,12 +1675,12 @@ func cs_dmperm(A *cs, seed int) *csd {
 	return (cs_ddone(D, C, nil, true))
 }
 
-// cs_tol - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_droptol.c:2
+// cs_tol -
 func cs_tol(i, j int, aij float64, other interface{}) bool {
 	return (math.Abs(aij) > *(other.(*float64)))
 }
 
-// cs_droptol - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_droptol.c:6
+// cs_droptol -
 func cs_droptol(A *cs, tol float64) int {
 	// keep all large entries
 	return cs_fkeep(A, cs_tol, &tol)
@@ -1788,8 +1778,7 @@ func cs_entry(T *cs, i, j int, x float64) bool {
 	return true
 }
 
-// cs_ereach - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_ereach.c:3
-// find nonzero pattern of Cholesky L(k,1:k-1) using etree and triu(A(:,k))
+// cs_ereach - find nonzero pattern of Cholesky L(k,1:k-1) using etree and triu(A(:,k))
 func cs_ereach(A *cs, k int, parent []int, s []int, w []int) int {
 	var i int
 	var p int
@@ -1858,8 +1847,7 @@ func cs_ereach(A *cs, k int, parent []int, s []int, w []int) int {
 	return int((top))
 }
 
-// cs_etree - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_etree.c:3
-// compute the etree of A (using triu(A), or A'A without forming A'A
+// cs_etree - compute the etree of A (using triu(A), or A'A without forming A'A
 func cs_etree(A *cs, ata bool) []int {
 	var i int
 	var k int
@@ -1994,8 +1982,7 @@ func cs_gaxpy(A *cs, x []float64, y []float64) bool {
 	return true
 }
 
-// cs_happly - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_happly.c:3
-// apply the ith Householder vector to x
+// cs_happly - apply the ith Householder vector to x
 func cs_happly(V *cs, i int, beta float64, x []float64) int {
 	var p int
 	var Vp []int
@@ -2026,8 +2013,7 @@ func cs_happly(V *cs, i int, beta float64, x []float64) int {
 	return 1
 }
 
-// cs_house - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_house.c:4
-// create a Householder reflection [v,beta,s]=house(x), overwrite x with v,
+// cs_house - create a Householder reflection [v,beta,s]=house(x), overwrite x with v,
 // * where (I-beta*v*v')*x = s*e1.  See Algo 5.1.1, Golub & Van Loan, 3rd ed.
 func cs_house(x []float64, beta []float64, n int) float64 {
 	var s float64
@@ -2064,8 +2050,7 @@ func cs_house(x []float64, beta []float64, n int) float64 {
 	return (s)
 }
 
-// cs_ipvec - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_ipvec.c:3
-// x(p) = b, for dense vectors x and b; p=NULL denotes identity
+// cs_ipvec - x(p) = b, for dense vectors x and b; p=NULL denotes identity
 func cs_ipvec(p []int, b []float64, x []float64, n int) bool {
 	if x == nil || b == nil {
 		// check inputs
@@ -2082,8 +2067,7 @@ func cs_ipvec(p []int, b []float64, x []float64, n int) bool {
 	return true
 }
 
-// cs_leaf - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_leaf.c:3
-// consider A(i,j), node j in ith row subtree and return lca(jprev,j)
+// cs_leaf - consider A(i,j), node j in ith row subtree and return lca(jprev,j)
 func cs_leaf(i int, j int, first []int, maxfirst []int, prevleaf []int, ancestor []int, jleaf *int) int {
 	var q int
 	var s int
@@ -2152,8 +2136,7 @@ func cs_load(f io.Reader) *cs {
 	return T
 }
 
-// cs_lsolve - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_lsolve.c:3
-// solve Lx=b where x and b are dense.  x=b on input, solution on output.
+// cs_lsolve - solve Lx=b where x and b are dense.  x=b on input, solution on output.
 func cs_lsolve(L *cs, x []float64) int {
 	var p int
 	var j int
@@ -2178,8 +2161,7 @@ func cs_lsolve(L *cs, x []float64) int {
 	return 1
 }
 
-// cs_ltsolve - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_ltsolve.c:3
-// solve L'x=b where x and b are dense.  x=b on input, solution on output.
+// cs_ltsolve - solve L'x=b where x and b are dense.  x=b on input, solution on output.
 func cs_ltsolve(L *cs, x []float64) bool {
 	var p int
 	var j int
@@ -2204,8 +2186,7 @@ func cs_ltsolve(L *cs, x []float64) bool {
 	return true
 }
 
-// cs_lu - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_lu.c:3
-// [L,U,pinv]=lu(A, [q lnz unz]). lnz and unz can be guess
+// cs_lu - [L,U,pinv]=lu(A, [q lnz unz]). lnz and unz can be guess
 func cs_lu(A *cs, S *css, tol float64) *csn {
 	var L *cs
 	var U *cs
@@ -2391,8 +2372,7 @@ func cs_lu(A *cs, S *css, tol float64) *csn {
 	return (cs_ndone(N, nil, xi, x, true))
 }
 
-// cs_lusol - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_lusol.c:3
-// x=A\b where A is unsymmetric; b overwritten with solution
+// cs_lusol - x=A\b where A is unsymmetric; b overwritten with solution
 func cs_lusol(order int, A *cs, b []float64, tol float64) bool {
 	if !(A != nil && A.nz == -1) || b == nil {
 		// check inputs
@@ -2421,28 +2401,6 @@ func cs_lusol(order int, A *cs, b []float64, tol float64) bool {
 	cs_nfree(N)
 	return ok
 }
-
-// // cs_malloc - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_malloc.c:10
-// // wrapper for malloc
-// func cs_malloc(n int, size uint) interface{} {
-// 	return (make([]byte, uint(func() int {
-// 		if n > 1 {
-// 			return (((n)))
-// 		}
-// 		return 1
-// 	}())*uint(size)))
-// }
-//
-// // cs_calloc - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_malloc.c:16
-// // wrapper for calloc
-// func cs_calloc(n int, size uint) interface{} {
-// 	return (make([]byte, (size)*(uint(uint((func() int {
-// 		if n > 1 {
-// 			return (((n)))
-// 		}
-// 		return 1
-// 	}()))))))
-// }
 
 // cs_free - wrapper for free
 func cs_free(p interface{}) interface{} {
@@ -2479,8 +2437,7 @@ func cs_realloc(p interface{}, n int, ok *bool) interface{} {
 
 }
 
-// cs_augment - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_maxtrans.c:3
-// find an augmenting path starting at column k and extend the match if found
+// cs_augment - find an augmenting path starting at column k and extend the match if found
 func cs_augment(k int,
 	A *cs,
 	jmatch []int,
@@ -2557,8 +2514,7 @@ func cs_augment(k int,
 	}
 }
 
-// cs_maxtrans - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_maxtrans.c:44
-// find a maximum transveral
+// cs_maxtrans - find a maximum transveral
 //[jmatch [0..m-1]; imatch [0..n-1]]
 func cs_maxtrans(A *cs, seed int) []int {
 	var i int
@@ -2834,8 +2790,7 @@ func cs_norm(A *cs) float64 {
 	return norm
 }
 
-// cs_permute - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_permute.c:3
-// C = A(p,q) where p and q are permutations of 0..m-1 and 0..n-1.
+// cs_permute - C = A(p,q) where p and q are permutations of 0..m-1 and 0..n-1.
 func cs_permute(A *cs, pinv []int, q []int, values bool) *cs {
 	nz := 0
 	if !(A != nil && A.nz == -1) {
@@ -2888,8 +2843,7 @@ func cs_permute(A *cs, pinv []int, q []int, values bool) *cs {
 	return cs_done(C, nil, nil, true)
 }
 
-// cs_pinv - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_pinv.c:3
-// pinv = p', or p = pinv'
+// cs_pinv - pinv = p', or p = pinv'
 func cs_pinv(p []int, n int) (result []int) {
 	// defer func() {
 	// 	if result == nil {
@@ -2918,8 +2872,7 @@ func cs_pinv(p []int, n int) (result []int) {
 	return (pinv)
 }
 
-// cs_post - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_post.c:3
-// post order a forest
+// cs_post - post order a forest
 func cs_post(parent []int, n int) []int {
 	var j int
 	var k int
@@ -2971,8 +2924,7 @@ func cs_post(parent []int, n int) []int {
 	return (cs_idone(post, nil, w, true))
 }
 
-// cs_print - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_print.c:3
-// print a sparse matrix; use %g for integers to avoid differences with csi
+// cs_print - print a sparse matrix; use %g for integers to avoid differences with csi
 func cs_print(A *cs, brief bool) bool {
 	var p int
 	var m int
@@ -3029,8 +2981,7 @@ func cs_print(A *cs, brief bool) bool {
 	return true
 }
 
-// cs_pvec - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_pvec.c:3
-// x = b(p), for dense vectors x and b; p=NULL denotes identity
+// cs_pvec - x = b(p), for dense vectors x and b; p=NULL denotes identity
 func cs_pvec(p []int, b []float64, x []float64, n int) int {
 	var k int
 	if x == nil || b == nil {
@@ -3048,8 +2999,7 @@ func cs_pvec(p []int, b []float64, x []float64, n int) int {
 	return 1
 }
 
-// cs_qr - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_qr.c:3
-// sparse QR factorization [V,beta,pinv,R] = qr (A)
+// cs_qr - sparse QR factorization [V,beta,pinv,R] = qr (A)
 func cs_qr(A *cs, S *css) *csn {
 	var Rx []float64
 	var Vx []float64
@@ -3255,8 +3205,7 @@ func cs_qr(A *cs, S *css) *csn {
 	return (cs_ndone(N, nil, w, x, true))
 }
 
-// cs_qrsol - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_qrsol.c:3
-// x=A\b where A can be rectangular; b overwritten with solution
+// cs_qrsol - x=A\b where A can be rectangular; b overwritten with solution
 func cs_qrsol(order int, A *cs, b []float64) bool {
 	var x []float64
 	var S *css
@@ -3336,8 +3285,7 @@ func cs_qrsol(order int, A *cs, b []float64) bool {
 	return ok
 }
 
-// cs_randperm - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_randperm.c:5
-// return a random permutation vector, the identity perm, or p = n-1:-1:0.
+// cs_randperm - return a random permutation vector, the identity perm, or p = n-1:-1:0.
 // * seed = -1 means p = n-1:-1:0.  seed = 0 means p = identity.  otherwise
 // * p = random permutation.
 func cs_randperm(n int, seed int) []int {
@@ -3369,8 +3317,8 @@ func cs_randperm(n int, seed int) []int {
 	return p
 }
 
-// cs_reach - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_reach.c:4
-// xi [top...n-1] = nodes reachable from graph of G*P' via nodes in B(:,k).
+// cs_reach -
+// * xi [top...n-1] = nodes reachable from graph of G*P' via nodes in B(:,k).
 // * xi [n...2n-1] used as workspace
 func cs_reach(G *cs, B *cs, k int, xi []int, pinv []int) int {
 	var p int
@@ -3444,8 +3392,7 @@ func cs_scatter(A *cs, j int, beta float64, w []int, x []float64, mark int, C *c
 	return nz
 }
 
-// cs_scc - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_scc.c:3
-// find the strongly connected components of a square matrix
+// cs_scc - find the strongly connected components of a square matrix
 // matrix A temporarily modified, then restored
 func cs_scc(A *cs) *csd {
 	if !(A != nil && A.nz == -1) {
@@ -3531,8 +3478,7 @@ func cs_scc(A *cs) *csd {
 	return (cs_ddone(D, AT, xi, true))
 }
 
-// cs_schol - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_schol.c:3
-// ordering and symbolic analysis for a Cholesky factorization
+// cs_schol - ordering and symbolic analysis for a Cholesky factorization
 func cs_schol(order int, A *cs) (result *css) {
 	// defer func() {
 	// 	if result == nil {
@@ -3589,8 +3535,7 @@ func cs_schol(order int, A *cs) (result *css) {
 	}())
 }
 
-// cs_spsolve - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_spsolve.c:3
-// solve Gx=b(:,k), where G is either upper (lo=0) or lower (lo=1) triangular
+// cs_spsolve - solve Gx=b(:,k), where G is either upper (lo=0) or lower (lo=1) triangular
 func cs_spsolve(G *cs, B *cs, k int, xi []int, x []float64, pinv []int, lo bool) int {
 	var j int
 	var J int
@@ -3673,8 +3618,7 @@ func cs_spsolve(G *cs, B *cs, k int, xi []int, x []float64, pinv []int, lo bool)
 	return int((top))
 }
 
-// cs_vcount - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_sqr.c:3
-// compute nnz(V) = S->lnz, S->pinv, S->leftmost, S->m2 from A and S->parent
+// cs_vcount - compute nnz(V) = S->lnz, S->pinv, S->leftmost, S->m2 from A and S->parent
 func cs_vcount(A *cs, S *css) bool {
 	var i int
 	var k int
@@ -3815,8 +3759,7 @@ func cs_vcount(A *cs, S *css) bool {
 	return true
 }
 
-// cs_sqr - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_sqr.c:60
-// symbolic ordering and analysis for QR or LU
+// cs_sqr - symbolic ordering and analysis for QR or LU
 func cs_sqr(order int, A *cs, qr bool) (result *css) {
 	// defer func() {
 	// 	// TODO (KI): remove debug info
@@ -3885,8 +3828,7 @@ func cs_sqr(order int, A *cs, qr bool) (result *css) {
 	}())
 }
 
-// cs_symperm - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_symperm.c:3
-// C = A(p,p) where A and C are symmetric the upper part stored; pinv not p
+// cs_symperm - C = A(p,p) where A and C are symmetric the upper part stored; pinv not p
 func cs_symperm(A *cs, pinv []int, values bool) *cs {
 	var i int
 	var j int
@@ -4007,8 +3949,7 @@ func cs_symperm(A *cs, pinv []int, values bool) *cs {
 	return (cs_done(C, w, nil, true))
 }
 
-// cs_tdfs - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_tdfs.c:3
-// depth-first search and postorder of a tree rooted at node j
+// cs_tdfs - depth-first search and postorder of a tree rooted at node j
 func cs_tdfs(j, k int, head []int, next []int, post []int, stack []int) int {
 	var i int
 	var p int
@@ -4113,8 +4054,7 @@ func cs_transpose(A *cs, values bool) *cs {
 	return cs_done(C, w, nil, true)
 }
 
-// // cs_updown - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_updown.c:3
-// // sparse Cholesky update/downdate, L*L' + sigma*w*w' (sigma = +1 or -1)
+// // cs_updown - sparse Cholesky update/downdate, L*L' + sigma*w*w' (sigma = +1 or -1)
 // func cs_updown(L []cs, sigma int, C []cs, parent []int) int {
 // 	var n int
 // 	var p int
@@ -4342,22 +4282,19 @@ func cs_spfree(A *cs) *cs {
 	return nil
 }
 
-// cs_nfree - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_util.c:43
-// free a numeric factorization
+// cs_nfree - free a numeric factorization
 func cs_nfree(N *csn) *csn {
 	// free the csn struct and return NULL
 	return nil
 }
 
-// cs_sfree - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_util.c:54
-// free a symbolic factorization
+// cs_sfree - free a symbolic factorization
 func cs_sfree(S *css) *css {
 	// free the css struct and return NULL
 	return nil
 }
 
-// cs_dalloc - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_util.c:66
-// allocate a cs_dmperm or cs_scc result
+// cs_dalloc - allocate a cs_dmperm or cs_scc result
 func cs_dalloc(m, n int) *csd {
 	D := new(csd)
 	if D == nil {
@@ -4394,8 +4331,7 @@ func cs_done(C *cs, w []int, x []float64, ok bool) *cs {
 	return nil
 }
 
-// cs_idone - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_util.c:98
-// free workspace and return csi array result
+// cs_idone - free workspace and return csi array result
 func cs_idone(p []int, C *cs, w interface{}, ok bool) []int {
 	//
 	// TODO (KI) : remove C, w
@@ -4408,8 +4344,7 @@ func cs_idone(p []int, C *cs, w interface{}, ok bool) []int {
 	return nil
 }
 
-// cs_ndone - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_util.c:106
-// free workspace and return a numeric factorization (Cholesky, LU, or QR)
+// cs_ndone - free workspace and return a numeric factorization (Cholesky, LU, or QR)
 func cs_ndone(N *csn, C *cs, w interface{}, x interface{}, ok bool) *csn {
 	// return result if OK, else free it
 	if ok {
@@ -4418,8 +4353,7 @@ func cs_ndone(N *csn, C *cs, w interface{}, x interface{}, ok bool) *csn {
 	return nil
 }
 
-// cs_ddone - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/CSparse/Source/cs_util.c:115
-// free workspace and return a csd result
+// cs_ddone - free workspace and return a csd result
 func cs_ddone(D *csd, C *cs, w interface{}, ok bool) *csd {
 	// return result if OK, else free it
 	if ok {
