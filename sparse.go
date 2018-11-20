@@ -1082,32 +1082,26 @@ func cs_compress(T *cs) *cs {
 
 // init_ata - column counts of LL'=A or LL'=A'A, given parent & post ordering
 func init_ata(AT *cs, post []int, w []int, head *[]int, next *[]int) {
-	var i int
-	var k int
-	var p int
-	var m int = int(AT.n)
-	var n int = int(AT.m)
-	var ATp []int = AT.p
-	var ATi []int = AT.i
+	var (
+		m   = AT.n
+		n   = AT.m
+		ATp = AT.p
+		ATi = AT.i
+	)
 	*head = w[4*n:]
 	*next = w[5*n+1:]
 
 	// invert post
-	for k = 0; k < n; k++ {
+	for k := 0; k < n; k++ {
 		w[post[k]] = k
 	}
 
-	for i = 0; i < m; i++ {
-
-		k = n
-		p = ATp[i]
-		for p = ATp[i]; p < ATp[i+1]; p++ {
-			k = int(func() int {
-				if k < w[ATi[p]] {
-					return (k)
-				}
-				return (w[ATi[p]])
-			}())
+	for i := 0; i < m; i++ {
+		k := n
+		for p := ATp[i]; p < ATp[i+1]; p++ {
+			if !(k < w[ATi[p]]) {
+				k = w[ATi[p]]
+			}
 		}
 
 		// place row i in linked list k
