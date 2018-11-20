@@ -5,7 +5,7 @@ import (
 	"io"
 	"math"
 
-	"golang.org/x/exp/rand"
+	"math/rand"
 )
 
 // matrix in compressed-column or triplet form
@@ -3359,7 +3359,7 @@ func cs_randperm(n int, seed int) []int {
 		return (p)
 	}
 	// get new random number seed
-	rand.Seed(uint64(seed))
+	rand.Seed(int64(seed))
 	for k := 0; k < n; k++ {
 		// j = rand integer in range k to n-1
 		j := k + (rand.Int() % (n - k))
