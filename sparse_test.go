@@ -97,9 +97,16 @@ func TestDemo1(t *testing.T) {
 		t.Run("Demo1: "+matrixes[i], func(t *testing.T) {
 			// data checking
 			b, c := getCresult(t, matrixes[i])
-			fmt.Println(c)
 
-			fmt.Println("-------")
+			tmpfile, err := ioutil.TempFile("", "example")
+			if err != nil {
+				t.Fatal(err)
+			}
+			old := os.Stdout
+			os.Stdout = tmpfile
+			defer func() {
+				os.Stdout = old
+			}()
 
 			var stdin bytes.Buffer
 			stdin.Write(b)
@@ -129,6 +136,23 @@ func TestDemo1(t *testing.T) {
 			// D = C + Eye*norm(C,1)
 			D := cs_add(C, Eye, 1, cs_norm(C))
 			cs_print(D, false)
+
+			filename := tmpfile.Name()
+			err = tmpfile.Close()
+			if err != nil {
+				t.Fatal(err)
+			}
+			cb2, err := ioutil.ReadFile(filename)
+			if err != nil {
+				t.Fatal(err)
+			}
+			c2 := string(cb2)
+
+			// compare strings
+			if c != c2 {
+				t.Log(ShowDiff(c, c2))
+				t.Fail()
+			}
 		})
 	}
 }
@@ -147,9 +171,9 @@ func TestDemo2(t *testing.T) {
 	for i := range matrixes {
 
 		// TODO : remove
-		// if !strings.Contains(matrixes[i], "bcsstk01") {
-		// 	continue
-		// }
+		if strings.Contains(matrixes[i], "mbeacxc") {
+			continue
+		}
 
 		t.Run("Demo2: "+matrixes[i], func(t *testing.T) {
 			// data checking
@@ -473,8 +497,10 @@ func demo2(Prob *problem) bool {
 		fmt.Printf("time: %8.2f ", toc(t))
 		// print residual
 		print_resid(ok, C, x, b, resid)
-		for r := 0; r < m; r++ {
-			fmt.Printf("x[%d] = %10e\n", r, x[r])
+		if ok {
+			for r := 0; r < m; r++ {
+				fmt.Printf("x[%d] = %10e\n", r, x[r])
+			}
 		}
 	}
 
@@ -508,8 +534,10 @@ func demo2(Prob *problem) bool {
 		fmt.Printf("time: %8.2f ", toc(t))
 		// print residual
 		print_resid(ok, C, x, b, resid)
-		for r := 0; r < m; r++ {
-			fmt.Printf("x[%d] = %10e\n", r, x[r])
+		if ok {
+			for r := 0; r < m; r++ {
+				fmt.Printf("x[%d] = %10e\n", r, x[r])
+			}
 		}
 	}
 
@@ -541,8 +569,10 @@ func demo2(Prob *problem) bool {
 		fmt.Printf("time: %8.2f ", toc(t))
 		// print residual
 		print_resid(ok, C, x, b, resid)
-		for r := 0; r < m; r++ {
-			fmt.Printf("x[%d] = %10e\n", r, x[r])
+		if ok {
+			for r := 0; r < m; r++ {
+				fmt.Printf("x[%d] = %10e\n", r, x[r])
+			}
 		}
 	}
 

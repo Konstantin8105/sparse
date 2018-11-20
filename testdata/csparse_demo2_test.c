@@ -255,7 +255,9 @@ csi demo2 (problem *Prob)
         ok = cs_qrsol (order, C, x) ;           /* min norm(Ax-b) with QR */
         printf ("time: %8.2f ", toc (t)) ;
         print_resid (ok, C, x, b, resid) ;      /* print residual */
-		for (int r= 0;r<m;r++) printf("x[%d] = %10e\n",r,(double)x[r]);
+		if (ok) {
+			for (int r= 0;r<m;r++) printf("x[%d] = %10e\n",r,(double)x[r]);
+		}
     }
 	
 
@@ -280,7 +282,9 @@ csi demo2 (problem *Prob)
         ok = cs_lusol (order, C, x, tol) ;      /* solve Ax=b with LU */
         printf ("time: %8.2f ", toc (t)) ;
         print_resid (ok, C, x, b, resid) ;      /* print residual */
-		for (int r= 0;r<m;r++) printf("x[%d] = %10e\n",r,(double)x[r]);
+		if (ok) {
+			for (int r= 0;r<m;r++) printf("x[%d] = %10e\n",r,(double)x[r]);
+		}
     }
 
 	// (KI) debug info
@@ -303,7 +307,9 @@ csi demo2 (problem *Prob)
         ok = cs_cholsol (order, C, x) ;         /* solve Ax=b with Cholesky */
         printf ("time: %8.2f ", toc (t)) ;
         print_resid (ok, C, x, b, resid) ;      /* print residual */
-	 	for (int r= 0;r<m;r++) printf("x[%d] = %10e\n",r,(double)x[r]); 
+		if (ok) {
+	 		for (int r= 0;r<m;r++) printf("x[%d] = %10e\n",r,(double)x[r]); 
+		}
     }
     return (1) ;
 } 
