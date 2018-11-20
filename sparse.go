@@ -541,20 +541,20 @@ func cs_amd(order int, A *cs) (result []int) {
 			// nv [i] was negated
 			nvi = -nv[i]
 			wnvi = mark - nvi
-			{
-				// scan Ei
-				for p = Cp[i]; p <= Cp[i]+eln-1; p++ {
-					e = Ci[p]
-					if w[e] >= mark {
-						// decrement |Le\Lk|
-						w[e] -= nvi
-					} else if w[e] != 0 {
-						// ensure e is a live element
-						// 1st time e seen in scan 1
-						w[e] = degree[e] + wnvi
-					}
+
+			// scan Ei
+			for p = Cp[i]; p <= Cp[i]+eln-1; p++ {
+				e = Ci[p]
+				if w[e] >= mark {
+					// decrement |Le\Lk|
+					w[e] -= nvi
+				} else if w[e] != 0 {
+					// ensure e is a live element
+					// 1st time e seen in scan 1
+					w[e] = degree[e] + wnvi
 				}
 			}
+
 		}
 
 		// --- Degree update ------------------------------------------------
@@ -565,66 +565,66 @@ func cs_amd(order int, A *cs) (result []int) {
 			p1 = Cp[i]
 			p2 = p1 + elen[i] - 1
 			pn = p1
-			{
-				// scan Ei
-				h = 0
-				d = 0
-				p = p1
-				for p = p1; p <= p2; p++ {
-					e = Ci[p]
-					if w[e] != 0 {
-						// e is an unabsorbed element
-						// dext = |Le\Lk|
-						dext = w[e] - mark
-						if dext > 0 {
-							// sum up the set differences
-							d += dext
-							// keep e in Ei
-							Ci[func() int {
-								defer func() {
-									pn++
-								}()
-								return pn
-							}()] = e
-							// compute the hash of node i
-							h += e
-						} else {
-							// aggressive absorb. e->k
-							Cp[e] = -k - 2
-							// e is a dead element
-							w[e] = 0
-						}
+
+			// scan Ei
+			h = 0
+			d = 0
+			p = p1
+			for p = p1; p <= p2; p++ {
+				e = Ci[p]
+				if w[e] != 0 {
+					// e is an unabsorbed element
+					// dext = |Le\Lk|
+					dext = w[e] - mark
+					if dext > 0 {
+						// sum up the set differences
+						d += dext
+						// keep e in Ei
+						Ci[func() int {
+							defer func() {
+								pn++
+							}()
+							return pn
+						}()] = e
+						// compute the hash of node i
+						h += e
+					} else {
+						// aggressive absorb. e->k
+						Cp[e] = -k - 2
+						// e is a dead element
+						w[e] = 0
 					}
 				}
 			}
+
 			// elen[i] = |Ei|
 			elen[i] = pn - p1 + 1
 			p3 = pn
 			p4 = p1 + len[i]
-			{
-				// prune edges in Ai
-				for p = p2 + 1; p < p4; p++ {
-					j = Ci[p]
-					if (func() int {
-						nvj = nv[j]
-						return nvj
-					}()) <= 0 {
-						// node j dead or in Lk
-						continue
-					}
-					// degree(i) += |j|
-					d += nvj
-					// place j in node list of i
-					Ci[func() int {
-						defer func() {
-							pn++
-						}()
-						return pn
-					}()] = j
-					// compute hash for node i
-					h += j
+
+			// prune edges in Ai
+			for p = p2 + 1; p < p4; p++ {
+				j = Ci[p]
+				if (func() int {
+					nvj = nv[j]
+					return nvj
+				}()) <= 0 {
+					// node j dead or in Lk
+					continue
 				}
+				// degree(i) += |j|
+				d += nvj
+				// place j in node list of i
+				Ci[func() int {
+					defer func() {
+						pn++
+					}()
+					return pn
+				}()] = j
+				// compute hash for node i
+				h += j
 			}
+
 			if d == 0 {
 				// check for mass elimination
 				// absorb i into k
@@ -700,34 +700,34 @@ func cs_amd(order int, A *cs) (result []int) {
 					w[Ci[p]] = mark
 				}
 				jlast = i
-				{
-					// compare i with all j
-					for j = next[i]; j != -1; {
-						ok = (len[j] == ln && elen[j] == eln)
-						for p = Cp[j] + 1; bool(ok) && p <= Cp[j]+ln-1; p++ {
-							if w[Ci[p]] != mark {
-								// compare i and j
-								ok = false
-							}
-						}
-						if bool(ok) {
-							// i and j are identical
-							// absorb j into i
-							Cp[j] = -i - 2
-							nv[i] += nv[j]
-							nv[j] = 0
-							// node j is dead
-							elen[j] = -1
-							// delete j from hash bucket
-							j = next[j]
-							next[jlast] = j
-						} else {
-							// j and i are different
-							jlast = j
-							j = next[j]
+
+				// compare i with all j
+				for j = next[i]; j != -1; {
+					ok = (len[j] == ln && elen[j] == eln)
+					for p = Cp[j] + 1; bool(ok) && p <= Cp[j]+ln-1; p++ {
+						if w[Ci[p]] != mark {
+							// compare i and j
+							ok = false
 						}
 					}
+					if bool(ok) {
+						// i and j are identical
+						// absorb j into i
+						Cp[j] = -i - 2
+						nv[i] += nv[j]
+						nv[j] = 0
+						// node j is dead
+						elen[j] = -1
+						// delete j from hash bucket
+						j = next[j]
+						next[jlast] = j
+					} else {
+						// j and i are different
+						jlast = j
+						j = next[j]
+					}
 				}
+
 				i = next[i]
 				mark++
 			}
@@ -913,68 +913,68 @@ func cs_chol(A *cs, S *css) *csn {
 		c[k] = cp[k]
 		Lp[k] = c[k]
 	}
-	{
-		// compute L(k,:) for L*L' = C
-		for k = 0; k < n; k++ {
-			// --- Nonzero pattern of L(k,:) ------------------------------------
-			// find pattern of L(k,:)
-			top = cs_ereach(C, int(k), parent, s, c)
-			// x (0:k) is now zero
-			x[k] = 0
-			{
-				// x = full(triu(C(:,k)))
-				for p = Cp[k]; p < Cp[k+1]; p++ {
-					if Ci[p] <= k {
-						x[Ci[p]] = Cx[p]
-					}
+
+	// compute L(k,:) for L*L' = C
+	for k = 0; k < n; k++ {
+		// --- Nonzero pattern of L(k,:) ------------------------------------
+		// find pattern of L(k,:)
+		top = cs_ereach(C, int(k), parent, s, c)
+		// x (0:k) is now zero
+		x[k] = 0
+		{
+			// x = full(triu(C(:,k)))
+			for p = Cp[k]; p < Cp[k+1]; p++ {
+				if Ci[p] <= k {
+					x[Ci[p]] = Cx[p]
 				}
 			}
-			// d = C(k,k)
-			d = x[k]
+		}
+		// d = C(k,k)
+		d = x[k]
+		// clear x for k+1st iteration
+		x[k] = 0
+		for ; top < n; top++ {
+			// --- Triangular solve ---------------------------------------------
+			// solve L(0:k-1,0:k-1) * x = C(:,k)
+			// s [top..n-1] is pattern of L(k,:)
+			i = s[top]
+			// L(k,i) = x (i) / L(i,i)
+			lki = x[i] / Lx[Lp[i]]
 			// clear x for k+1st iteration
-			x[k] = 0
-			for ; top < n; top++ {
-				// --- Triangular solve ---------------------------------------------
-				// solve L(0:k-1,0:k-1) * x = C(:,k)
-				// s [top..n-1] is pattern of L(k,:)
-				i = s[top]
-				// L(k,i) = x (i) / L(i,i)
-				lki = x[i] / Lx[Lp[i]]
-				// clear x for k+1st iteration
-				x[i] = 0
-				for p = Lp[i] + 1; p < c[i]; p++ {
-					x[Li[p]] -= Lx[p] * lki
-				}
-				// d = d - L(k,i)*L(k,i)
-				d -= lki * lki
-				p = func() int {
-					tempVar := &c[i]
-					defer func() {
-						*tempVar++
-					}()
-					return *tempVar
-				}()
-				// store L(k,i) in column i
-				Li[p] = k
-				Lx[p] = lki
+			x[i] = 0
+			for p = Lp[i] + 1; p < c[i]; p++ {
+				x[Li[p]] -= Lx[p] * lki
 			}
-			if d <= 0 {
-				// --- Compute L(k,k) -----------------------------------------------
-				// not pos def
-				return (cs_ndone(N, E, c, x, false))
-			}
+			// d = d - L(k,i)*L(k,i)
+			d -= lki * lki
 			p = func() int {
-				tempVar := &c[k]
+				tempVar := &c[i]
 				defer func() {
 					*tempVar++
 				}()
 				return *tempVar
 			}()
-			// store L(k,k) = sqrt (d) in column k
+			// store L(k,i) in column i
 			Li[p] = k
-			Lx[p] = math.Sqrt(d)
+			Lx[p] = lki
 		}
+		if d <= 0 {
+			// --- Compute L(k,k) -----------------------------------------------
+			// not pos def
+			return (cs_ndone(N, E, c, x, false))
+		}
+		p = func() int {
+			tempVar := &c[k]
+			defer func() {
+				*tempVar++
+			}()
+			return *tempVar
+		}()
+		// store L(k,k) = sqrt (d) in column k
+		Li[p] = k
+		Lx[p] = math.Sqrt(d)
 	}
+
 	// finalize L
 	Lp[n] = cp[n]
 	// success: free E,s,x; return N
@@ -983,12 +983,6 @@ func cs_chol(A *cs, S *css) *csn {
 
 // cs_cholsol - x=A\b where A is symmetric positive definite; b overwritten with solution
 func cs_cholsol(order int, A *cs, b []float64) (result bool) {
-	// defer func() {
-	// 	if result == false {
-	// 		// TODO (KI) : remove , only for debugging
-	// 		panic("cs_cholsol is false")
-	// 	}
-	// }()
 	var x []float64
 	var S *css
 	var N *csn
@@ -1058,12 +1052,12 @@ func cs_compress(T *cs) *cs {
 	Cp = C.p
 	Ci = C.i
 	Cx = C.x
-	{
-		// column counts
-		for k = 0; k < nz; k++ {
-			w[Tj[k]]++
-		}
+
+	// column counts
+	for k = 0; k < nz; k++ {
+		w[Tj[k]]++
 	}
+
 	// column pointers
 	cs_cumsum(Cp, w, n)
 	for k = 0; k < nz; k++ {
@@ -1097,25 +1091,25 @@ func init_ata(AT *cs, post []int, w []int, head *[]int, next *[]int) {
 	var ATi []int = AT.i
 	*head = w[4*n:]
 	*next = w[5*n+1:]
-	{
-		// invert post
-		for k = 0; k < n; k++ {
-			w[post[k]] = k
-		}
+
+	// invert post
+	for k = 0; k < n; k++ {
+		w[post[k]] = k
 	}
+
 	for i = 0; i < m; i++ {
-		{
-			k = n
-			p = ATp[i]
-			for p = ATp[i]; p < ATp[i+1]; p++ {
-				k = int(func() int {
-					if k < w[ATi[p]] {
-						return (k)
-					}
-					return (w[ATi[p]])
-				}())
-			}
+
+		k = n
+		p = ATp[i]
+		for p = ATp[i]; p < ATp[i+1]; p++ {
+			k = int(func() int {
+				if k < w[ATi[p]] {
+					return (k)
+				}
+				return (w[ATi[p]])
+			}())
 		}
+
 		// place row i in linked list k
 		(*next)[i] = (*head)[k]
 		(*head)[k] = i
@@ -1172,39 +1166,38 @@ func cs_counts(A *cs, parent []int, post []int, ata bool) []int {
 	maxfirst = w[n:]
 	prevleaf = w[2*n:]
 	first = w[3*n:]
-	{
-		// clear workspace w [0..s-1]
-		for k = 0; k < s; k++ {
-			w[k] = -1
-		}
+
+	// clear workspace w [0..s-1]
+	for k = 0; k < s; k++ {
+		w[k] = -1
 	}
-	{
-		// find first [j]
-		for k = 0; k < n; k++ {
-			j = post[k]
-			// delta[j]=1 if j is a leaf
-			delta[j] = int(func() int {
-				if first[j] == -1 {
-					return 1
-				}
-				return 0
-			}())
-			for ; j != -1 && first[j] == -1; j = parent[j] {
-				first[j] = k
+
+	// find first [j]
+	for k = 0; k < n; k++ {
+		j = post[k]
+		// delta[j]=1 if j is a leaf
+		delta[j] = int(func() int {
+			if first[j] == -1 {
+				return 1
 			}
+			return 0
+		}())
+		for ; j != -1 && first[j] == -1; j = parent[j] {
+			first[j] = k
 		}
 	}
+
 	ATp = AT.p
 	ATi = AT.i
 	if ata {
 		init_ata(AT, post, w, &head, &next)
 	}
-	{
-		// each node in its own set
-		for i = 0; i < n; i++ {
-			ancestor[i] = i
-		}
+
+	// each node in its own set
+	for i = 0; i < n; i++ {
+		ancestor[i] = i
 	}
+
 	for k = 0; k < n; k++ {
 		// j is the kth node in postordered etree
 		j = post[k]
@@ -1212,45 +1205,45 @@ func cs_counts(A *cs, parent []int, post []int, ata bool) []int {
 			// j is not a root
 			delta[parent[j]]--
 		}
-		{
-			// J=j for LL'=A case
-			for J = int(func() int {
-				if ata {
-					return (head[k])
+
+		// J=j for LL'=A case
+		for J = int(func() int {
+			if ata {
+				return (head[k])
+			}
+			return (j)
+		}()); J != -1; J = int(func() int {
+			if ata {
+				return (next[J])
+			}
+			return int(-1)
+		}()) {
+			for p = ATp[J]; p < ATp[J+1]; p++ {
+				i = ATi[p]
+				q = cs_leaf(i, j, first, maxfirst, prevleaf, ancestor, &jleaf)
+				if jleaf >= 1 {
+					// A(i,j) is in skeleton
+					delta[j]++
 				}
-				return (j)
-			}()); J != -1; J = int(func() int {
-				if ata {
-					return (next[J])
-				}
-				return int(-1)
-			}()) {
-				for p = ATp[J]; p < ATp[J+1]; p++ {
-					i = ATi[p]
-					q = cs_leaf(i, j, first, maxfirst, prevleaf, ancestor, &jleaf)
-					if jleaf >= 1 {
-						// A(i,j) is in skeleton
-						delta[j]++
-					}
-					if jleaf == 2 {
-						// account for overlap in q
-						delta[q]--
-					}
+				if jleaf == 2 {
+					// account for overlap in q
+					delta[q]--
 				}
 			}
 		}
+
 		if parent[j] != -1 {
 			ancestor[j] = parent[j]
 		}
 	}
-	{
-		// sum up delta's of each child
-		for j = 0; j < n; j++ {
-			if parent[j] != -1 {
-				colcount[parent[j]] += colcount[j]
-			}
+
+	// sum up delta's of each child
+	for j = 0; j < n; j++ {
+		if parent[j] != -1 {
+			colcount[parent[j]] += colcount[j]
 		}
 	}
+
 	// success: free workspace
 	return (cs_idone(colcount, AT, w, true))
 }
@@ -1796,22 +1789,22 @@ func cs_ereach(A *cs, k int, parent []int, s []int, w []int) int {
 			// only use upper triangular part of A
 			continue
 		}
-		{
-			// traverse up etree
-			for len = 0; !(w[i] < 0); i = parent[i] {
-				// L(k,i) is nonzero
-				s[func() int {
-					defer func() {
-						len++
-					}()
-					return len
-				}()] = i
-				{
-					// mark i as visited
-					w[i] = -int((w[i])) - 2
-				}
+
+		// traverse up etree
+		for len = 0; !(w[i] < 0); i = parent[i] {
+			// L(k,i) is nonzero
+			s[func() int {
+				defer func() {
+					len++
+				}()
+				return len
+			}()] = i
+			{
+				// mark i as visited
+				w[i] = -int((w[i])) - 2
 			}
 		}
+
 		for len > 0 {
 			// push path onto stack
 			s[func() int {
@@ -1823,16 +1816,15 @@ func cs_ereach(A *cs, k int, parent []int, s []int, w []int) int {
 			}()]
 		}
 	}
-	{
-		// unmark all nodes
-		for p = top; p < n; p++ {
-			w[s[p]] = -int((w[s[p]])) - 2
-		}
+
+	// unmark all nodes
+	for p = top; p < n; p++ {
+		w[s[p]] = -int((w[s[p]])) - 2
 	}
-	{
-		// unmark node k
-		w[k] = -int((w[k])) - 2
-	}
+
+	// unmark node k
+	w[k] = -int((w[k])) - 2
+
 	// s [top..n-1] contains pattern of L(k,:)
 	return int((top))
 }
@@ -1890,19 +1882,19 @@ func cs_etree(A *cs, ata bool) []int {
 				}
 				return (Ai[p])
 			}())
-			{
-				// traverse from i to k
-				for ; i != -1 && i < k; i = inext {
-					// inext = ancestor of i
-					inext = ancestor[i]
-					// path compression
-					ancestor[i] = k
-					if inext == -1 {
-						// no anc., parent is k
-						parent[i] = k
-					}
+
+			// traverse from i to k
+			for ; i != -1 && i < k; i = inext {
+				// inext = ancestor of i
+				inext = ancestor[i]
+				// path compression
+				ancestor[i] = k
+				if inext == -1 {
+					// no anc., parent is k
+					parent[i] = k
 				}
 			}
+
 			if ata {
 				prev[Ai[p]] = k
 			}
@@ -1986,20 +1978,20 @@ func cs_happly(V *cs, i int, beta float64, x []float64) int {
 	Vp = V.p
 	Vi = V.i
 	Vx = V.x
-	{
-		// tau = v'*x
-		for p = Vp[i]; p < Vp[i+1]; p++ {
-			tau += Vx[p] * x[Vi[p]]
-		}
+
+	// tau = v'*x
+	for p = Vp[i]; p < Vp[i+1]; p++ {
+		tau += Vx[p] * x[Vi[p]]
 	}
+
 	// tau = beta*(v'*x)
 	tau *= beta
-	{
-		// x = x - v*tau
-		for p = Vp[i]; p < Vp[i+1]; p++ {
-			x[Vi[p]] -= Vx[p] * tau
-		}
+
+	// x = x - v*tau
+	for p = Vp[i]; p < Vp[i+1]; p++ {
+		x[Vi[p]] -= Vx[p] * tau
 	}
+
 	return 1
 }
 
@@ -2835,12 +2827,6 @@ func cs_permute(A *cs, pinv []int, q []int, values bool) *cs {
 
 // cs_pinv - pinv = p', or p = pinv'
 func cs_pinv(p []int, n int) (result []int) {
-	// defer func() {
-	// 	if result == nil {
-	// 		// TODO (KI) : remove debug
-	// 		panic("cs_pinv is null")
-	// 	}
-	// }()
 	var pinv []int
 	if p == nil {
 		// p = NULL denotes identity
@@ -2885,24 +2871,23 @@ func cs_post(parent []int, n int) []int {
 	head = w
 	next = w[n:]
 	stack = w[2*n:]
-	{
-		// empty linked lists
-		for j = 0; j < n; j++ {
-			head[j] = -1
-		}
+
+	// empty linked lists
+	for j = 0; j < n; j++ {
+		head[j] = -1
 	}
-	{
-		// traverse nodes in reverse order
-		for j = n - 1; j >= 0; j-- {
-			if parent[j] == -1 {
-				// j is a root
-				continue
-			}
-			// add j to list of its parent
-			next[j] = head[parent[j]]
-			head[parent[j]] = j
+
+	// traverse nodes in reverse order
+	for j = n - 1; j >= 0; j-- {
+		if parent[j] == -1 {
+			// j is a root
+			continue
 		}
+		// add j to list of its parent
+		next[j] = head[parent[j]]
+		head[parent[j]] = j
 	}
+
 	for j = 0; j < n; j++ {
 		if parent[j] != -1 {
 			// skip j if it is not a root
@@ -3049,12 +3034,12 @@ func cs_qr(A *cs, S *css) *csn {
 	}
 	// s is size n
 	s = w[m2:]
-	{
-		// clear workspace x
-		for k = 0; k < m2; k++ {
-			x[k] = 0
-		}
+
+	// clear workspace x
+	for k = 0; k < m2; k++ {
+		x[k] = 0
 	}
+
 	V = cs_spalloc(int(m2), n, int(vnz), true, false)
 	// allocate result V
 	N.L = V
@@ -3073,126 +3058,124 @@ func cs_qr(A *cs, S *css) *csn {
 	Vp = V.p
 	Vi = V.i
 	Vx = V.x
-	{
-		// clear w, to mark nodes
-		for i = 0; i < m2; i++ {
-			w[i] = -1
-		}
+
+	// clear w, to mark nodes
+	for i = 0; i < m2; i++ {
+		w[i] = -1
 	}
+
 	rnz = 0
 	vnz = 0
-	{
-		// compute V and R
-		for k = 0; k < n; k++ {
-			// R(:,k) starts here
-			Rp[k] = rnz
-			p1 = vnz
-			// V(:,k) starts here
-			Vp[k] = p1
-			// add V(k,k) to pattern of V
-			w[k] = k
-			Vi[func() int {
-				defer func() {
-					vnz++
-				}()
-				return vnz
-			}()] = k
-			top = n
-			col = int(func() int {
-				if q != nil {
-					return (q[k])
-				}
-				return (k)
-			}())
-			{
-				// find R(:,k) pattern
-				for p = Ap[col]; p < Ap[col+1]; p++ {
-					// i = min(find(A(i,q)))
-					i = leftmost[Ai[p]]
-					{
-						// traverse up to k
-						for len = 0; w[i] != k; i = parent[i] {
-							s[func() int {
-								defer func() {
-									len++
-								}()
-								return len
-							}()] = i
-							w[i] = k
-						}
-					}
-					for len > 0 {
-						// push path on stack
-						s[func() int {
-							top--
-							return top
-						}()] = s[func() int {
-							len--
-							return len
-						}()]
-					}
-					// i = permuted row of A(:,col)
-					i = pinv[Ai[p]]
-					// x (i) = A(:,col)
-					x[i] = Ax[p]
-					if i > k && w[i] < k {
-						// pattern of V(:,k) = x (k+1:m)
-						// add i to pattern of V(:,k)
-						Vi[func() int {
-							defer func() {
-								vnz++
-							}()
-							return vnz
-						}()] = i
-						w[i] = k
-					}
-				}
+
+	// compute V and R
+	for k = 0; k < n; k++ {
+		// R(:,k) starts here
+		Rp[k] = rnz
+		p1 = vnz
+		// V(:,k) starts here
+		Vp[k] = p1
+		// add V(k,k) to pattern of V
+		w[k] = k
+		Vi[func() int {
+			defer func() {
+				vnz++
+			}()
+			return vnz
+		}()] = k
+		top = n
+		col = int(func() int {
+			if q != nil {
+				return (q[k])
 			}
+			return (k)
+		}())
+
+		// find R(:,k) pattern
+		for p = Ap[col]; p < Ap[col+1]; p++ {
+			// i = min(find(A(i,q)))
+			i = leftmost[Ai[p]]
 			{
-				// for each i in pattern of R(:,k)
-				for p = top; p < n; p++ {
-					// R(i,k) is nonzero
-					i = s[p]
-					// apply (V(i),Beta(i)) to x
-					cs_happly(V, int(i), Beta[i], x)
-					// R(i,k) = x(i)
-					Ri[rnz] = i
-					Rx[func() int {
+				// traverse up to k
+				for len = 0; w[i] != k; i = parent[i] {
+					s[func() int {
 						defer func() {
-							rnz++
+							len++
 						}()
-						return rnz
-					}()] = x[i]
-					x[i] = 0
-					if parent[i] == k {
-						vnz = cs_scatter(V, int(i), 0, w, nil, int(k), V, int(vnz))
-					}
+						return len
+					}()] = i
+					w[i] = k
 				}
 			}
-			{
-				// gather V(:,k) = x
-				for p = p1; p < vnz; p++ {
-					Vx[p] = x[Vi[p]]
-					x[Vi[p]] = 0
-				}
+			for len > 0 {
+				// push path on stack
+				s[func() int {
+					top--
+					return top
+				}()] = s[func() int {
+					len--
+					return len
+				}()]
 			}
-			// R(k,k) = norm (x)
-			Ri[rnz] = k
-			// [v,beta]=house(x)
+			// i = permuted row of A(:,col)
+			i = pinv[Ai[p]]
+			// x (i) = A(:,col)
+			x[i] = Ax[p]
+			if i > k && w[i] < k {
+				// pattern of V(:,k) = x (k+1:m)
+				// add i to pattern of V(:,k)
+				Vi[func() int {
+					defer func() {
+						vnz++
+					}()
+					return vnz
+				}()] = i
+				w[i] = k
+			}
+		}
+
+		// for each i in pattern of R(:,k)
+		for p = top; p < n; p++ {
+			// R(i,k) is nonzero
+			i = s[p]
+			// apply (V(i),Beta(i)) to x
+			cs_happly(V, int(i), Beta[i], x)
+			// R(i,k) = x(i)
+			Ri[rnz] = i
 			Rx[func() int {
 				defer func() {
 					rnz++
 				}()
 				return rnz
-			}()] = cs_house(Vx[p1:], Beta[k:], vnz-p1)
+			}()] = x[i]
+			x[i] = 0
+			if parent[i] == k {
+				vnz = cs_scatter(V, int(i), 0, w, nil, int(k), V, int(vnz))
+			}
 		}
+
+		// gather V(:,k) = x
+		for p = p1; p < vnz; p++ {
+			Vx[p] = x[Vi[p]]
+			x[Vi[p]] = 0
+		}
+
+		// R(k,k) = norm (x)
+		Ri[rnz] = k
+		// [v,beta]=house(x)
+		Rx[func() int {
+			defer func() {
+				rnz++
+			}()
+			return rnz
+		}()] = cs_house(Vx[p1:], Beta[k:], vnz-p1)
 	}
+
 	// finalize R
 	Rp[n] = rnz
 	// finalize V
 	Vp[n] = vnz
 	// success
-	return (cs_ndone(N, nil, w, x, true))
+	return cs_ndone(N, nil, w, x, true)
 }
 
 // cs_qrsol - x=A\b where A can be rectangular; b overwritten with solution
@@ -3332,12 +3315,12 @@ func cs_reach(G *cs, B *cs, k int, xi []int, pinv []int) int {
 			top = cs_dfs(Bi[p], G, top, xi, xi[n:], pinv)
 		}
 	}
-	{
-		// restore G
-		for p = top; p < n; p++ {
-			Gp[xi[p]] = -int((Gp[xi[p]])) - 2
-		}
+
+	// restore G
+	for p = top; p < n; p++ {
+		Gp[xi[p]] = -int((Gp[xi[p]])) - 2
 	}
+
 	return int((top))
 }
 
@@ -3470,12 +3453,6 @@ func cs_scc(A *cs) *csd {
 
 // cs_schol - ordering and symbolic analysis for a Cholesky factorization
 func cs_schol(order int, A *cs) (result *css) {
-	// defer func() {
-	// 	if result == nil {
-	// 		// TODO (KI) : remove debug
-	// 		panic("cs_schol is null")
-	// 	}
-	// }()
 	var n int
 	var c []int
 	var post []int
@@ -3552,18 +3529,17 @@ func cs_spsolve(G *cs, B *cs, k int, xi []int, x []float64, pinv []int, lo bool)
 	Bx = B.x
 	// xi[top..n-1]=Reach(B(:,k))
 	top = cs_reach(G, B, int(k), xi, pinv)
-	{
-		// clear x
-		for p = top; p < n; p++ {
-			x[xi[p]] = 0
-		}
+
+	// clear x
+	for p = top; p < n; p++ {
+		x[xi[p]] = 0
 	}
-	{
-		// scatter B
-		for p = Bp[k]; p < Bp[k+1]; p++ {
-			x[Bi[p]] = Bx[p]
-		}
+
+	// scatter B
+	for p = Bp[k]; p < Bp[k+1]; p++ {
+		x[Bi[p]] = Bx[p]
 	}
+
 	for px = top; px < n; px++ {
 		// x(j) is nonzero
 		j = xi[px]
@@ -3593,12 +3569,12 @@ func cs_spsolve(G *cs, B *cs, k int, xi []int, x []float64, pinv []int, lo bool)
 			return (Gp[J])
 		}())
 		// up: U(j,j) last entry
-		q = int(func() int {
+		q = func() int {
 			if lo {
 				return (Gp[J+1])
 			}
-			return (int(Gp[J+1] - 1))
-		}())
+			return (Gp[J+1] - 1)
+		}()
 		for ; p < q; p++ {
 			// x(i) -= G(i,j) * x(j)
 			x[Gi[p]] -= Gx[p] * x[j]
