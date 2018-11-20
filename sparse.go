@@ -847,54 +847,43 @@ func cs_chol(A *cs, S *css) *csn {
 	var d float64
 	var lki float64
 	var Lx []float64
-	var x []float64
 	var Cx []float64
 	var top int
 	var i int
 	var p int
 	var k int
-	var n int
 	var Li []int
 	var Lp []int
-	var cp []int
-	var pinv []int
 	var s []int
-	var c []int
-	var parent []int
 	var Cp []int
 	var Ci []int
 	var L *cs
-	var C *cs
-	var E *cs
-	var N *csn
 	if !(A != nil && A.nz == -1) || S == nil || S.cp == nil || S.parent == nil {
 		return nil
 	}
-	n = A.n
+	n := A.n
 	// allocate result
-	N = new(csn) // cs_calloc(1, uint(32)).([]csn)
+	N := new(csn)
 	// get csi workspace
-	c = make([]int, 2*n) //cs_malloc(int(2*int(n)/8), uint(0)).([]int)
+	c := make([]int, 2*n)
 	// get double workspace
-	x = make([]float64, n) // cs_malloc(n, uint(8)).([]float64)
-	cp = S.cp
-	pinv = S.pinv
-	parent = S.parent
-	C = func() *cs {
-		if pinv != nil {
-			return cs_symperm(A, pinv, true)
-		}
-		return (A)
-	}()
+	var (
+		x      = make([]float64, n)
+		cp     = S.cp
+		pinv   = S.pinv
+		parent = S.parent
+	)
+	C := A
+	if pinv != nil {
+		C = cs_symperm(A, pinv, true)
+	}
 	// E is alias for A, or a copy E=A(p,p)
-	E = func() *cs {
-		if pinv != nil {
-			return C
-		}
-		return nil
-	}()
+	var E *cs
+	if pinv != nil {
+		E = C
+	}
 	if N == nil || c == nil || x == nil || C == nil {
-		return (cs_ndone(N, E, c, x, false))
+		return cs_ndone(N, E, c, x, false)
 	}
 	s = c[n:]
 	Cp = C.p
@@ -921,14 +910,14 @@ func cs_chol(A *cs, S *css) *csn {
 		top = cs_ereach(C, int(k), parent, s, c)
 		// x (0:k) is now zero
 		x[k] = 0
-		{
-			// x = full(triu(C(:,k)))
-			for p = Cp[k]; p < Cp[k+1]; p++ {
-				if Ci[p] <= k {
-					x[Ci[p]] = Cx[p]
-				}
+
+		// x = full(triu(C(:,k)))
+		for p = Cp[k]; p < Cp[k+1]; p++ {
+			if Ci[p] <= k {
+				x[Ci[p]] = Cx[p]
 			}
 		}
+
 		// d = C(k,k)
 		d = x[k]
 		// clear x for k+1st iteration
@@ -947,13 +936,8 @@ func cs_chol(A *cs, S *css) *csn {
 			}
 			// d = d - L(k,i)*L(k,i)
 			d -= lki * lki
-			p = func() int {
-				tempVar := &c[i]
-				defer func() {
-					*tempVar++
-				}()
-				return *tempVar
-			}()
+			p = c[i]
+			c[i]++
 			// store L(k,i) in column i
 			Li[p] = k
 			Lx[p] = lki
@@ -961,15 +945,10 @@ func cs_chol(A *cs, S *css) *csn {
 		if d <= 0 {
 			// --- Compute L(k,k) -----------------------------------------------
 			// not pos def
-			return (cs_ndone(N, E, c, x, false))
+			return cs_ndone(N, E, c, x, false)
 		}
-		p = func() int {
-			tempVar := &c[k]
-			defer func() {
-				*tempVar++
-			}()
-			return *tempVar
-		}()
+		p = c[k]
+		c[k]++
 		// store L(k,k) = sqrt (d) in column k
 		Li[p] = k
 		Lx[p] = math.Sqrt(d)
@@ -978,7 +957,7 @@ func cs_chol(A *cs, S *css) *csn {
 	// finalize L
 	Lp[n] = cp[n]
 	// success: free E,s,x; return N
-	return (cs_ndone(N, E, c, x, true))
+	return cs_ndone(N, E, c, x, true)
 }
 
 // cs_cholsol - x=A\b where A is symmetric positive definite; b overwritten with solution
