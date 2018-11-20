@@ -6,20 +6,22 @@
 [![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/Konstantin8105/sparse/blob/master/LICENSE)
 [![GoDoc](https://godoc.org/github.com/Konstantin8105/sparse?status.svg)](https://godoc.org/github.com/Konstantin8105/sparse)
 
-
-At the base on transpilated CSparse from C to Go by [c4go](https://github.com/Konstantin8105/c4go).
-
+**This package based on program CSparse from [SuiteSparse 5.3.0](http://faculty.cse.tamu.edu/davis/SuiteSparse/)**
 
 
-Result of:
-```
-└─▪ cat sparse.go | grep -v "func()" | grep -v "function" | grep "func" | wc -l
-75
 
-└─▪ cat sparse.go | grep -v "func()" | grep -v "function" | grep "func" |  grep -v "//" | wc -l
-71
-```
+### How updating package
 
-#### **CSparse base on SuiteSparse 5.3.0**
+* Check new version of `CSparse` is exist on [page](http://faculty.cse.tamu.edu/davis/SuiteSparse/).
+* Download new version.
+* Compare file-by-file with file in folder `CSparse` of that package.
+* Inject changes into Go files of package.
 
-http://faculty.cse.tamu.edu/davis/SuiteSparse/
+> Note:
+> CSparse haven`t any updates at the last few years, so
+> that package is actual at the future.
+>
+
+### Just for information
+
+**This package transpiled CSparse from C to Go by [c4go](https://github.com/Konstantin8105/c4go).**
