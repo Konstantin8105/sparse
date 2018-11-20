@@ -88,12 +88,6 @@ func TestDemo1(t *testing.T) {
 	}
 
 	for i := range matrixes {
-
-		// TODO : remove
-		if !strings.Contains(matrixes[i], "t1") {
-			continue
-		}
-
 		t.Run("Demo1: "+matrixes[i], func(t *testing.T) {
 			// data checking
 			b, c := getCresult(t, matrixes[i])
@@ -170,7 +164,7 @@ func TestDemo2(t *testing.T) {
 
 	for i := range matrixes {
 
-		// TODO : remove
+		// TODO : remove, not clear - Why is Fail in QR?
 		if strings.Contains(matrixes[i], "mbeacxc") {
 			continue
 		}
@@ -436,28 +430,6 @@ func demo2(Prob *problem) bool {
 		return false
 	}
 
-	// (KI): debug information
-	// fmt.Println("Matrix D from function cs_dmperm")
-	// {
-	// 	fmt.Printf("Vector p\n")
-	// 	for i := range D.p {
-	// 		fmt.Printf("p[%d] = %d\n", i, D.p[i])
-	// 	}
-	// 	fmt.Printf("Vector q\n")
-	// 	for i := range D.q {
-	// 		fmt.Printf("q[%d] = %d\n", i, D.q[i])
-	// 	}
-	// 	fmt.Printf("nb = %d\n", D.nb)
-	// 	fmt.Printf("Vector rr\n")
-	// 	for i := 0; i < 5; i++ {
-	// 		fmt.Printf("rr[%d] = %d\n", i, D.rr[i])
-	// 	}
-	// 	fmt.Printf("Vector cc\n")
-	// 	for i := 0; i < 5; i++ {
-	// 		fmt.Printf("cc[%d] = %d\n", i, D.cc[i])
-	// 	}
-	// }
-
 	nb := D.nb
 	r := D.r
 	s := D.s
@@ -474,10 +446,6 @@ func demo2(Prob *problem) bool {
 
 	fmt.Printf("blocks: %d singletons: %d structural rank: %d\n", nb, ns, sprank)
 	cs_dfree(D)
-
-	// (KI) debug info
-	// fmt.Printf("Matrix C before QR\n")
-	// cs_print(C, false)
 
 	// natural and amd(A'*A)
 	for order = 0; order <= 3; order += 3 {
@@ -504,11 +472,6 @@ func demo2(Prob *problem) bool {
 		}
 	}
 
-	// (KI) debug info
-	// fmt.Printf("Matrix C after QR\n")
-	// cs_print(C, false)
-
-	// (KI) debug info
 	fmt.Printf("m,n,sprank : %d:%d:%d\n", m, n, sprank)
 
 	if m != n || sprank < n {
@@ -541,10 +504,6 @@ func demo2(Prob *problem) bool {
 		}
 	}
 
-	// (KI) debug info
-	// fmt.Printf("Matrix C after LU\n")
-	// cs_print(C, false)
-
 	fmt.Printf("Problem sym is : %d\n", Prob.sym)
 
 	if Prob.sym == 0 {
@@ -576,8 +535,6 @@ func demo2(Prob *problem) bool {
 		}
 	}
 
-	_ = tol // TODO : remove
-
 	return true
 }
 
@@ -608,20 +565,11 @@ func norm(x []float64, n int) float64 {
 // tic -
 func tic() float64 {
 	return 0
-	// t := time.Now()
-	// return float64(t.Unix())
 }
 
 // toc -
 func toc(t float64) float64 {
 	return 0
-	// s := tic()
-	// return (func() float64 {
-	// 	if 0 > s-t {
-	// 		return 0
-	// 	}
-	// 	return s - t
-	// }())
 }
 
 // print_resid - compute residual, norm(A*x-b,inf) / (norm(A,1)*norm(x,inf) + norm(b,inf))
