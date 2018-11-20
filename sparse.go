@@ -841,6 +841,7 @@ func cs_chol(A *cs, S *css) *csn {
 	Ci = C.i
 	Cx = C.x
 	L = cs_spalloc(n, n, int(cp[n]), true, false)
+
 	// allocate result
 	N.L = L
 	if L == nil {
@@ -879,7 +880,7 @@ func cs_chol(A *cs, S *css) *csn {
 			// s [top..n-1] is pattern of L(k,:)
 			i = s[top]
 			// L(k,i) = x (i) / L(i,i)
-			lki = x[i] / Lx[Lp[i]]
+			lki = x[i] / Lx[Lp[i]] // TODO (KI): check devided by zero
 			// clear x for k+1st iteration
 			x[i] = 0
 			for p = Lp[i] + 1; p < c[i]; p++ {
