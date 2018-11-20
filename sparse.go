@@ -378,10 +378,8 @@ func cs_amd(order int, A *cs) (result []int) {
 
 			// --- Garbage collection -------------------------------------------
 			for j = 0; j < n; j++ {
-				if (func() int {
-					p = Cp[j]
-					return p
-				}()) >= 0 {
+				p = Cp[j]
+				if p >= 0 {
 					// j is a live node or element
 					// save first entry of object
 					Cp[j] = Ci[p]
@@ -411,17 +409,9 @@ func cs_amd(order int, A *cs) (result []int) {
 					Cp[j] = q
 					q++
 					for k3 := 0; k3 < len[j]-1; k3++ {
-						Ci[func() int {
-							defer func() {
-								q++
-							}()
-							return q
-						}()] = Ci[func() int {
-							defer func() {
-								p++
-							}()
-							return p
-						}()]
+						Ci[q] = Ci[p]
+						q++
+						p++
 					}
 				}
 			}
@@ -435,12 +425,10 @@ func cs_amd(order int, A *cs) (result []int) {
 		nv[k] = -nvk
 		p = Cp[k]
 		// do in place if elen[k] == 0
-		pk1 = func() int {
-			if elenk == 0 {
-				return p
-			}
-			return cnz
-		}()
+		pk1 = cnz
+		if elenk == 0 {
+			pk1 = p
+		}
 		pk2 = pk1
 		for k1 := 1; k1 <= elenk+1; k1++ {
 			if k1 > elenk {
@@ -452,27 +440,17 @@ func cs_amd(order int, A *cs) (result []int) {
 				ln = len[k] - elenk
 			} else {
 				// search the nodes in e
-				e = Ci[func() int {
-					defer func() {
-						p++
-					}()
-					return p
-				}()]
+				e = Ci[p]
+				p++
 				pj = Cp[e]
 				// length of list of nodes in e
 				ln = len[e]
 			}
 			for k2 := 1; k2 <= ln; k2++ {
-				i := Ci[func() int {
-					defer func() {
-						pj++
-					}()
-					return pj
-				}()]
-				if (func() int {
-					nvi = nv[i]
-					return nvi
-				}()) <= 0 {
+				i := Ci[pj]
+				pj++
+				nvi = nv[i]
+				if nvi <= 0 {
 					// node i dead, or seen
 					continue
 				}
@@ -481,12 +459,8 @@ func cs_amd(order int, A *cs) (result []int) {
 				// negate nv[i] to denote i in Lk
 				nv[i] = -nvi
 				// place i in Lk
-				Ci[func() int {
-					defer func() {
-						pk2++
-					}()
-					return pk2
-				}()] = i
+				Ci[pk2] = i
+				pk2++
 				if next[i] != -1 {
 					last[next[i]] = last[i]
 				}
@@ -522,10 +496,8 @@ func cs_amd(order int, A *cs) (result []int) {
 		// scan 1: find |Le\Lk|
 		for pk = pk1; pk < pk2; pk++ {
 			i = Ci[pk]
-			if (func() int {
-				eln = elen[i]
-				return eln
-			}()) <= 0 {
+			eln = elen[i]
+			if eln <= 0 {
 				// skip if elen[i] empty
 				continue
 			}
@@ -571,12 +543,8 @@ func cs_amd(order int, A *cs) (result []int) {
 						// sum up the set differences
 						d += dext
 						// keep e in Ei
-						Ci[func() int {
-							defer func() {
-								pn++
-							}()
-							return pn
-						}()] = e
+						Ci[pn] = e
+						pn++
 						// compute the hash of node i
 						h += e
 					} else {
@@ -596,22 +564,16 @@ func cs_amd(order int, A *cs) (result []int) {
 			// prune edges in Ai
 			for p = p2 + 1; p < p4; p++ {
 				j = Ci[p]
-				if (func() int {
-					nvj = nv[j]
-					return nvj
-				}()) <= 0 {
+				nvj = nv[j]
+				if nvj <= 0 {
 					// node j dead or in Lk
 					continue
 				}
 				// degree(i) += |j|
 				d += nvj
 				// place j in node list of i
-				Ci[func() int {
-					defer func() {
-						pn++
-					}()
-					return pn
-				}()] = j
+				Ci[pn] = j
+				pn++
 				// compute hash for node i
 				h += j
 			}
