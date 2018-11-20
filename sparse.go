@@ -858,7 +858,7 @@ func cs_chol(A *cs, S *css) *csn {
 	for k = 0; k < n; k++ {
 		// --- Nonzero pattern of L(k,:) ------------------------------------
 		// find pattern of L(k,:)
-		top = cs_ereach(C, int(k), parent, s, c)
+		top = cs_ereach(C, k, parent, s, c)
 		// x (0:k) is now zero
 		x[k] = 0
 
@@ -893,8 +893,8 @@ func cs_chol(A *cs, S *css) *csn {
 			Li[p] = k
 			Lx[p] = lki
 		}
+		// --- Compute L(k,k) -----------------------------------------------
 		if d <= 0 {
-			// --- Compute L(k,k) -----------------------------------------------
 			// not pos def
 			return cs_ndone(N, E, c, x, false)
 		}
@@ -3855,114 +3855,115 @@ func cs_transpose(A *cs, values bool) *cs {
 	return cs_done(C, w, nil, true)
 }
 
-// // cs_updown - sparse Cholesky update/downdate, L*L' + sigma*w*w' (sigma = +1 or -1)
-// func cs_updown(L []cs, sigma int, C []cs, parent []int) int {
-// 	var n int
-// 	var p int
-// 	var f int
-// 	var j int
-// 	var Lp []int
-// 	var Li []int
-// 	var Cp []int
-// 	var Ci []int
-// 	var Lx []float64
-// 	var Cx []float64
-// 	var alpha float64
-// 	var beta float64 = 1
-// 	var delta float64
-// 	var gamma float64
-// 	var w1 float64
-// 	var w2 float64
-// 	var w []float64
-// 	var beta2 float64 = 1
-// 	if !(L != nil && int(L.nz) == -1) || !(C != nil && int(C.nz) == -1) || parent == nil {
-// 		// check inputs
-// 		return 0
-// 	}
-// 	Lp = L.p
-// 	Li = L.i
-// 	Lx = L.x
-// 	n = L.n
-// 	Cp = C.p
-// 	Ci = C.i
-// 	Cx = C.x
-// 	if (func() int {
-// 		p = Cp[0]
-// 		return p
-// 	}()) >= Cp[1] {
-// 		// return if C empty
-// 		return 1
-// 	}
-// 	// get workspace
-// 	w = cs_malloc(n, uint(8)).([]float64)
-// 	if w == nil {
-// 		// out of memory
-// 		return 0
-// 	}
-// 	f = Ci[p]
-// 	for ; p < Cp[1]; p++ {
-// 		// f = min (find (C))
-// 		f = int(func() int {
-// 			if f < Ci[p] {
-// 				return int(f)
-// 			}
-// 			return (((Ci[p])))
-// 		}()  )
-// 	}
-// 	{
-// 		// clear workspace w
-// 		for j = f; j != -1; j = parent[j] {
-// 			w[j] = 0
-// 		}
-// 	}
-// 	{
-// 		// w = C
-// 		for p = Cp[0]; p < Cp[1]; p++ {
-// 			w[Ci[p]] = Cx[p]
-// 		}
-// 	}
-// 	{
-// 		// walk path f up to root
-// 		for j = f; j != -1; j = parent[j] {
-// 			p = Lp[j]
-// 			// alpha = w(j) / L(j,j)
-// 			alpha = w[j] / Lx[p]
-// 			beta2 = beta*beta + float64(sigma)*alpha*alpha
-// 			if beta2 <= 0 {
-// 				// not positive definite
-// 				break
-// 			}
-// 			beta2 = math.Sqrt(beta2)
-// 			delta = func() float64 {
-// 				if sigma > 0 {
-// 					return (beta / beta2)
-// 				}
-// 				return (beta2 / beta)
-// 			}()
-// 			gamma = float64(sigma) * alpha / (beta2 * beta)
-// 			Lx[p] = delta*Lx[p] + func() float64 {
-// 				if sigma > 0 {
-// 					return (gamma * w[j])
-// 				}
-// 				return 0
-// 			}()
-// 			beta = beta2
-// 			for p += 1; p < Lp[j+1]; p++ {
-// 				w1 = w[Li[p]]
-// 				w2 = w1 - alpha*Lx[p]
-// 				w[Li[p]] = w2
-// 				Lx[p] = delta*Lx[p] + gamma*func() float64 {
-// 					if sigma > 0 {
-// 						return w1
-// 					}
-// 					return w2
-// 				}()
-// 			}
-// 		}
-// 	}
-// 	cs_free(w)
-// 	return int((beta2 > 0))
-// }
+// cs_updown - sparse Cholesky update/downdate, L*L' + sigma*w*w' (sigma = +1 or -1)
+func cs_updown(L *cs, sigma int, C *cs, parent []int) (result int) {
+	var n int
+	var p int
+	var f int
+	var j int
+	var Lp []int
+	var Li []int
+	var Cp []int
+	var Ci []int
+	var Lx []float64
+	var Cx []float64
+	var alpha float64
+	var beta float64 = 1
+	var delta float64
+	var gamma float64
+	var w1 float64
+	var w2 float64
+	var w []float64
+	var beta2 float64 = 1
+	if !(L != nil && L.nz == -1) || !(C != nil && int(C.nz) == -1) || parent == nil {
+		// check inputs
+		return 0
+	}
+	Lp = L.p
+	Li = L.i
+	Lx = L.x
+	n = L.n
+	Cp = C.p
+	Ci = C.i
+	Cx = C.x
+	if (func() int {
+		p = Cp[0]
+		return p
+	}()) >= Cp[1] {
+		// return if C empty
+		return 1
+	}
+	// get workspace
+	w = make([]float64, n)
+	if w == nil {
+		// out of memory
+		return 0
+	}
+	f = Ci[p]
+	for ; p < Cp[1]; p++ {
+		// f = min (find (C))
+		f = int(func() int {
+			if f < Ci[p] {
+				return int(f)
+			}
+			return (Ci[p])
+		}())
+	}
+
+	// clear workspace w
+	for j = f; j != -1; j = parent[j] {
+		w[j] = 0
+	}
+
+	// w = C
+	for p = Cp[0]; p < Cp[1]; p++ {
+		w[Ci[p]] = Cx[p]
+	}
+
+	// walk path f up to root
+	for j = f; j != -1; j = parent[j] {
+		p = Lp[j]
+		// alpha = w(j) / L(j,j)
+		alpha = w[j] / Lx[p]
+		beta2 = beta*beta + float64(sigma)*alpha*alpha
+		if beta2 <= 0 {
+			// not positive definite
+			break
+		}
+		beta2 = math.Sqrt(beta2)
+		delta = func() float64 {
+			if sigma > 0 {
+				return (beta / beta2)
+			}
+			return (beta2 / beta)
+		}()
+		gamma = float64(sigma) * alpha / (beta2 * beta)
+		Lx[p] = delta*Lx[p] + func() float64 {
+			if sigma > 0 {
+				return (gamma * w[j])
+			}
+			return 0
+		}()
+		beta = beta2
+		for p += 1; p < Lp[j+1]; p++ {
+			w1 = w[Li[p]]
+			w2 = w1 - alpha*Lx[p]
+			w[Li[p]] = w2
+			Lx[p] = delta*Lx[p] + gamma*func() float64 {
+				if sigma > 0 {
+					return w1
+				}
+				return w2
+			}()
+		}
+	}
+
+	cs_free(w)
+	if beta2 > 0 {
+		return 1
+	}
+	return 0
+}
 
 // cs_usolve - solve Ux=b where x and b are dense.  x=b on input, solution on output.
 func cs_usolve(U *cs, x []float64) bool {
