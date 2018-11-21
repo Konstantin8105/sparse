@@ -107,7 +107,8 @@ int main(void)
 {
     problem* Prob = get_problem(stdin, 1e-14);
     /* print_problem(Prob) ; */
-    demo2(Prob);
+    int result = demo2(Prob);
+	printf("Result demo2 : %d\n", result);
     free_problem(Prob);
     return (0);
 }

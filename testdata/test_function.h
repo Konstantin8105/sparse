@@ -206,7 +206,7 @@ problem* get_problem(FILE* f, double tol)
 	printf("nz1 = %d\n",(int) nz1);
 	printf("nz2 = %d\n",(int) nz2);
 	printf("A->p[%d] = %d\n", (int)n,(int)A->p[(int)n]);
-	
+
 	printf("A before drop\n");
 	test_cs_print(A,0);
 
@@ -215,7 +215,7 @@ problem* get_problem(FILE* f, double tol)
         int ok = cs_droptol(A, tol); // drop tiny entries (just to test) */
 		printf("droptol = %d\n", ok);
 	}
-	
+
 	printf("A before make_sym\n");
 	test_cs_print(A,0);
 
