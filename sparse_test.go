@@ -1086,9 +1086,10 @@ func TestNilCheck(t *testing.T) {
 	if r := cs_lusol(-1, nil, nil, -1); r == true {
 		t.Errorf("cs_lusol: not nil")
 	}
-	if r := cs_free(nil); r != nil {
-		t.Errorf("cs_free: not nil")
-	}
+	// TODO (KI) : no need
+	// if r := cs_free(nil); r != nil {
+	// 	t.Errorf("cs_free: not nil")
+	// }
 	if r := cs_realloc(nil, -1, nil); r != nil {
 		t.Errorf("cs_realloc: not nil")
 	}

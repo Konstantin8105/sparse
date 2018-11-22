@@ -83,12 +83,6 @@ func Add(A *Cs, B *Cs, α float64, β float64) (*Cs, error) {
 		if A.n != B.n {
 			et.Add(fmt.Errorf("amount of columns in matrixes A and B is not same: %d != %d", A.n, B.n))
 		}
-		// if B.x == nil {
-		// 	et.Add(fmt.Errorf("vector x of matrix B is nil"))
-		// }
-		// if A.x == nil {
-		// 	et.Add(fmt.Errorf("vector x of matrix A is nil"))
-		// }
 	}
 	if math.IsNaN(α) {
 		et.Add(fmt.Errorf("factor α is Nan value"))
@@ -106,6 +100,8 @@ func Add(A *Cs, B *Cs, α float64, β float64) (*Cs, error) {
 	if et.IsError() {
 		return nil, et
 	}
+
+	// internal : acceptable case B.x == nil && A.x == nil
 
 	// TODO (KI) : if factors alpha, beta is zero, then more simplification
 
@@ -2324,13 +2320,12 @@ func cs_lusol(order int, A *Cs, b []float64, tol float64) bool {
 }
 
 // cs_free - wrapper for free
-func cs_free(p interface{}) interface{} {
+func cs_free(p interface{}) {
 	if p != nil {
 		_ = p
 		// free p if it is not already NULL
 	}
 	// return NULL to simplify the use of cs_free
-	return nil
 }
 
 // cs_realloc - wrapper for realloc
