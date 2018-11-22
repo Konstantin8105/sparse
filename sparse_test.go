@@ -945,6 +945,64 @@ func demo3(Prob *problem) int {
 }
 
 func TestNilCheck(t *testing.T) {
+	tcs := []struct {
+		name string
+		fs   []error
+	}{
+		{
+			name: "Add",
+			fs: []error{
+				func() error {
+					_, err := Add(nil, nil, 0, 0)
+					return err
+				}(),
+				func() error {
+					_, err := Add(nil, nil, math.NaN(), math.NaN())
+					return err
+				}(),
+				func() error {
+					_, err := Add(nil, nil, math.Inf(0), math.Inf(0))
+					return err
+				}(),
+				func() error {
+					var stdin bytes.Buffer
+					stdin.WriteString(`0 0 1
+0 1 2
+1 0 3
+1 1 4`)
+					T := Load(&stdin)
+					_, err := Add(T, T, 0, 0)
+					return err
+				}(),
+				func() error {
+					var s bytes.Buffer
+					s.WriteString("0 0 1\n0 1 2\n1 0 3\n1 1 4")
+					T := Load(&s)
+					A := Compress(T)
+
+					var s2 bytes.Buffer
+					s2.WriteString("0 0 1")
+					T2 := Load(&s2)
+					A2 := Compress(T2)
+
+					_, err := Add(A, A2, 0, 0)
+					return err
+				}(),
+			},
+		},
+	}
+
+	for i := range tcs {
+		t.Run(tcs[i].name, func(t *testing.T) {
+			for j := range tcs[i].fs {
+				if tcs[i].fs[j] == nil {
+					t.Fatalf("Error is nil in case %d", j)
+				}
+				t.Log(tcs[i].fs[j])
+			}
+		})
+	}
+
 	// TODO (KI): modify return types
 	if _, err := Add(nil, nil, 0, 0); err == nil {
 		t.Errorf("cs_add: not nil")
