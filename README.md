@@ -28,4 +28,5 @@
 
 ### Questions for CSparse
 
-* Variables `css.lnz` and `css.unz` is not float type `double`, better to use integer type like `long`
+* Variables `css.lnz` and `css.unz` is not float type `double`, better to use integer type like `long`.
+* Value `values` in function `cs_add` is no need.
