@@ -1289,6 +1289,39 @@ func TestCsCompress(t *testing.T) {
 					t.Errorf("matrix is not same")
 				}
 			})
+
+			t.Run("pair", func(t *testing.T) {
+				// pair adding
+				lines := bytes.Split(b, []byte("\n"))
+				var buf bytes.Buffer
+				for i := 0; i < len(lines)/2; i++ {
+					lines[i], lines[len(lines)-1-i] = lines[len(lines)-1-i], lines[i] // swap
+				}
+				for i := range lines {
+					line := lines[len(lines)-1-i]
+					if len(line) == 0 {
+						continue
+					}
+					buf.Write(line)
+					if i == len(lines)-1 {
+						continue
+					}
+					buf.Write([]byte("\n"))
+				}
+				T2 := Load(&buf)
+				if T2 == nil {
+					t.Fatalf("T2 is nil")
+				}
+				A2 := Compress(T2)
+				if A2 == nil {
+					t.Fatalf("A2 is nil")
+				}
+
+				if f(A) != f(A2) {
+					t.Log(ShowDiff(f(A), f(A2)))
+					t.Errorf("matrix is not same")
+				}
+			})
 		})
 	}
 }
