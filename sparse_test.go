@@ -96,26 +96,26 @@ func BenchmarkLoad(b *testing.B) {
 				b.ResetTimer()
 				for i := 0; i < b.N; i++ {
 					stdin.Write(o)
-					_ = cs_load(&stdin)
+					_ = Load(&stdin)
 				}
 			})
 
 			b.Run("cs_compress", func(b *testing.B) {
 				stdin.Write(o)
-				T := cs_load(&stdin)
+				T := Load(&stdin)
 				b.ResetTimer()
 				for i := 0; i < b.N; i++ {
-					_ = cs_compress(T)
+					_ = Compress(T)
 				}
 			})
 
 			b.Run("cs_transpose", func(b *testing.B) {
 				stdin.Write(o)
-				T := cs_load(&stdin)
-				A := cs_compress(T)
+				T := Load(&stdin)
+				A := Compress(T)
 				b.ResetTimer()
 				for i := 0; i < b.N; i++ {
-					_ = cs_transpose(A, true)
+					_ = Transpose(A, true)
 				}
 			})
 		})
@@ -150,13 +150,13 @@ func TestDemo1(t *testing.T) {
 
 			var stdin bytes.Buffer
 			stdin.Write(b)
-			T := cs_load(&stdin)
+			T := Load(&stdin)
 			// cs_print(T, false)
 
-			A := cs_compress(T)
+			A := Compress(T)
 			// cs_print(A, false)
 
-			AT := cs_transpose(A, true)
+			AT := Transpose(A, true)
 			// cs_print(AT, false)
 
 			var m int
@@ -165,17 +165,17 @@ func TestDemo1(t *testing.T) {
 			}
 			T = cs_spalloc(m, m, m, true, true)
 			for i := 0; i < m; i++ {
-				cs_entry(T, i, i, 1.0)
+				Entry(T, i, i, 1.0)
 			}
-			Eye := cs_compress(T)
+			Eye := Compress(T)
 			// cs_print(Eye, false)
 
-			C := cs_multiply(A, AT)
+			C := Multiply(A, AT)
 			// cs_print(C, false)
 
 			// D = C + Eye*norm(C,1)
-			D := cs_add(C, Eye, 1, cs_norm(C))
-			cs_print(D, false)
+			D := Add(C, Eye, 1, Norm(C))
+			Print(D, false)
 
 			filename := tmpfile.Name()
 			err = tmpfile.Close()
@@ -356,8 +356,8 @@ func ShowDiff(a, b string) string {
 }
 
 type problem struct {
-	A     *cs
-	C     *cs
+	A     *Cs
+	C     *Cs
 	sym   int
 	x     []float64
 	b     []float64
@@ -366,9 +366,9 @@ type problem struct {
 
 func print_problem(P *problem) {
 	fmt.Fprintf(os.Stdout, "Matrix A:\n")
-	cs_print(P.A, false)
+	Print(P.A, false)
 	fmt.Fprintf(os.Stdout, "Matrix C:\n")
-	cs_print(P.C, false)
+	Print(P.C, false)
 	fmt.Fprintf(os.Stdout, "sym = %v\n", P.sym)
 
 	fmt.Fprintf(os.Stdout, "Vector x\n")
@@ -384,7 +384,7 @@ func print_problem(P *problem) {
 }
 
 // is_sym - 1 if A is square & upper tri., -1 if square & lower tri., 0 otherwise
-func is_sym(A *cs) int {
+func is_sym(A *Cs) int {
 	var is_upper bool
 	var is_lower bool
 	n := A.n
@@ -421,15 +421,15 @@ func dropdiag(i int, j int, aij float64, other interface{}) bool {
 }
 
 // make_sym - C = A + triu(A,1)'
-func make_sym(A *cs) *cs {
-	var AT *cs
-	var C *cs
+func make_sym(A *Cs) *Cs {
+	var AT *Cs
+	var C *Cs
 	// AT = A'
-	AT = cs_transpose(A, true)
+	AT = Transpose(A, true)
 	// drop diagonal entries from AT
 	cs_fkeep(AT, dropdiag, nil)
 	// C = A+AT
-	C = cs_add(A, AT, 1, 1)
+	C = Add(A, AT, 1, 1)
 	cs_spfree(AT)
 	return (C)
 }
@@ -443,8 +443,8 @@ func get_problem(f io.Reader, tol float64) *problem {
 		return nil
 	}
 	// load triplet matrix T from a file */
-	T := cs_load(f)
-	A := cs_compress(T)
+	T := Load(f)
+	A := Compress(T)
 	// A = compressed-column form of T */
 	Prob.A = A
 	// clear T */
@@ -473,7 +473,7 @@ func get_problem(f io.Reader, tol float64) *problem {
 	fmt.Fprintf(os.Stdout, "A->p[%d] = %d\n", n, A.p[n])
 
 	fmt.Fprintf(os.Stdout, "A before drop\n")
-	cs_print(A, false)
+	Print(A, false)
 
 	fmt.Fprintf(os.Stdout, "tol = %.5e\n", tol)
 	if tol > 0 {
@@ -483,10 +483,10 @@ func get_problem(f io.Reader, tol float64) *problem {
 	}
 
 	fmt.Fprintf(os.Stdout, "A before make_sym\n")
-	cs_print(A, false)
+	Print(A, false)
 
 	// C = A + triu(A,1)', or C=A */
-	C := func() *cs {
+	C := func() *Cs {
 		if sym != 0 {
 			return make_sym(A)
 		}
@@ -513,7 +513,7 @@ func get_problem(f io.Reader, tol float64) *problem {
 		fmt.Fprintf(os.Stdout, "zero entries dropped: %g\n", float64(nz1-nz2))
 	}
 
-	cs_print(A, false)
+	Print(A, false)
 
 	fmt.Fprintf(os.Stdout, "nz2 = %d\n", nz2)
 	fmt.Fprintf(os.Stdout, "A->p[%d] = %d\n", n, A.p[n])
@@ -705,7 +705,7 @@ func toc(t float64) float64 {
 }
 
 // print_resid - compute residual, norm(A*x-b,inf) / (norm(A,1)*norm(x,inf) + norm(b,inf))
-func print_resid(ok bool, A *cs, x []float64, b []float64, resid []float64) {
+func print_resid(ok bool, A *Cs, x []float64, b []float64, resid []float64) {
 	if !ok {
 		fmt.Fprintf(os.Stdout, "    (failed)\n")
 		return
@@ -719,7 +719,7 @@ func print_resid(ok bool, A *cs, x []float64, b []float64, resid []float64) {
 	}
 
 	// resid = resid + A*x
-	cs_gaxpy(A, x, resid)
+	Gaxpy(A, x, resid)
 	// fmt.Fprintf(os.Stdout,"resid: %8.2e\n", norm(resid, m)/func() float64 {
 	// 	if n == 0 {
 	// 		return 1
@@ -746,13 +746,13 @@ func print_order(order int) {
 
 // Cholesky update/downdate
 func demo3(Prob *problem) int {
-	var A *cs
-	var C *cs
-	var W *cs
-	var WW *cs
-	var WT *cs
-	var E *cs
-	var W2 *cs
+	var A *Cs
+	var C *Cs
+	var W *Cs
+	var WW *Cs
+	var WT *Cs
+	var E *Cs
+	var W2 *Cs
 	var n int
 	var k int
 	var Li []int
@@ -841,7 +841,7 @@ func demo3(Prob *problem) int {
 	}
 	t = tic()
 	// update: L*L'+W*W'
-	ok = cs_updown(N.L, int(+1), W, S.parent)
+	ok = Updown(N.L, int(+1), W, S.parent)
 	t1 = toc(t)
 	fmt.Fprintf(os.Stdout, "update:   time: %8.2f\n", t1)
 	if ok == 0 { // check
@@ -860,11 +860,11 @@ func demo3(Prob *problem) int {
 	p = cs_pinv(S.pinv, int(n))
 	// E = C + (P'W)*(P'W)'
 	W2 = cs_permute(W, p, nil, true)
-	WT = cs_transpose(W2, true)
-	WW = cs_multiply(W2, WT)
+	WT = Transpose(W2, true)
+	WW = Multiply(W2, WT)
 	cs_spfree(WT)
 	cs_spfree(W2)
-	E = cs_add(C, WW, 1, 1)
+	E = Add(C, WW, 1, 1)
 	cs_spfree(WW)
 	if E == nil || p == nil {
 		return 0 // int((done3(0, S, N, y, W, E, p)))
@@ -877,7 +877,7 @@ func demo3(Prob *problem) int {
 	t = tic()
 	// numeric Cholesky
 	N = cs_chol(E, S)
-	cs_print(E, false)
+	Print(E, false)
 	if N == nil {
 		return 0 //int((done3(0, S, N, y, W, E, p)))
 	}
@@ -895,7 +895,7 @@ func demo3(Prob *problem) int {
 	print_resid(true, E, x, b, resid)
 	t = tic()
 	// downdate: L*L'-W*W'
-	ok = cs_updown(N.L, int(-1), W, S.parent)
+	ok = Updown(N.L, int(-1), W, S.parent)
 	t1 = toc(t)
 	if ok == 0 {
 		return 0 // int((done3(0, S, N, y, W, E, p)))
@@ -919,7 +919,7 @@ func demo3(Prob *problem) int {
 
 func TestNilCheck(t *testing.T) {
 	// TODO (KI): modify return types
-	if r := cs_add(nil, nil, 0, 0); r != nil {
+	if r := Add(nil, nil, 0, 0); r != nil {
 		t.Errorf("cs_add: not nil")
 	}
 	if r := cs_amd(-1, nil); r != nil {
@@ -931,7 +931,7 @@ func TestNilCheck(t *testing.T) {
 	if r := cs_cholsol(-1, nil, nil); r == true {
 		t.Errorf("cs_cholsol: not nil")
 	}
-	if r := cs_compress(nil); r != nil {
+	if r := Compress(nil); r != nil {
 		t.Errorf("cs_compress: not nil")
 	}
 	if r := cs_counts(nil, nil, nil, false); r != nil {
@@ -959,7 +959,7 @@ func TestNilCheck(t *testing.T) {
 	if r := cs_dupl(nil); r == true {
 		t.Errorf("cs_dupl: not nil")
 	}
-	if r := cs_entry(nil, -1, -1, 0); r == true {
+	if r := Entry(nil, -1, -1, 0); r == true {
 		t.Errorf("cs_entry: not nil")
 	}
 	if r := cs_ereach(nil, -1, nil, nil, nil); r == 1 {
@@ -971,7 +971,7 @@ func TestNilCheck(t *testing.T) {
 	if r := cs_fkeep(nil, nil, nil); r == 1 {
 		t.Errorf("cs_fkeep: not nil")
 	}
-	if r := cs_gaxpy(nil, nil, nil); r == true {
+	if r := Gaxpy(nil, nil, nil); r == true {
 		t.Errorf("cs_gaxpy: not nil")
 	}
 	if r := cs_happly(nil, -1, -1, nil); r == 1 {
@@ -986,7 +986,7 @@ func TestNilCheck(t *testing.T) {
 	if r := cs_leaf(-1, -1, nil, nil, nil, nil, nil); r != -1 {
 		t.Errorf("cs_leaf: not nil")
 	}
-	if r := cs_load(nil); r != nil {
+	if r := Load(nil); r != nil {
 		t.Errorf("cs_load: not nil")
 	}
 	if r := cs_lsolve(nil, nil); r != false {
@@ -1010,10 +1010,10 @@ func TestNilCheck(t *testing.T) {
 	if r := cs_maxtrans(nil, -1); r != nil {
 		t.Errorf("cs_maxtrans: not nil")
 	}
-	if r := cs_multiply(nil, nil); r != nil {
+	if r := Multiply(nil, nil); r != nil {
 		t.Errorf("cs_multiply: not nil")
 	}
-	if r := cs_norm(nil); r != -1 {
+	if r := Norm(nil); r != -1 {
 		t.Errorf("cs_norm: not nil")
 	}
 	if r := cs_permute(nil, nil, nil, false); r != nil {
@@ -1025,7 +1025,7 @@ func TestNilCheck(t *testing.T) {
 	if r := cs_post(nil, -1); r != nil {
 		t.Errorf("cs_post: not nil")
 	}
-	if r := cs_print(nil, false); r == true {
+	if r := Print(nil, false); r == true {
 		t.Errorf("cs_print: not nil")
 	}
 	if r := cs_pvec(nil, nil, nil, -1); r == true {
@@ -1069,10 +1069,10 @@ func TestNilCheck(t *testing.T) {
 	if r := cs_tdfs(-1, -1, nil, nil, nil, nil); r != -1 {
 		t.Errorf("cs_tdfs: not nil")
 	}
-	if r := cs_transpose(nil, false); r != nil {
+	if r := Transpose(nil, false); r != nil {
 		t.Errorf("cs_transpose: not nil")
 	}
-	if r := cs_updown(nil, -1, nil, nil); r != 0 {
+	if r := Updown(nil, -1, nil, nil); r != 0 {
 		t.Errorf("cs_updown: not nil")
 	}
 	if r := cs_usolve(nil, nil); r == true {
@@ -1121,7 +1121,7 @@ func TestCsCompress(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	f := func(A *cs) string {
+	f := func(A *Cs) string {
 		tmpfile, err := ioutil.TempFile("", "cs_compress")
 		if err != nil {
 			panic(err)
@@ -1172,8 +1172,8 @@ func TestCsCompress(t *testing.T) {
 
 			var stdin bytes.Buffer
 			stdin.Write(b)
-			T := cs_load(&stdin)
-			A := cs_compress(T)
+			T := Load(&stdin)
+			A := Compress(T)
 
 			t.Run("invert", func(t *testing.T) {
 				// invert file
@@ -1190,11 +1190,11 @@ func TestCsCompress(t *testing.T) {
 					}
 					buf.Write([]byte("\n"))
 				}
-				T2 := cs_load(&buf)
+				T2 := Load(&buf)
 				if T2 == nil {
 					t.Fatalf("T2 is nil")
 				}
-				A2 := cs_compress(T2)
+				A2 := Compress(T2)
 				if A2 == nil {
 					t.Fatalf("A2 is nil")
 				}

@@ -10,7 +10,7 @@ import (
 )
 
 // matrix in compressed-column or triplet form
-type cs struct { // struct cs_sparse
+type Cs struct { // struct cs_sparse
 	nzmax int       // maximum number of entries
 	m     int       // number of rows
 	n     int       // number of columns
@@ -36,8 +36,8 @@ type css struct { // struct cs_symbolic
 
 // numeric Cholesky, LU, or QR factorization
 type csn struct { // struct cs_numeric
-	L    *cs       // L for LU and Cholesky, V for QR
-	U    *cs       // U for LU, R for QR, not used for Cholesky
+	L    *Cs       // L for LU and Cholesky, V for QR
+	U    *Cs       // U for LU, R for QR, not used for Cholesky
 	pinv []int     // partial pivoting for LU
 	B    []float64 // beta [0..n-1] for QR
 }
@@ -53,8 +53,8 @@ type csd struct { // struct cs_dmperm_results
 	cc [5]int // coarse column decomposition
 }
 
-// cs_add - C = alpha*A + beta*B
-func cs_add(A *cs, B *cs, alpha float64, beta float64) *cs {
+// Add - C = alpha*A + beta*B
+func Add(A *Cs, B *Cs, alpha float64, beta float64) *Cs {
 	var x []float64
 	if !(A != nil && A.nz == -1) || !(B != nil && B.nz == -1) {
 		// check inputs
@@ -131,9 +131,9 @@ func cs_diag(i, j int, aij float64, other interface{}) bool {
 
 // cs_amd - p = amd(A+A') if symmetric is true, or amd(A'A) otherwise
 // order 0:natural, 1:Chol, 2:LU, 3:QR
-func cs_amd(order int, A *cs) (result []int) {
-	var C *cs
-	var A2 *cs
+func cs_amd(order int, A *Cs) (result []int) {
+	var C *Cs
+	var A2 *Cs
 	// var AT []cs
 	// var Cp []int
 	// var Ci []int
@@ -197,7 +197,7 @@ func cs_amd(order int, A *cs) (result []int) {
 		return nil
 	}
 	// compute A'
-	AT := cs_transpose(A, false)
+	AT := Transpose(A, false)
 	if AT == nil {
 		return nil
 	}
@@ -216,7 +216,7 @@ func cs_amd(order int, A *cs) (result []int) {
 
 	if order == 1 && n == m {
 		// C = A+A'
-		C = cs_add(A, AT, 0, 0)
+		C = Add(A, AT, 0, 0)
 	} else if order == 2 {
 		// drop dense columns from AT
 		ATp = AT.p
@@ -240,17 +240,17 @@ func cs_amd(order int, A *cs) (result []int) {
 		// finalize AT
 		ATp[m] = p2
 		// A2 = AT'
-		A2 = cs_transpose(AT, false)
+		A2 = Transpose(AT, false)
 		// C=A'*A with no dense rows
 		if A2 != nil {
-			C = cs_multiply(AT, A2)
+			C = Multiply(AT, A2)
 		} else {
 			C = nil
 		}
 		cs_spfree(A2) // TODO (KI) : remove
 	} else {
 		// C=A'*A
-		C = cs_multiply(AT, A)
+		C = Multiply(AT, A)
 	}
 	cs_spfree(AT) // TODO (KI) : remove
 	if C == nil {
@@ -795,7 +795,7 @@ func cs_amd(order int, A *cs) (result []int) {
 }
 
 // cs_chol - L = chol (A, [pinv parent cp]), pinv is optional
-func cs_chol(A *cs, S *css) *csn {
+func cs_chol(A *Cs, S *css) *csn {
 	var d float64
 	var lki float64
 	var Lx []float64
@@ -809,7 +809,7 @@ func cs_chol(A *cs, S *css) *csn {
 	var s []int
 	var Cp []int
 	var Ci []int
-	var L *cs
+	var L *Cs
 	if !(A != nil && A.nz == -1) || S == nil || S.cp == nil || S.parent == nil {
 		return nil
 	}
@@ -830,7 +830,7 @@ func cs_chol(A *cs, S *css) *csn {
 		C = cs_symperm(A, pinv, true)
 	}
 	// E is alias for A, or a copy E=A(p,p)
-	var E *cs
+	var E *Cs
 	if pinv != nil {
 		E = C
 	}
@@ -914,7 +914,7 @@ func cs_chol(A *cs, S *css) *csn {
 }
 
 // cs_cholsol - x=A\b where A is symmetric positive definite; b overwritten with solution
-func cs_cholsol(order int, A *cs, b []float64) (result bool) {
+func cs_cholsol(order int, A *Cs, b []float64) (result bool) {
 	if !(A != nil && A.nz == -1) || b == nil {
 		// check inputs
 		return false
@@ -943,8 +943,8 @@ func cs_cholsol(order int, A *cs, b []float64) (result bool) {
 	return ok
 }
 
-// cs_compress - C = compressed-column form of a triplet matrix T
-func cs_compress(T *cs) *cs {
+// Compress - C = compressed-column form of a triplet matrix T
+func Compress(T *Cs) *Cs {
 	if !(T != nil && T.nz >= 0) {
 		// check inputs
 		return nil
@@ -992,7 +992,7 @@ func cs_compress(T *cs) *cs {
 }
 
 // init_ata - column counts of LL'=A or LL'=A'A, given parent & post ordering
-func init_ata(AT *cs, post []int, w []int, head *[]int, next *[]int) {
+func init_ata(AT *Cs, post []int, w []int, head *[]int, next *[]int) {
 	var (
 		m   = AT.n
 		n   = AT.m
@@ -1022,7 +1022,7 @@ func init_ata(AT *cs, post []int, w []int, head *[]int, next *[]int) {
 }
 
 // cs_counts -
-func cs_counts(A *cs, parent []int, post []int, ata bool) []int {
+func cs_counts(A *Cs, parent []int, post []int, ata bool) []int {
 	var J int
 	var q int
 	var jleaf int
@@ -1044,7 +1044,7 @@ func cs_counts(A *cs, parent []int, post []int, ata bool) []int {
 	// get workspace
 	w := make([]int, s)
 	// AT = A'
-	AT := cs_transpose(A, false)
+	AT := Transpose(A, false)
 	if AT == nil || colcount == nil || w == nil {
 		return cs_idone(colcount, AT, w, false)
 	}
@@ -1158,7 +1158,7 @@ func cs_cumsum(p []int, c []int, n int) int { // TODO (KI) : research nz2 to ove
 }
 
 // cs_dfs - depth-first-search of the graph of a matrix, starting at node j
-func cs_dfs(j int, G *cs, top int, xi []int, pstack []int, pinv []int) int {
+func cs_dfs(j int, G *Cs, top int, xi []int, pstack []int, pinv []int) int {
 	var i int
 	var p int
 	var p2 int
@@ -1249,7 +1249,7 @@ func cs_dfs(j int, G *cs, top int, xi []int, pstack []int, pinv []int) int {
 }
 
 // cs_bfs - breadth-first search for coarse decomposition (C0,C1,R1 or R0,R3,C3)
-func cs_bfs(A *cs,
+func cs_bfs(A *Cs,
 	n int,
 	wi []int,
 	wj []int,
@@ -1266,7 +1266,7 @@ func cs_bfs(A *cs,
 	var head int
 	var tail int
 	var j2 int
-	var C *cs
+	var C *Cs
 
 	// place all unmatched nodes in queue
 	for j := 0; j < n; j++ {
@@ -1289,11 +1289,11 @@ func cs_bfs(A *cs,
 		// quick return if no unmatched nodes
 		return true
 	}
-	C = func() *cs {
+	C = func() *Cs {
 		if mark == 1 {
 			return A
 		}
-		return cs_transpose(A, false)
+		return Transpose(A, false)
 	}()
 	if C == nil {
 		// bfs of C=A' to find R3,C3 from R0
@@ -1394,7 +1394,7 @@ func cs_rprune(i, j int, aij float64, other interface{}) bool {
 }
 
 // cs_dmperm - Given A, compute coarse and then fine dmperm
-func cs_dmperm(A *cs, seed int) *csd {
+func cs_dmperm(A *Cs, seed int) *csd {
 	var cnz int
 	// var nc int
 	// var pinv []int
@@ -1557,7 +1557,7 @@ func cs_tol(i, j int, aij float64, other interface{}) bool {
 }
 
 // cs_droptol -
-func cs_droptol(A *cs, tol float64) int {
+func cs_droptol(A *Cs, tol float64) int {
 	// keep all large entries
 	return cs_fkeep(A, cs_tol, &tol)
 }
@@ -1568,13 +1568,13 @@ func cs_nonzero(i, j int, aij float64, other interface{}) bool {
 }
 
 // cs_dropzeros
-func cs_dropzeros(A *cs) int {
+func cs_dropzeros(A *Cs) int {
 	// keep all nonzero entries
 	return cs_fkeep(A, cs_nonzero, nil)
 }
 
 // cs_dupl - remove duplicate entries from A
-func cs_dupl(A *cs) bool {
+func cs_dupl(A *Cs) bool {
 	var nz int
 	if !(A != nil && A.nz == -1) {
 		// check inputs
@@ -1630,8 +1630,8 @@ func cs_dupl(A *cs) bool {
 	return (cs_sprealloc(A, 0))
 }
 
-// cs_entry - add an entry to a triplet matrix; return 1 if ok, 0 otherwise
-func cs_entry(T *cs, i, j int, x float64) bool {
+// Entry - add an entry to a triplet matrix; return 1 if ok, 0 otherwise
+func Entry(T *Cs, i, j int, x float64) bool {
 	if !(T != nil && T.nz >= 0) || i < 0 || j < 0 {
 		// check inputs
 		return false
@@ -1655,7 +1655,7 @@ func cs_entry(T *cs, i, j int, x float64) bool {
 }
 
 // cs_ereach - find nonzero pattern of Cholesky L(k,1:k-1) using etree and triu(A(:,k))
-func cs_ereach(A *cs, k int, parent []int, s []int, w []int) int {
+func cs_ereach(A *Cs, k int, parent []int, s []int, w []int) int {
 	var i int
 	var p int
 	var n int
@@ -1723,7 +1723,7 @@ func cs_ereach(A *cs, k int, parent []int, s []int, w []int) int {
 }
 
 // cs_etree - compute the etree of A (using triu(A), or A'A without forming A'A
-func cs_etree(A *cs, ata bool) []int {
+func cs_etree(A *Cs, ata bool) []int {
 	var i int
 	var k int
 	var p int
@@ -1797,7 +1797,7 @@ func cs_etree(A *cs, ata bool) []int {
 }
 
 // cs_fkeep - drop entries for which fkeep(A(i,j)) is false; return nz if OK, else -1
-func cs_fkeep(A *cs, fkeep func(int, int, float64, interface{}) bool, other interface{}) int {
+func cs_fkeep(A *Cs, fkeep func(int, int, float64, interface{}) bool, other interface{}) int {
 	var nz int
 	if !(A != nil && A.nz == -1) || fkeep == nil {
 		// check inputs
@@ -1837,8 +1837,8 @@ func cs_fkeep(A *cs, fkeep func(int, int, float64, interface{}) bool, other inte
 	return nz
 }
 
-// cs_gaxpy - y = A*x+y
-func cs_gaxpy(A *cs, x []float64, y []float64) bool {
+// Gaxpy - y = A*x+y
+func Gaxpy(A *Cs, x []float64, y []float64) bool {
 	if !(A != nil && A.nz == -1) || x == nil || y == nil {
 		// check inputs
 		return false
@@ -1856,7 +1856,7 @@ func cs_gaxpy(A *cs, x []float64, y []float64) bool {
 }
 
 // cs_happly - apply the ith Householder vector to x
-func cs_happly(V *cs, i int, beta float64, x []float64) int {
+func cs_happly(V *Cs, i int, beta float64, x []float64) int {
 	var p int
 	var Vp []int
 	var Vi []int
@@ -1981,9 +1981,9 @@ func cs_leaf(i int, j int, first []int, maxfirst []int, prevleaf []int, ancestor
 	return int((q))
 }
 
-// cs_load - load a triplet matrix from a file
-func cs_load(f io.Reader) *cs {
-	var T *cs
+// Load - load a triplet matrix from a file
+func Load(f io.Reader) *Cs {
+	var T *Cs
 	if f == nil {
 		// use double for integers to avoid csi conflicts
 		// check inputs
@@ -2002,7 +2002,7 @@ func cs_load(f io.Reader) *cs {
 		if err != nil || n != 3 {
 			return nil
 		}
-		if !cs_entry(T, i, j, x) {
+		if !Entry(T, i, j, x) {
 			return nil
 		}
 	}
@@ -2010,7 +2010,7 @@ func cs_load(f io.Reader) *cs {
 }
 
 // cs_lsolve - solve Lx=b where x and b are dense.  x=b on input, solution on output.
-func cs_lsolve(L *cs, x []float64) bool {
+func cs_lsolve(L *Cs, x []float64) bool {
 	var p int
 	var j int
 	var n int
@@ -2035,7 +2035,7 @@ func cs_lsolve(L *cs, x []float64) bool {
 }
 
 // cs_ltsolve - solve L'x=b where x and b are dense.  x=b on input, solution on output.
-func cs_ltsolve(L *cs, x []float64) bool {
+func cs_ltsolve(L *Cs, x []float64) bool {
 	var p int
 	var j int
 	var n int
@@ -2060,9 +2060,9 @@ func cs_ltsolve(L *cs, x []float64) bool {
 }
 
 // cs_lu - [L,U,pinv]=lu(A, [q lnz unz]). lnz and unz can be guess
-func cs_lu(A *cs, S *css, tol float64) *csn {
-	var L *cs
-	var U *cs
+func cs_lu(A *Cs, S *css, tol float64) *csn {
+	var L *Cs
+	var U *Cs
 	var pivot float64
 	var Lx []float64
 	var Ux []float64
@@ -2246,7 +2246,7 @@ func cs_lu(A *cs, S *css, tol float64) *csn {
 }
 
 // cs_lusol - x=A\b where A is unsymmetric; b overwritten with solution
-func cs_lusol(order int, A *cs, b []float64, tol float64) bool {
+func cs_lusol(order int, A *Cs, b []float64, tol float64) bool {
 	if !(A != nil && A.nz == -1) || b == nil {
 		// check inputs
 		return false
@@ -2312,7 +2312,7 @@ func cs_realloc(p interface{}, n int, ok *bool) interface{} {
 
 // cs_augment - find an augmenting path starting at column k and extend the match if found
 func cs_augment(k int,
-	A *cs,
+	A *Cs,
 	jmatch []int,
 	cheap []int,
 	w []int,
@@ -2389,7 +2389,7 @@ func cs_augment(k int,
 
 // cs_maxtrans - find a maximum transveral
 //[jmatch [0..m-1]; imatch [0..n-1]]
-func cs_maxtrans(A *cs, seed int) []int {
+func cs_maxtrans(A *Cs, seed int) []int {
 	var i int
 	var j int
 	var k int
@@ -2468,14 +2468,14 @@ func cs_maxtrans(A *cs, seed int) []int {
 		m2 += w[i]
 	}
 	// transpose if needed
-	C := func() *cs {
+	C := func() *Cs {
 		if m2 < n2 {
-			return cs_transpose(A, false)
+			return Transpose(A, false)
 		}
 		return (A)
 	}()
 	if C == nil {
-		return (cs_idone(jimatch, func() *cs {
+		return (cs_idone(jimatch, func() *Cs {
 			if m2 < n2 {
 				return C
 			}
@@ -2500,7 +2500,7 @@ func cs_maxtrans(A *cs, seed int) []int {
 	// get workspace
 	w = make([]int, 5*n) // cs_malloc(int(5*int(n)/8), uint(0)).([]int)
 	if w == nil {
-		return (cs_idone(jimatch, func() *cs {
+		return (cs_idone(jimatch, func() *Cs {
 			if m2 < n2 {
 				return C
 			}
@@ -2552,7 +2552,7 @@ func cs_maxtrans(A *cs, seed int) []int {
 			imatch[jmatch[i]] = i
 		}
 	}
-	return (cs_idone(jimatch, func() *cs {
+	return (cs_idone(jimatch, func() *Cs {
 		if m2 < n2 {
 			return C
 		}
@@ -2560,8 +2560,8 @@ func cs_maxtrans(A *cs, seed int) []int {
 	}(), w, true))
 }
 
-// cs_multiply - C = A*B
-func cs_multiply(A *cs, B *cs) *cs {
+// Multiply - C = A*B
+func Multiply(A *Cs, B *Cs) *Cs {
 	var p int
 	var nz int
 	var anz int
@@ -2576,7 +2576,7 @@ func cs_multiply(A *cs, B *cs) *cs {
 	var x []float64
 	var Bx []float64
 	var Cx []float64
-	var C *cs
+	var C *Cs
 	if !(A != nil && A.nz == -1) || !(B != nil && B.nz == -1) {
 		// check inputs
 		return nil
@@ -2636,8 +2636,8 @@ func cs_multiply(A *cs, B *cs) *cs {
 	return cs_done(C, w, x, true)
 }
 
-// cs_norm - 1-norm of a sparse matrix = max (sum (abs (A))), largest column sum
-func cs_norm(A *cs) float64 {
+// Norm - 1-norm of a sparse matrix = max (sum (abs (A))), largest column sum
+func Norm(A *Cs) float64 {
 	var norm float64
 	if !(A != nil && A.nz == -1) || A.x == nil {
 		// check inputs
@@ -2664,7 +2664,7 @@ func cs_norm(A *cs) float64 {
 }
 
 // cs_permute - C = A(p,q) where p and q are permutations of 0..m-1 and 0..n-1.
-func cs_permute(A *cs, pinv []int, q []int, values bool) *cs {
+func cs_permute(A *Cs, pinv []int, q []int, values bool) *Cs {
 	nz := 0
 	if !(A != nil && A.nz == -1) {
 		// check inputs
@@ -2790,8 +2790,8 @@ func cs_post(parent []int, n int) []int {
 	return (cs_idone(post, nil, w, true))
 }
 
-// cs_print - print a sparse matrix; use %g for integers to avoid differences with csi
-func cs_print(A *cs, brief bool) bool {
+// Print - print a sparse matrix; use %g for integers to avoid differences with csi
+func Print(A *Cs, brief bool) bool {
 	if A == nil {
 		fmt.Fprintf(os.Stdout, "(null)\n")
 		return false
@@ -2807,7 +2807,7 @@ func cs_print(A *cs, brief bool) bool {
 	)
 	fmt.Fprintf(os.Stdout, "CSparse Version %d.%d.%d, %s.  %s\n", 3, 2, 0, "Sept 12, 2017", "Copyright (c) Timothy A. Davis, 2006-2016")
 	if nz < 0 {
-		fmt.Fprintf(os.Stdout, "%d-by-%d, nzmax: %d nnz: %d, 1-norm: %10e\n", m, n, nzmax, Ap[n], cs_norm(A))
+		fmt.Fprintf(os.Stdout, "%d-by-%d, nzmax: %d nnz: %d, 1-norm: %10e\n", m, n, nzmax, Ap[n], Norm(A))
 		for j := 0; j < n; j++ {
 			fmt.Fprintf(os.Stdout, "    col %d : locations %d to %d\n", j, Ap[j], Ap[j+1]-1)
 			for p := Ap[j]; p < Ap[j+1]; p++ {
@@ -2860,7 +2860,7 @@ func cs_pvec(p []int, b []float64, x []float64, n int) bool {
 }
 
 // cs_qr - sparse QR factorization [V,beta,pinv,R] = qr (A)
-func cs_qr(A *cs, S *css) *csn {
+func cs_qr(A *Cs, S *css) *csn {
 	var Rx []float64
 	var Vx []float64
 	var Ax []float64
@@ -2890,8 +2890,8 @@ func cs_qr(A *cs, S *css) *csn {
 	var w []int
 	var pinv []int
 	var q []int
-	var R *cs
-	var V *cs
+	var R *Cs
+	var V *Cs
 	var N *csn
 	if !(A != nil && A.nz == -1) || S == nil {
 		return nil
@@ -3064,11 +3064,11 @@ func cs_qr(A *cs, S *css) *csn {
 }
 
 // cs_qrsol - x=A\b where A can be rectangular; b overwritten with solution
-func cs_qrsol(order int, A *cs, b []float64) bool {
+func cs_qrsol(order int, A *Cs, b []float64) bool {
 	var x []float64
 	var S *css
 	var N *csn
-	var AT *cs
+	var AT *Cs
 	var k int
 	var ok bool
 	if !(A != nil && A.nz == -1) || b == nil {
@@ -3105,7 +3105,7 @@ func cs_qrsol(order int, A *cs, b []float64) bool {
 		}
 	} else {
 		// Ax=b is underdetermined
-		AT = cs_transpose(A, true)
+		AT = Transpose(A, true)
 		// ordering and symbolic analysis
 		S = cs_sqr(int(order), AT, true)
 		// numeric QR factorization of A'
@@ -3174,7 +3174,7 @@ func cs_randperm(n int, seed int) []int {
 // cs_reach -
 // * xi [top...n-1] = nodes reachable from graph of G*P' via nodes in B(:,k).
 // * xi [n...2n-1] used as workspace
-func cs_reach(G *cs, B *cs, k int, xi []int, pinv []int) int {
+func cs_reach(G *Cs, B *Cs, k int, xi []int, pinv []int) int {
 	var p int
 	var n int
 	var top int
@@ -3206,7 +3206,7 @@ func cs_reach(G *cs, B *cs, k int, xi []int, pinv []int) int {
 }
 
 // cs_scatter - x = x + beta * A(:,j), where x is a dense vector and A(:,j) is sparse
-func cs_scatter(A *cs, j int, beta float64, w []int, x []float64, mark int, C *cs, nz int) int {
+func cs_scatter(A *Cs, j int, beta float64, w []int, x []float64, mark int, C *Cs, nz int) int {
 	var i int
 	var p int
 	var Ap []int
@@ -3248,7 +3248,7 @@ func cs_scatter(A *cs, j int, beta float64, w []int, x []float64, mark int, C *c
 
 // cs_scc - find the strongly connected components of a square matrix
 // matrix A temporarily modified, then restored
-func cs_scc(A *cs) *csd {
+func cs_scc(A *Cs) *csd {
 	if !(A != nil && A.nz == -1) {
 		// check inputs
 		return nil
@@ -3258,7 +3258,7 @@ func cs_scc(A *cs) *csd {
 	// allocate result
 	D := cs_dalloc(n, 0)
 	// AT = A'
-	AT := cs_transpose(A, false)
+	AT := Transpose(A, false)
 	// get workspace
 	xi := make([]int, 2*n+1)
 	if D == nil || AT == nil || xi == nil {
@@ -3333,12 +3333,12 @@ func cs_scc(A *cs) *csd {
 }
 
 // cs_schol - ordering and symbolic analysis for a Cholesky factorization
-func cs_schol(order int, A *cs) (result *css) {
+func cs_schol(order int, A *Cs) (result *css) {
 	var n int
 	var c []int
 	var post []int
 	var P []int
-	var C *cs
+	var C *Cs
 	var S *css
 	if !(A != nil && A.nz == -1) {
 		// check inputs
@@ -3384,7 +3384,7 @@ func cs_schol(order int, A *cs) (result *css) {
 }
 
 // cs_spsolve - solve Gx=b(:,k), where G is either upper (lo=0) or lower (lo=1) triangular
-func cs_spsolve(G *cs, B *cs, k int, xi []int, x []float64, pinv []int, lo bool) int {
+func cs_spsolve(G *Cs, B *Cs, k int, xi []int, x []float64, pinv []int, lo bool) int {
 	var j int
 	var J int
 	var p int
@@ -3466,7 +3466,7 @@ func cs_spsolve(G *cs, B *cs, k int, xi []int, x []float64, pinv []int, lo bool)
 }
 
 // cs_vcount - compute nnz(V) = S->lnz, S->pinv, S->leftmost, S->m2 from A and S->parent
-func cs_vcount(A *cs, S *css) bool {
+func cs_vcount(A *Cs, S *css) bool {
 
 	// if A == nil || S == nil {
 	// 	return false
@@ -3608,7 +3608,7 @@ func cs_vcount(A *cs, S *css) bool {
 }
 
 // cs_sqr - symbolic ordering and analysis for QR or LU
-func cs_sqr(order int, A *cs, qr bool) (result *css) {
+func cs_sqr(order int, A *Cs, qr bool) (result *css) {
 	var ok bool = true
 	if !(A != nil && A.nz == -1) {
 		// check inputs
@@ -3662,7 +3662,7 @@ func cs_sqr(order int, A *cs, qr bool) (result *css) {
 }
 
 // cs_symperm - C = A(p,p) where A and C are symmetric the upper part stored; pinv not p
-func cs_symperm(A *cs, pinv []int, values bool) *cs {
+func cs_symperm(A *Cs, pinv []int, values bool) *Cs {
 	var i int
 	var j int
 	var p int
@@ -3677,7 +3677,7 @@ func cs_symperm(A *cs, pinv []int, values bool) *cs {
 	var w []int
 	var Cx []float64
 	var Ax []float64
-	var C *cs
+	var C *Cs
 	if !(A != nil && A.nz == -1) {
 		// check inputs
 		return nil
@@ -3816,8 +3816,8 @@ func cs_tdfs(j, k int, head []int, next []int, post []int, stack []int) int {
 	return k
 }
 
-// cs_transpose - C = A'
-func cs_transpose(A *cs, values bool) *cs {
+// Transpose - C = A'
+func Transpose(A *Cs, values bool) *Cs {
 	if !(A != nil && A.nz == -1) {
 		// check inputs
 		return nil
@@ -3865,8 +3865,8 @@ func cs_transpose(A *cs, values bool) *cs {
 	return cs_done(C, w, nil, true)
 }
 
-// cs_updown - sparse Cholesky update/downdate, L*L' + sigma*w*w' (sigma = +1 or -1)
-func cs_updown(L *cs, sigma int, C *cs, parent []int) int {
+// Updown - sparse Cholesky update/downdate, L*L' + sigma*w*w' (sigma = +1 or -1)
+func Updown(L *Cs, sigma int, C *Cs, parent []int) int {
 	var n int
 	var p int
 	var f int
@@ -3976,7 +3976,7 @@ func cs_updown(L *cs, sigma int, C *cs, parent []int) int {
 }
 
 // cs_usolve - solve Ux=b where x and b are dense.  x=b on input, solution on output.
-func cs_usolve(U *cs, x []float64) bool {
+func cs_usolve(U *Cs, x []float64) bool {
 	if !(U != nil && U.nz == -1) || x == nil {
 		// check inputs
 		return false
@@ -3997,11 +3997,11 @@ func cs_usolve(U *cs, x []float64) bool {
 }
 
 // cs_spalloc - allocate a sparse matrix (triplet form or compressed-column form)
-func cs_spalloc(m, n, nzmax int, values, triplet bool) *cs {
+func cs_spalloc(m, n, nzmax int, values, triplet bool) *Cs {
 	// if m < 0 || n < 0 || nzmax < 0 {
 	// 	return nil
 	// }
-	A := new(cs)
+	A := new(Cs)
 	if A == nil {
 		// allocate the cs struct
 		// out of memory
@@ -4037,7 +4037,7 @@ func cs_spalloc(m, n, nzmax int, values, triplet bool) *cs {
 }
 
 // cs_sprealloc - change the max # of entries sparse matrix
-func cs_sprealloc(A *cs, nzmax int) (result bool) {
+func cs_sprealloc(A *Cs, nzmax int) (result bool) {
 	var oki bool
 	var okj bool = true
 	var okx bool = true
@@ -4071,7 +4071,7 @@ func cs_sprealloc(A *cs, nzmax int) (result bool) {
 }
 
 // cs_spfree - free a sparse matrix
-func cs_spfree(A *cs) *cs {
+func cs_spfree(A *Cs) *Cs {
 	// free the cs struct and return NULL
 	return nil
 }
@@ -4116,7 +4116,7 @@ func cs_dfree(D *csd) *csd {
 }
 
 // cs_done - free workspace and return a sparse matrix result
-func cs_done(C *cs, w []int, x []float64, ok bool) *cs {
+func cs_done(C *Cs, w []int, x []float64, ok bool) *Cs {
 	// TODO (KI) : reused memory
 	// return result if OK, else free it
 	if ok {
@@ -4126,7 +4126,7 @@ func cs_done(C *cs, w []int, x []float64, ok bool) *cs {
 }
 
 // cs_idone - free workspace and return csi array result
-func cs_idone(p []int, C *cs, w interface{}, ok bool) []int {
+func cs_idone(p []int, C *Cs, w interface{}, ok bool) []int {
 	// TODO (KI) : reused memory
 	// return result, or free it
 	if ok {
@@ -4136,7 +4136,7 @@ func cs_idone(p []int, C *cs, w interface{}, ok bool) []int {
 }
 
 // cs_ndone - free workspace and return a numeric factorization (Cholesky, LU, or QR)
-func cs_ndone(N *csn, C *cs, w interface{}, x interface{}, ok bool) *csn {
+func cs_ndone(N *csn, C *Cs, w interface{}, x interface{}, ok bool) *csn {
 	// TODO (KI) : reused memory
 	// return result if OK, else free it
 	if ok {
@@ -4146,7 +4146,7 @@ func cs_ndone(N *csn, C *cs, w interface{}, x interface{}, ok bool) *csn {
 }
 
 // cs_ddone - free workspace and return a csd result
-func cs_ddone(D *csd, C *cs, w interface{}, ok bool) *csd {
+func cs_ddone(D *csd, C *Cs, w interface{}, ok bool) *csd {
 	// TODO (KI) : reused memory
 	// return result if OK, else free it
 	if ok {
@@ -4156,7 +4156,7 @@ func cs_ddone(D *csd, C *cs, w interface{}, ok bool) *csd {
 }
 
 // cs_utsolve - solve U'x=b where x and b are dense.  x=b on input, solution on output.
-func cs_utsolve(U *cs, x []float64) bool {
+func cs_utsolve(U *Cs, x []float64) bool {
 	if !(U != nil && U.nz == -1) || x == nil {
 		// check inputs
 		return false
