@@ -76,6 +76,49 @@ func getCresult(t *testing.T, matrix string) (in []byte, out string) {
 	return b, stdout.String()
 }
 
+func BenchmarkLoad(b *testing.B) {
+	matrixes, err := filepath.Glob("CSparse/Matrix/" + "*")
+	if err != nil {
+		b.Fatal(err)
+	}
+	for i := range matrixes {
+		b.Run(matrixes[i], func(b *testing.B) {
+			o, err := ioutil.ReadFile(matrixes[i])
+			if err != nil {
+				b.Fatal(err)
+			}
+			var stdin bytes.Buffer
+
+			b.Run("cs_load", func(b *testing.B) {
+				b.ResetTimer()
+				for i := 0; i < b.N; i++ {
+					stdin.Write(o)
+					_ = cs_load(&stdin)
+				}
+			})
+
+			b.Run("cs_compress", func(b *testing.B) {
+				stdin.Write(o)
+				T := cs_load(&stdin)
+				b.ResetTimer()
+				for i := 0; i < b.N; i++ {
+					_ = cs_compress(T)
+				}
+			})
+
+			b.Run("cs_transpose", func(b *testing.B) {
+				stdin.Write(o)
+				T := cs_load(&stdin)
+				A := cs_compress(T)
+				b.ResetTimer()
+				for i := 0; i < b.N; i++ {
+					_ = cs_transpose(A, true)
+				}
+			})
+		})
+	}
+}
+
 func TestDemo1(t *testing.T) {
 
 	t.Run("Build test", func(t *testing.T) {
