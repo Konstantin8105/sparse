@@ -1235,7 +1235,10 @@ func TestAdd(t *testing.T) {
 	T := Load(&stdin)
 	A := Compress(T)
 	AT := Transpose(A, true)
-	R := Add(A, AT, 1, 2)
+	R, err := Add(A, AT, 1, 2)
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	tmpfile, err := ioutil.TempFile("", "example")
 	if err != nil {
