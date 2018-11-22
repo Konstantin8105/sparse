@@ -174,7 +174,10 @@ func TestDemo1(t *testing.T) {
 			// cs_print(C, false)
 
 			// D = C + Eye*norm(C,1)
-			D := Add(C, Eye, 1, Norm(C))
+			D, err := Add(C, Eye, 1, Norm(C))
+			if err != nil {
+				t.Fatal(err)
+			}
 			Print(D, false)
 
 			filename := tmpfile.Name()
@@ -422,14 +425,15 @@ func dropdiag(i int, j int, aij float64, other interface{}) bool {
 
 // make_sym - C = A + triu(A,1)'
 func make_sym(A *Cs) *Cs {
-	var AT *Cs
-	var C *Cs
 	// AT = A'
-	AT = Transpose(A, true)
+	AT := Transpose(A, true)
 	// drop diagonal entries from AT
 	cs_fkeep(AT, dropdiag, nil)
 	// C = A+AT
-	C = Add(A, AT, 1, 1)
+	C, err := Add(A, AT, 1, 1)
+	if err != nil {
+		panic(err)
+	}
 	cs_spfree(AT)
 	return (C)
 }
@@ -751,7 +755,6 @@ func demo3(Prob *problem) int {
 	var W *Cs
 	var WW *Cs
 	var WT *Cs
-	var E *Cs
 	var W2 *Cs
 	var n int
 	var k int
@@ -864,7 +867,10 @@ func demo3(Prob *problem) int {
 	WW = Multiply(W2, WT)
 	cs_spfree(WT)
 	cs_spfree(W2)
-	E = Add(C, WW, 1, 1)
+	E, err := Add(C, WW, 1, 1)
+	if err != nil {
+		panic(err)
+	}
 	cs_spfree(WW)
 	if E == nil || p == nil {
 		return 0 // int((done3(0, S, N, y, W, E, p)))
@@ -919,7 +925,7 @@ func demo3(Prob *problem) int {
 
 func TestNilCheck(t *testing.T) {
 	// TODO (KI): modify return types
-	if r := Add(nil, nil, 0, 0); r != nil {
+	if _, err := Add(nil, nil, 0, 0); err != nil {
 		t.Errorf("cs_add: not nil")
 	}
 	if r := cs_amd(-1, nil); r != nil {

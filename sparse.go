@@ -6,6 +6,8 @@ import (
 	"math"
 	"os"
 
+	"github.com/Konstantin8105/errors"
+
 	"math/rand"
 )
 
@@ -53,53 +55,85 @@ type csd struct { // struct cs_dmperm_results
 	cc [5]int // coarse column decomposition
 }
 
-// Add - C = alpha*A + beta*B
-func Add(A *Cs, B *Cs, alpha float64, beta float64) *Cs {
-	var x []float64
-	if !(A != nil && A.nz == -1) || !(B != nil && B.nz == -1) {
-		// check inputs
-		return nil
+// Add - additon two sparse matrix with factors.
+//
+// Matrix A, B is sparse matrix in CSC format.
+//
+//	C = α*A + β*B
+//
+func Add(A *Cs, B *Cs, α float64, β float64) (*Cs, error) {
+	// check input data
+	et := errors.New("Function Add: check input data")
+	if A == nil {
+		et.Add(fmt.Errorf("matrix A is nil"))
 	}
-	if (A.m != B.m) || (A.n != B.n) {
-		return nil
+	if A != nil && A.nz != -1 {
+		et.Add(fmt.Errorf("matrix A is not CSC(Compressed Sparse Column) format"))
 	}
-	var (
-		m   = A.m
-		anz = A.p[A.n]
-		n   = B.n
-		Bp  = B.p
-		Bx  = B.x
-		bnz = Bp[n]
-		// get workspace
-		w = make([]int, m)
-	)
-	values := (A.x != nil && Bx != nil)
+	if B == nil {
+		et.Add(fmt.Errorf("matrix B is nil"))
+	}
+	if B != nil && B.nz != -1 {
+		et.Add(fmt.Errorf("matrix B is not CSC(Compressed Sparse Column) format"))
+	}
+	if A != nil && B != nil {
+		if A.m != B.m {
+			et.Add(fmt.Errorf("amount of rows in matrixes A and B is not same: %d != %d", A.m, B.m))
+		}
+		if A.n != B.n {
+			et.Add(fmt.Errorf("amount of columns in matrixes A and B is not same: %d != %d", A.n, B.n))
+		}
+		if B.x == nil {
+			et.Add(fmt.Errorf("vector x of matrix B is nil"))
+		}
+		if A.x == nil {
+			et.Add(fmt.Errorf("vector x of matrix A is nil"))
+		}
+	}
+	if α == math.NaN() {
+		et.Add(fmt.Errorf("factor α is Nan value"))
+	}
+	if β == math.NaN() {
+		et.Add(fmt.Errorf("factor β is Nan value"))
+	}
+	if math.IsInf(α, 0) {
+		et.Add(fmt.Errorf("factor α is infinity value"))
+	}
+	if math.IsInf(β, 0) {
+		et.Add(fmt.Errorf("factor β is infinity value"))
+	}
+
+	if et.IsError() {
+		return nil, et
+	}
+
+	// initialization of variables
+	m, anz, n, bnz := A.m, A.p[A.n], B.n, B.p[B.n]
+
 	// get workspace
-	if values {
-		x = make([]float64, m)
-	}
+	w := make([]int, m)
+	x := make([]float64, m)
+	defer func() {
+		// free slice
+		cs_free(w)
+		cs_free(x)
+	}()
+
 	// allocate result
-	C := cs_spalloc(m, n, anz+bnz, values, false)
-	if C == nil || w == nil || values && x == nil {
-		return cs_done(C, w, x, false)
-	}
-	var (
-		Cp = C.p
-		Ci = C.i
-		Cx = C.x
-	)
+	C := cs_spalloc(m, n, anz+bnz, true, false)
+	Cp, Ci, Cx := C.p, C.i, C.x
+
+	// calculation
 	var nz int
 	for j := 0; j < n; j++ {
 		// column j of C starts here
 		Cp[j] = nz
 		// alpha*A(:,j)
-		nz = cs_scatter(A, j, alpha, w, x, j+1, C, nz)
+		nz = cs_scatter(A, j, α, w, x, j+1, C, nz)
 		// beta*B(:,j)
-		nz = cs_scatter(B, j, beta, w, x, j+1, C, nz)
-		if values {
-			for p := Cp[j]; p < nz; p++ {
-				Cx[p] = x[Ci[p]]
-			}
+		nz = cs_scatter(B, j, β, w, x, j+1, C, nz)
+		for p := Cp[j]; p < nz; p++ {
+			Cx[p] = x[Ci[p]]
 		}
 	}
 	// finalize the last column of C
@@ -107,7 +141,7 @@ func Add(A *Cs, B *Cs, alpha float64, beta float64) *Cs {
 	// remove extra space from C
 	cs_sprealloc(C, 0)
 	// success; free workspace, return C
-	return cs_done(C, w, x, true)
+	return C, nil
 }
 
 // cs_wclear - clear w
@@ -216,7 +250,11 @@ func cs_amd(order int, A *Cs) (result []int) {
 
 	if order == 1 && n == m {
 		// C = A+A'
-		C = Add(A, AT, 0, 0)
+		var err error
+		C, err = Add(A, AT, 0, 0)
+		if err != nil {
+			return nil
+		}
 	} else if order == 2 {
 		// drop dense columns from AT
 		ATp = AT.p
