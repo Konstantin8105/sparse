@@ -221,6 +221,7 @@ func TestDemo2(t *testing.T) {
 		t.Run("Demo2: "+matrixes[i], func(t *testing.T) {
 			// data checking
 			b, c := getCresult(t, matrixes[i])
+			t.Log("CSparse is ok")
 
 			tmpfile, err := ioutil.TempFile("", "example")
 			if err != nil {
@@ -284,6 +285,7 @@ func TestDemo3(t *testing.T) {
 		t.Run("Demo3: "+matrixes[i], func(t *testing.T) {
 			// data checking
 			b, c := getCresult(t, matrixes[i])
+			t.Log("CSparse is ok")
 
 			tmpfile, err := ioutil.TempFile("", "example")
 			if err != nil {

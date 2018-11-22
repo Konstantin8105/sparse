@@ -107,6 +107,8 @@ func Add(A *Cs, B *Cs, α float64, β float64) (*Cs, error) {
 		return nil, et
 	}
 
+	// TODO (KI) : if factors alpha, beta is zero, then more simplification
+
 	// initialization of variables
 	m, anz, n, bnz := A.m, A.p[A.n], B.n, B.p[B.n]
 
@@ -3245,33 +3247,21 @@ func cs_reach(G *Cs, B *Cs, k int, xi []int, pinv []int) int {
 
 // cs_scatter - x = x + beta * A(:,j), where x is a dense vector and A(:,j) is sparse
 func cs_scatter(A *Cs, j int, beta float64, w []int, x []float64, mark int, C *Cs, nz int) int {
-	var i int
-	var p int
-	var Ap []int
-	var Ai []int
-	var Ci []int
-	var Ax []float64
 	if !(A != nil && A.nz == -1) || w == nil || !(C != nil && C.nz == -1) {
 		// check inputs
 		return -1
 	}
-	Ap = A.p
-	Ai = A.i
-	Ax = A.x
-	Ci = C.i
-	for p = Ap[j]; p < Ap[j+1]; p++ {
+	Ap, Ai, Ax, Ci := A.p, A.i, A.x, C.i
+
+	for p := Ap[j]; p < Ap[j+1]; p++ {
 		// A(i,j) is nonzero
-		i = Ai[p]
+		i := Ai[p]
 		if w[i] < mark {
 			// i is new entry in column j
 			w[i] = mark
 			// add i to pattern of C(:,j)
-			Ci[func() int {
-				defer func() {
-					nz++
-				}()
-				return nz
-			}()] = i
+			Ci[nz] = i
+			nz++
 			if x != nil {
 				// x(i) = beta*A(i,j)
 				x[i] = beta * Ax[p]
@@ -4047,14 +4037,8 @@ func cs_spalloc(m, n, nzmax int, values bool, mf matrixFormat) *Cs {
 	// 	return nil
 	// }
 	A := new(Cs)
-	if A == nil {
-		// allocate the cs struct
-		// out of memory
-		return nil
-	}
 	// define dimensions and nzmax
-	A.m = m
-	A.n = n
+	A.m, A.n = m, n
 	if nzmax < 1 {
 		nzmax = 1
 	}
