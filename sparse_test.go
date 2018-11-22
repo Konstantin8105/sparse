@@ -134,6 +134,13 @@ func TestDemo1(t *testing.T) {
 	}
 
 	for i := range matrixes {
+
+		if testing.Short() {
+			if !strings.Contains(matrixes[i], "bcsstk01") {
+				continue
+			}
+		}
+
 		t.Run("Demo1: "+matrixes[i], func(t *testing.T) {
 			// data checking
 			b, c := getCresult(t, matrixes[i])
@@ -218,6 +225,12 @@ func TestDemo2(t *testing.T) {
 			continue
 		}
 
+		if testing.Short() {
+			if !strings.Contains(matrixes[i], "bcsstk01") {
+				continue
+			}
+		}
+
 		t.Run("Demo2: "+matrixes[i], func(t *testing.T) {
 			// data checking
 			b, c := getCresult(t, matrixes[i])
@@ -280,6 +293,12 @@ func TestDemo3(t *testing.T) {
 		// TODO : remove, not clear - Why it is soo long?
 		if strings.Contains(matrixes[i], "bcsstk16") {
 			continue
+		}
+
+		if testing.Short() {
+			if !strings.Contains(matrixes[i], "bcsstk01") {
+				continue
+			}
 		}
 
 		t.Run("Demo3: "+matrixes[i], func(t *testing.T) {
@@ -927,7 +946,7 @@ func demo3(Prob *problem) int {
 
 func TestNilCheck(t *testing.T) {
 	// TODO (KI): modify return types
-	if _, err := Add(nil, nil, 0, 0); err != nil {
+	if _, err := Add(nil, nil, 0, 0); err == nil {
 		t.Errorf("cs_add: not nil")
 	}
 	if r := cs_amd(-1, nil); r != nil {
