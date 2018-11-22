@@ -1291,7 +1291,7 @@ func TestCsCompress(t *testing.T) {
 			})
 
 			t.Run("pair", func(t *testing.T) {
-				// pair adding
+				// pair swapping
 				lines := bytes.Split(b, []byte("\n"))
 				var buf bytes.Buffer
 				for i := 0; i < len(lines)/2; i++ {
@@ -1338,10 +1338,7 @@ func TestAdd(t *testing.T) {
 	}
 
 	var stdin bytes.Buffer
-	stdin.WriteString(`0 0 1
-0 1 2
-1 0 3
-1 1 4`)
+	stdin.WriteString("0 0 1\n0 1 2\n1 0 3\n1 1 4")
 	T := Load(&stdin)
 	A := Compress(T)
 	AT := Transpose(A, true)
