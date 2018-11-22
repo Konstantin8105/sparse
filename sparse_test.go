@@ -9,6 +9,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"sort"
 	"strconv"
 	"strings"
 	"testing"
@@ -1086,7 +1087,18 @@ func TestCsCompress(t *testing.T) {
 			os.Stdout = old
 		}()
 
-		cs_print(A, false)
+		// sort
+		var ss []string
+		for p := 0; p < A.nz; p++ {
+			s := fmt.Sprintf("%8d %8d %10e", A.i[p], A.p[p], A.x[p])
+			ss = append(ss, s)
+		}
+		sort.Strings(ss)
+
+		// print
+		for i := range ss {
+			fmt.Println(ss[i])
+		}
 
 		filename := tmpfile.Name()
 		err = tmpfile.Close()
@@ -1128,9 +1140,10 @@ func TestCsCompress(t *testing.T) {
 						continue
 					}
 					buf.Write(line)
-					if i != len(lines)-1 {
-						buf.Write([]byte("\n"))
+					if i == len(lines)-1 {
+						continue
 					}
+					buf.Write([]byte("\n"))
 				}
 				T2 := cs_load(&buf)
 				if T2 == nil {
@@ -1141,10 +1154,9 @@ func TestCsCompress(t *testing.T) {
 					t.Fatalf("A2 is nil")
 				}
 
-				// TODO (KI): invertion is not acceptable
 				if f(A) != f(A2) {
 					t.Log(ShowDiff(f(A), f(A2)))
-					// t.Errorf("matrix is not same")
+					t.Errorf("matrix is not same")
 				}
 			})
 		})
