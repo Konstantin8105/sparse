@@ -4034,12 +4034,11 @@ func cs_usolve(U *Cs, x []float64) bool {
 	return true
 }
 
-// TODO (KI) : change `int` to `bool`
-type matrixFormat int
+type matrixFormat bool
 
 const (
-	tripletFormat matrixFormat = iota
-	cscFormat
+	tripletFormat matrixFormat = false
+	cscFormat     matrixFormat = true
 )
 
 // cs_spalloc - allocate a sparse matrix (triplet form or compressed-column form)
