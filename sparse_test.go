@@ -1211,3 +1211,47 @@ func TestCsCompress(t *testing.T) {
 func TestCodeStyle(t *testing.T) {
 	codestyle.All(t)
 }
+
+func TestAdd(t *testing.T) {
+
+	b, err := ioutil.ReadFile("./testdata/.snapshot.add")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	var stdin bytes.Buffer
+	stdin.WriteString(`0 0 1
+0 1 2
+1 0 3
+1 1 4`)
+	T := Load(&stdin)
+	A := Compress(T)
+	AT := Transpose(A, true)
+	R := Add(A, AT, 1, 2)
+
+	tmpfile, err := ioutil.TempFile("", "example")
+	if err != nil {
+		t.Fatal(err)
+	}
+	old := os.Stdout
+	os.Stdout = tmpfile
+	defer func() {
+		os.Stdout = old
+	}()
+
+	Print(R, false)
+
+	filename := tmpfile.Name()
+	err = tmpfile.Close()
+	if err != nil {
+		t.Fatal(err)
+	}
+	b2, err := ioutil.ReadFile(filename)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if !bytes.Equal(b, b2) {
+		t.Fatalf("Results is not same:\n%s\n%s", string(b), string(b2))
+	}
+}
