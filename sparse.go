@@ -83,12 +83,12 @@ func Add(A *Cs, B *Cs, α float64, β float64) (*Cs, error) {
 		if A.n != B.n {
 			et.Add(fmt.Errorf("amount of columns in matrixes A and B is not same: %d != %d", A.n, B.n))
 		}
-		if B.x == nil {
-			et.Add(fmt.Errorf("vector x of matrix B is nil"))
-		}
-		if A.x == nil {
-			et.Add(fmt.Errorf("vector x of matrix A is nil"))
-		}
+		// if B.x == nil {
+		// 	et.Add(fmt.Errorf("vector x of matrix B is nil"))
+		// }
+		// if A.x == nil {
+		// 	et.Add(fmt.Errorf("vector x of matrix A is nil"))
+		// }
 	}
 	if α == math.NaN() {
 		et.Add(fmt.Errorf("factor α is Nan value"))
@@ -113,12 +113,18 @@ func Add(A *Cs, B *Cs, α float64, β float64) (*Cs, error) {
 	m, anz, n, bnz := A.m, A.p[A.n], B.n, B.p[B.n]
 
 	// get workspace
+	values := (A.x != nil && B.x != nil)
 	w := make([]int, m)
-	x := make([]float64, m)
+	var x []float64
+	if values {
+		x = make([]float64, m)
+	}
 	defer func() {
 		// free slice
 		cs_free(w)
-		cs_free(x)
+		if values {
+			cs_free(x)
+		}
 	}()
 
 	// allocate result
@@ -134,8 +140,10 @@ func Add(A *Cs, B *Cs, α float64, β float64) (*Cs, error) {
 		nz = cs_scatter(A, j, α, w, x, j+1, C, nz)
 		// beta*B(:,j)
 		nz = cs_scatter(B, j, β, w, x, j+1, C, nz)
-		for p := Cp[j]; p < nz; p++ {
-			Cx[p] = x[Ci[p]]
+		if values {
+			for p := Cp[j]; p < nz; p++ {
+				Cx[p] = x[Ci[p]]
+			}
 		}
 	}
 	// finalize the last column of C
