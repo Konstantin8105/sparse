@@ -90,10 +90,10 @@ func Add(A *Cs, B *Cs, α float64, β float64) (*Cs, error) {
 		// 	et.Add(fmt.Errorf("vector x of matrix A is nil"))
 		// }
 	}
-	if α == math.NaN() {
+	if math.IsNaN(α) {
 		et.Add(fmt.Errorf("factor α is Nan value"))
 	}
-	if β == math.NaN() {
+	if math.IsNaN(β) {
 		et.Add(fmt.Errorf("factor β is Nan value"))
 	}
 	if math.IsInf(α, 0) {
