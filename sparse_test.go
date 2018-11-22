@@ -163,7 +163,7 @@ func TestDemo1(t *testing.T) {
 			if A != nil {
 				m = A.m
 			}
-			T = cs_spalloc(m, m, m, true, true)
+			T = cs_spalloc(m, m, m, true, tripletFormat)
 			for i := 0; i < m; i++ {
 				Entry(T, i, i, 1.0)
 			}
@@ -820,7 +820,7 @@ func demo3(Prob *problem) int {
 	print_resid(true, C, x, b, resid)
 	// construct W
 	k = n / 2
-	W = cs_spalloc(n, 1, n, true, false)
+	W = cs_spalloc(n, 1, n, true, cscFormat)
 	if W == nil {
 		return 0 // done3(0, S, N, y, W, E, p)
 	}

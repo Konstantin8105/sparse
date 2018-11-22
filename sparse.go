@@ -120,7 +120,7 @@ func Add(A *Cs, B *Cs, α float64, β float64) (*Cs, error) {
 	}()
 
 	// allocate result
-	C := cs_spalloc(m, n, anz+bnz, true, false)
+	C := cs_spalloc(m, n, anz+bnz, true, cscFormat)
 	Cp, Ci, Cx := C.p, C.i, C.x
 
 	// calculation
@@ -879,7 +879,7 @@ func cs_chol(A *Cs, S *css) *csn {
 	Cp = C.p
 	Ci = C.i
 	Cx = C.x
-	L = cs_spalloc(n, n, int(cp[n]), true, false)
+	L = cs_spalloc(n, n, int(cp[n]), true, cscFormat)
 
 	// allocate result
 	N.L = L
@@ -996,7 +996,7 @@ func Compress(T *Cs) *Cs {
 		nz = T.nz
 	)
 	// allocate result
-	C := cs_spalloc(m, n, nz, Tx != nil, false)
+	C := cs_spalloc(m, n, nz, Tx != nil, cscFormat)
 	// get workspace
 	w := make([]int, n)
 	if C == nil || w == nil {
@@ -2028,7 +2028,7 @@ func Load(f io.Reader) *Cs {
 		return nil
 	}
 	// allocate result
-	T = cs_spalloc(0, 0, 1, true, true)
+	T = cs_spalloc(0, 0, 1, true, tripletFormat)
 	for {
 		var i, j int
 		var x float64
@@ -2135,10 +2135,10 @@ func cs_lu(A *Cs, S *css, tol float64) *csn {
 	if x == nil || xi == nil || N == nil {
 		return (cs_ndone(N, nil, xi, x, false))
 	}
-	L = cs_spalloc(n, n, lnz, true, false)
+	L = cs_spalloc(n, n, lnz, true, cscFormat)
 	N.L = L
 	// allocate result L
-	U = cs_spalloc(n, n, unz, true, false)
+	U = cs_spalloc(n, n, unz, true, cscFormat)
 	N.U = U
 	// allocate result U
 	pinv = make([]int, n)
@@ -2637,7 +2637,7 @@ func Multiply(A *Cs, B *Cs) *Cs {
 		x = make([]float64, m)
 	}
 	// allocate result
-	C = cs_spalloc(m, n, anz+bnz, values, false)
+	C = cs_spalloc(m, n, anz+bnz, values, cscFormat)
 	if C == nil || w == nil || bool(values) && x == nil {
 		return cs_done(C, w, x, false)
 	}
@@ -2714,7 +2714,7 @@ func cs_permute(A *Cs, pinv []int, q []int, values bool) *Cs {
 	Ai := A.i
 	Ax := A.x
 	// alloc result
-	C := cs_spalloc(m, n, Ap[n], values && Ax != nil, false)
+	C := cs_spalloc(m, n, Ap[n], values && Ax != nil, cscFormat)
 	if C == nil {
 		// out of memory
 		return cs_done(C, nil, nil, false)
@@ -2963,10 +2963,10 @@ func cs_qr(A *Cs, S *css) *csn {
 		x[k] = 0
 	}
 
-	V = cs_spalloc(int(m2), n, int(vnz), true, false)
+	V = cs_spalloc(int(m2), n, int(vnz), true, cscFormat)
 	// allocate result V
 	N.L = V
-	R = cs_spalloc(int(m2), n, int(rnz), true, false)
+	R = cs_spalloc(int(m2), n, int(rnz), true, cscFormat)
 	// allocate result R
 	N.U = R
 	Beta = make([]float64, n) // cs_malloc(n, uint(8)).([]float64)
@@ -3725,7 +3725,7 @@ func cs_symperm(A *Cs, pinv []int, values bool) *Cs {
 	Ai = A.i
 	Ax = A.x
 	// alloc result
-	C = cs_spalloc(n, n, Ap[n], values && Ax != nil, false)
+	C = cs_spalloc(n, n, Ap[n], values && Ax != nil, cscFormat)
 	// get workspace
 	w = make([]int, n) //  cs_calloc(n, uint(0)).([]int)
 	if C == nil || w == nil {
@@ -3868,7 +3868,7 @@ func Transpose(A *Cs, values bool) *Cs {
 		Ax = A.x
 	)
 	// allocate result
-	C := cs_spalloc(n, m, Ap[n], values && Ax != nil, false)
+	C := cs_spalloc(n, m, Ap[n], values && Ax != nil, cscFormat)
 	// get workspace
 	w := make([]int, m)
 	if C == nil || w == nil {
@@ -4034,8 +4034,16 @@ func cs_usolve(U *Cs, x []float64) bool {
 	return true
 }
 
+// TODO (KI) : change `int` to `bool`
+type matrixFormat int
+
+const (
+	tripletFormat matrixFormat = iota
+	cscFormat
+)
+
 // cs_spalloc - allocate a sparse matrix (triplet form or compressed-column form)
-func cs_spalloc(m, n, nzmax int, values, triplet bool) *Cs {
+func cs_spalloc(m, n, nzmax int, values bool, mf matrixFormat) *Cs {
 	// if m < 0 || n < 0 || nzmax < 0 {
 	// 	return nil
 	// }
@@ -4053,15 +4061,13 @@ func cs_spalloc(m, n, nzmax int, values, triplet bool) *Cs {
 	}
 	A.nzmax = nzmax
 	// allocate triplet or comp.col
-	A.nz = -1
-	if triplet {
-		A.nz = 0
-	}
-	// allocation of p
-	if triplet {
+	switch mf {
+	case tripletFormat:
 		A.p = make([]int, nzmax)
-	} else {
+		A.nz = 0
+	case cscFormat:
 		A.p = make([]int, n+1)
+		A.nz = -1
 	}
 	A.i = make([]int, nzmax)
 	A.x = nil
