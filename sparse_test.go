@@ -1116,7 +1116,6 @@ func TestCsCompress(t *testing.T) {
 			var stdin bytes.Buffer
 			stdin.Write(b)
 			T := cs_load(&stdin)
-			fmt.Println(T)
 			A := cs_compress(T)
 
 			t.Run("invert", func(t *testing.T) {
@@ -1133,7 +1132,6 @@ func TestCsCompress(t *testing.T) {
 						buf.Write([]byte("\n"))
 					}
 				}
-				fmt.Printf("`%s`\n", buf.String())
 				T2 := cs_load(&buf)
 				if T2 == nil {
 					t.Fatalf("T2 is nil")
