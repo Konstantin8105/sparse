@@ -9,6 +9,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"sort"
 	"strconv"
 	"strings"
 	"testing"
@@ -1109,5 +1110,98 @@ func TestNilCheck(t *testing.T) {
 	}
 	if r := cs_utsolve(nil, nil); r == true {
 		t.Errorf("cs_utsolve: not nil")
+	}
+}
+
+func TestCsCompress(t *testing.T) {
+	matrixes, err := filepath.Glob("CSparse/Matrix/" + "*")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	f := func(A *cs) string {
+		tmpfile, err := ioutil.TempFile("", "cs_compress")
+		if err != nil {
+			panic(err)
+		}
+		old := os.Stdout
+		os.Stdout = tmpfile
+		defer func() {
+			os.Stdout = old
+		}()
+
+		// sort
+		var ss []string
+		for p := 0; p < A.nz; p++ {
+			s := fmt.Sprintf("%8d %8d %10e", A.i[p], A.p[p], A.x[p])
+			ss = append(ss, s)
+		}
+		sort.Strings(ss)
+
+		// print
+		for i := range ss {
+			fmt.Println(ss[i])
+		}
+
+		filename := tmpfile.Name()
+		err = tmpfile.Close()
+		if err != nil {
+			panic(err)
+		}
+		cb2, err := ioutil.ReadFile(filename)
+		if err != nil {
+			panic(err)
+		}
+		return string(cb2)
+	}
+
+	for i := range matrixes {
+
+		// TODO : remove, not clear - Why is Fail in QR?
+		if strings.Contains(matrixes[i], "bcsstk16") {
+			continue
+		}
+
+		t.Run(matrixes[i], func(t *testing.T) {
+			b, err := ioutil.ReadFile(matrixes[i])
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			var stdin bytes.Buffer
+			stdin.Write(b)
+			T := cs_load(&stdin)
+			A := cs_compress(T)
+
+			t.Run("invert", func(t *testing.T) {
+				// invert file
+				lines := bytes.Split(b, []byte("\n"))
+				var buf bytes.Buffer
+				for i := range lines {
+					line := lines[len(lines)-1-i]
+					if len(line) == 0 {
+						continue
+					}
+					buf.Write(line)
+					if i == len(lines)-1 {
+						continue
+					}
+					buf.Write([]byte("\n"))
+				}
+				T2 := cs_load(&buf)
+				if T2 == nil {
+					t.Fatalf("T2 is nil")
+				}
+				A2 := cs_compress(T2)
+				if A2 == nil {
+					t.Fatalf("A2 is nil")
+				}
+
+				if f(A) != f(A2) {
+					t.Log(ShowDiff(f(A), f(A2)))
+					t.Errorf("matrix is not same")
+				}
+			})
+		})
 	}
 }
