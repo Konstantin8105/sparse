@@ -3909,26 +3909,21 @@ func Transpose(A *Cs, values bool) *Cs {
 		// check inputs
 		return nil
 	}
-	var (
-		m  = A.m
-		n  = A.n
-		Ap = A.p
-		Ai = A.i
-		Ax = A.x
-	)
+	m, n, Ap, Ai, Ax := A.m, A.n, A.p, A.i, A.x
+
 	// allocate result
 	C := cs_spalloc(n, m, Ap[n], values && Ax != nil, cscFormat)
 	// get workspace
 	w := make([]int, m)
+	defer cs_free(w)
+
 	if C == nil {
 		// out of memory
-		return cs_done(C, w, nil, false)
+		return nil // cs_done(C, w, nil, false)
 	}
-	var (
-		Cp = C.p
-		Ci = C.i
-		Cx = C.x
-	)
+
+	// initialization
+	Cp, Ci, Cx := C.p, C.i, C.x
 
 	// row counts
 	for p := 0; p < Ap[n]; p++ {
@@ -3949,7 +3944,7 @@ func Transpose(A *Cs, values bool) *Cs {
 		}
 	}
 	// success; free w and return C
-	return cs_done(C, w, nil, true)
+	return C // cs_done(C, nil, nil, true)
 }
 
 // Updown - sparse Cholesky update/downdate, L*L' + sigma*w*w' (sigma = +1 or -1)
