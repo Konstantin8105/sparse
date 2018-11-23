@@ -1005,7 +1005,7 @@ func Compress(T *Cs) *Cs {
 	C := cs_spalloc(m, n, nz, Tx != nil, cscFormat)
 	// get workspace
 	w := make([]int, n)
-	if C == nil || w == nil {
+	if C == nil {
 		// out of memory
 		return cs_done(C, w, nil, false)
 	}
@@ -1089,7 +1089,7 @@ func cs_counts(A *Cs, parent []int, post []int, ata bool) []int {
 	w := make([]int, s)
 	// AT = A'
 	AT := Transpose(A, false)
-	if AT == nil || colcount == nil || w == nil {
+	if AT == nil || colcount == nil {
 		return cs_idone(colcount, AT, w, false)
 	}
 	var (
@@ -1631,10 +1631,6 @@ func cs_dupl(A *Cs) bool {
 	Ax := A.x
 	// get workspace
 	w := make([]int, m)
-	if w == nil {
-		// out of memory
-		return false
-	}
 
 	// row i not yet seen
 	for i := 0; i < m; i++ {
@@ -1791,12 +1787,12 @@ func cs_etree(A *Cs, ata bool) []int {
 	// allocate result
 	parent = make([]int, n)
 	// get workspace
-	w = make([]int, (n + (func() int {
+	w = make([]int, (n + func() int {
 		if ata {
-			return int(m)
+			return m
 		}
 		return 0
-	}())))
+	}()))
 	if w == nil || parent == nil {
 		return (cs_idone(parent, nil, w, false))
 	}
@@ -2541,15 +2537,7 @@ func cs_maxtrans(A *Cs, seed int) []int {
 		return jimatch[m:]
 	}()
 	// get workspace
-	w = make([]int, 5*n) // cs_malloc(int(5*int(n)/8), uint(0)).([]int)
-	if w == nil {
-		return (cs_idone(jimatch, func() *Cs {
-			if m2 < n2 {
-				return C
-			}
-			return nil
-		}(), w, false))
-	}
+	w = make([]int, 5*n)
 	cheap = w[n:]
 	js = w[2*n:]
 	is = w[3*n:]
@@ -3720,8 +3708,8 @@ func cs_symperm(A *Cs, pinv []int, values bool) *Cs {
 	// alloc result
 	C = cs_spalloc(n, n, Ap[n], values && Ax != nil, cscFormat)
 	// get workspace
-	w = make([]int, n) //  cs_calloc(n, uint(0)).([]int)
-	if C == nil || w == nil {
+	w = make([]int, n)
+	if C == nil {
 		// out of memory
 		return (cs_done(C, w, nil, false))
 	}
@@ -3864,7 +3852,7 @@ func Transpose(A *Cs, values bool) *Cs {
 	C := cs_spalloc(n, m, Ap[n], values && Ax != nil, cscFormat)
 	// get workspace
 	w := make([]int, m)
-	if C == nil || w == nil {
+	if C == nil {
 		// out of memory
 		return cs_done(C, w, nil, false)
 	}
@@ -3936,10 +3924,6 @@ func Updown(L *Cs, sigma int, C *Cs, parent []int) int {
 	}
 	// get workspace
 	w = make([]float64, n)
-	if w == nil {
-		// out of memory
-		return 0
-	}
 	f = Ci[p]
 	for ; p < Cp[1]; p++ {
 		// f = min (find (C))
