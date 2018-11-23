@@ -2375,7 +2375,7 @@ func cs_free(p interface{}) {
 			// cs_free(v.cc) // ignore type `int[5]`
 		}
 
-	default:
+		// default:
 		// TODO (KI) : fmt.Fprintf(os.Stdout,"add memory reusing for type : %T\n", p)
 	}
 }
