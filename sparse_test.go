@@ -141,6 +141,22 @@ func Benchmark(b *testing.B) {
 					_ = Multiply(A, A)
 				}
 			})
+
+			b.Run("cs_gaxpy", func(b *testing.B) {
+				stdin.Write(o)
+				T := Load(&stdin)
+				A := Compress(T)
+				x := make([]float64, A.n)
+				y := make([]float64, A.m)
+				err := Gaxpy(A, x, y)
+				if err != nil {
+					b.Fatal(err)
+				}
+				b.ResetTimer()
+				for i := 0; i < b.N; i++ {
+					_ = Gaxpy(A, x, y)
+				}
+			})
 		})
 	}
 }
