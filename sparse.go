@@ -2333,13 +2333,13 @@ func cs_free(p interface{}) {
 		if v == nil {
 			return
 		}
-		// TODO (KI) : fmt.Printf("Type : %8d %T\n", len(v), v)
+		// TODO (KI) : fmt.Fprintf(os.Stdout,"Type : %8d %T\n", len(v), v)
 
 	case []int:
 		if v == nil {
 			return
 		}
-		// TODO (KI) : fmt.Printf("Type : %8d %T\n", len(v), v)
+		// TODO (KI) : fmt.Fprintf(os.Stdout,"Type : %8d %T\n", len(v), v)
 
 	case *Cs:
 		if v == nil {
@@ -2380,7 +2380,7 @@ func cs_free(p interface{}) {
 		// cs_free(v.cc) // ignore type `int[5]`
 
 	default:
-		// TODO (KI) : fmt.Printf("add memory reusing for type : %T\n", p)
+		// TODO (KI) : fmt.Fprintf(os.Stdout,"add memory reusing for type : %T\n", p)
 	}
 }
 
