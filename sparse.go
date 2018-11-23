@@ -126,7 +126,10 @@ func Add(A *Cs, B *Cs, α float64, β float64) (*Cs, error) {
 	}()
 
 	// allocate result
-	C := cs_spalloc(m, n, anz+bnz, true, cscFormat)
+	C, err := cs_spalloc(m, n, anz+bnz, true, cscFormat)
+	if err != nil {
+		return nil, err
+	}
 	Cp, Ci, Cx := C.p, C.i, C.x
 
 	// calculation
@@ -855,7 +858,6 @@ func cs_chol(A *Cs, S *css) *csn {
 	var s []int
 	var Cp []int
 	var Ci []int
-	var L *Cs
 	if !(A != nil && A.nz == -1) || S == nil || S.cp == nil || S.parent == nil {
 		return nil
 	}
@@ -887,7 +889,11 @@ func cs_chol(A *Cs, S *css) *csn {
 	Cp = C.p
 	Ci = C.i
 	Cx = C.x
-	L = cs_spalloc(n, n, int(cp[n]), true, cscFormat)
+	L, err := cs_spalloc(n, n, int(cp[n]), true, cscFormat)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, err.Error()) // TODO (KI) error hanling
+		return nil
+	}
 
 	// allocate result
 	N.L = L
@@ -1004,7 +1010,11 @@ func Compress(T *Cs) *Cs {
 		nz = T.nz
 	)
 	// allocate result
-	C := cs_spalloc(m, n, nz, Tx != nil, cscFormat)
+	C, err := cs_spalloc(m, n, nz, Tx != nil, cscFormat)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, err.Error()) // TODO (KI) error hanling
+		return nil
+	}
 	// get workspace
 	w := make([]int, n)
 	if C == nil {
@@ -2025,14 +2035,17 @@ func cs_leaf(i int, j int, first []int, maxfirst []int, prevleaf []int, ancestor
 
 // Load - load a triplet matrix from a file
 func Load(f io.Reader) *Cs {
-	var T *Cs
 	if f == nil {
 		// use double for integers to avoid csi conflicts
 		// check inputs
 		return nil
 	}
 	// allocate result
-	T = cs_spalloc(0, 0, 1, true, tripletFormat)
+	T, err := cs_spalloc(0, 0, 1, true, tripletFormat)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, err.Error()) // TODO (KI) error hanling
+		return nil
+	}
 	for {
 		var i, j int
 		var x float64
@@ -2103,8 +2116,6 @@ func cs_ltsolve(L *Cs, x []float64) bool {
 
 // cs_lu - [L,U,pinv]=lu(A, [q lnz unz]). lnz and unz can be guess
 func cs_lu(A *Cs, S *css, tol float64) *csn {
-	var L *Cs
-	var U *Cs
 	var pivot float64
 	var Lx []float64
 	var Ux []float64
@@ -2139,10 +2150,18 @@ func cs_lu(A *Cs, S *css, tol float64) *csn {
 	if x == nil || xi == nil || N == nil {
 		return (cs_ndone(N, nil, xi, x, false))
 	}
-	L = cs_spalloc(n, n, lnz, true, cscFormat)
+	L, err := cs_spalloc(n, n, lnz, true, cscFormat)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, err.Error()) // TODO (KI) error hanling
+		return nil
+	}
 	N.L = L
 	// allocate result L
-	U = cs_spalloc(n, n, unz, true, cscFormat)
+	U, err := cs_spalloc(n, n, unz, true, cscFormat)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, err.Error()) // TODO (KI) error hanling
+		return nil
+	}
 	N.U = U
 	// allocate result U
 	pinv = make([]int, n)
@@ -2671,7 +2690,6 @@ func Multiply(A *Cs, B *Cs) *Cs {
 	var x []float64
 	var Bx []float64
 	var Cx []float64
-	var C *Cs
 	if !(A != nil && A.nz == -1) || !(B != nil && B.nz == -1) {
 		// check inputs
 		return nil
@@ -2694,7 +2712,11 @@ func Multiply(A *Cs, B *Cs) *Cs {
 		x = make([]float64, m)
 	}
 	// allocate result
-	C = cs_spalloc(m, n, anz+bnz, values, cscFormat)
+	C, err := cs_spalloc(m, n, anz+bnz, values, cscFormat)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, err.Error()) // TODO (KI) error hanling
+		return nil
+	}
 	if C == nil || w == nil || bool(values) && x == nil {
 		return cs_done(C, w, x, false)
 	}
@@ -2771,11 +2793,15 @@ func cs_permute(A *Cs, pinv []int, q []int, values bool) *Cs {
 	Ai := A.i
 	Ax := A.x
 	// alloc result
-	C := cs_spalloc(m, n, Ap[n], values && Ax != nil, cscFormat)
-	if C == nil {
-		// out of memory
-		return cs_done(C, nil, nil, false)
+	C, err := cs_spalloc(m, n, Ap[n], values && Ax != nil, cscFormat)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, err.Error()) // TODO (KI) error hanling
+		return nil
 	}
+	// if C == nil {
+	// 	// out of memory
+	// 	return cs_done(C, nil, nil, false)
+	// }
 	Cp := C.p
 	Ci := C.i
 	Cx := C.x
@@ -2985,8 +3011,6 @@ func cs_qr(A *Cs, S *css) *csn {
 	var w []int
 	var pinv []int
 	var q []int
-	var R *Cs
-	var V *Cs
 	var N *csn
 	if !(A != nil && A.nz == -1) || S == nil {
 		return nil
@@ -3020,10 +3044,18 @@ func cs_qr(A *Cs, S *css) *csn {
 		x[k] = 0
 	}
 
-	V = cs_spalloc(int(m2), n, int(vnz), true, cscFormat)
+	V, err := cs_spalloc(int(m2), n, int(vnz), true, cscFormat)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, err.Error()) // TODO (KI) error hanling
+		return nil
+	}
 	// allocate result V
 	N.L = V
-	R = cs_spalloc(int(m2), n, int(rnz), true, cscFormat)
+	R, err := cs_spalloc(int(m2), n, int(rnz), true, cscFormat)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, err.Error()) // TODO (KI) error hanling
+		return nil
+	}
 	// allocate result R
 	N.U = R
 	Beta = make([]float64, n) // cs_malloc(n, uint(8)).([]float64)
@@ -3764,7 +3796,6 @@ func cs_symperm(A *Cs, pinv []int, values bool) *Cs {
 	var w []int
 	var Cx []float64
 	var Ax []float64
-	var C *Cs
 	if !(A != nil && A.nz == -1) {
 		// check inputs
 		return nil
@@ -3774,7 +3805,11 @@ func cs_symperm(A *Cs, pinv []int, values bool) *Cs {
 	Ai = A.i
 	Ax = A.x
 	// alloc result
-	C = cs_spalloc(n, n, Ap[n], values && Ax != nil, cscFormat)
+	C, err := cs_spalloc(n, n, Ap[n], values && Ax != nil, cscFormat)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, err.Error()) // TODO (KI) error hanling
+		return nil
+	}
 	// get workspace
 	w = make([]int, n)
 	if C == nil {
@@ -3912,7 +3947,11 @@ func Transpose(A *Cs, values bool) *Cs {
 	m, n, Ap, Ai, Ax := A.m, A.n, A.p, A.i, A.x
 
 	// allocate result
-	C := cs_spalloc(n, m, Ap[n], values && Ax != nil, cscFormat)
+	C, err := cs_spalloc(n, m, Ap[n], values && Ax != nil, cscFormat)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, err.Error()) // TODO (KI) error hanling
+		return nil
+	}
 	// get workspace
 	w := make([]int, m)
 	defer cs_free(w)
@@ -4080,7 +4119,23 @@ const (
 )
 
 // cs_spalloc - allocate a sparse matrix (triplet form or compressed-column form)
-func cs_spalloc(m, n, nzmax int, values bool, mf matrixFormat) *Cs {
+func cs_spalloc(m, n, nzmax int, values bool, mf matrixFormat) (*Cs, error) {
+	// check input data
+	et := errors.New("Function cs_spalloc: check input data")
+	if m < 0 {
+		et.Add(fmt.Errorf("Value m is less zero : %d", m))
+	}
+	if n < 0 {
+		et.Add(fmt.Errorf("Value n is less zero : %d", n))
+	}
+	if nzmax < 0 {
+		et.Add(fmt.Errorf("Value nzmax is less zero : %d", nzmax))
+	}
+
+	if et.IsError() {
+		return nil, et
+	}
+
 	// if m < 0 || n < 0 || nzmax < 0 {
 	// 	return nil
 	// }
@@ -4107,9 +4162,9 @@ func cs_spalloc(m, n, nzmax int, values bool, mf matrixFormat) *Cs {
 	}
 	if A.p == nil || A.i == nil || values && A.x == nil {
 		cs_free(A)
-		return nil
+		return nil, fmt.Errorf("A is nil")
 	}
-	return A
+	return A, nil
 }
 
 // cs_sprealloc - change the max # of entries sparse matrix

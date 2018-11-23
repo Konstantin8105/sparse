@@ -6,6 +6,7 @@ import (
 	"io"
 	"io/ioutil"
 	"math"
+	"os"
 	"os/exec"
 	"path/filepath"
 	"sort"
@@ -193,7 +194,10 @@ func TestDemo1(t *testing.T) {
 			if A != nil {
 				m = A.m
 			}
-			T = cs_spalloc(m, m, m, true, tripletFormat)
+			T, err = cs_spalloc(m, m, m, true, tripletFormat)
+			if err != nil {
+				t.Fatal(err)
+			}
 			for i := 0; i < m; i++ {
 				Entry(T, i, i, 1.0)
 			}
@@ -796,7 +800,6 @@ func print_order(order int) {
 func demo3(Prob *problem) int {
 	var A *Cs
 	var C *Cs
-	var W *Cs
 	var WW *Cs
 	var WT *Cs
 	var W2 *Cs
@@ -864,10 +867,14 @@ func demo3(Prob *problem) int {
 	print_resid(true, C, x, b, resid)
 	// construct W
 	k = n / 2
-	W = cs_spalloc(n, 1, n, true, cscFormat)
-	if W == nil {
-		return 0 // done3(0, S, N, y, W, E, p)
+	W, err := cs_spalloc(n, 1, n, true, cscFormat)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, err.Error()) // TODO (KI) error hanling
+		return 0
 	}
+	// if W == nil {
+	// 	return 0 // done3(0, S, N, y, W, E, p)
+	// }
 	Lp = N.L.p
 	Li = N.L.i
 	Lx = N.L.x
