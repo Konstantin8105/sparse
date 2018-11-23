@@ -26,6 +26,14 @@
 
 **This package transpiled CSparse from C to Go by [c4go](https://github.com/Konstantin8105/c4go).**
 
+### Profiling
+
+```
+go test -cpuprofile cpu.prof -memprofile mem.prof -bench=Benchmark
+go tool pprof cpu.prof
+go tool pprof mem.prof
+```
+
 ### Questions for CSparse
 
 * Variables `css.lnz` and `css.unz` is not float type `double`, better to use integer type like `long`.

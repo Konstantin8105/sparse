@@ -78,7 +78,7 @@ func getCresult(t *testing.T, matrix string) (in []byte, out string) {
 	return b, stdout.String()
 }
 
-func BenchmarkLoad(b *testing.B) {
+func Benchmark(b *testing.B) {
 	matrixes, err := filepath.Glob("CSparse/Matrix/" + "*")
 	if err != nil {
 		b.Fatal(err)
@@ -115,6 +115,30 @@ func BenchmarkLoad(b *testing.B) {
 				b.ResetTimer()
 				for i := 0; i < b.N; i++ {
 					_ = Transpose(A, true)
+				}
+			})
+
+			b.Run("cs_add", func(b *testing.B) {
+				stdin.Write(o)
+				T := Load(&stdin)
+				A := Compress(T)
+				_, err := Add(A, A, 1, 2)
+				if err != nil {
+					b.Fatal(err)
+				}
+				b.ResetTimer()
+				for i := 0; i < b.N; i++ {
+					_, _ = Add(A, A, 1, 2)
+				}
+			})
+
+			b.Run("cs_multiply", func(b *testing.B) {
+				stdin.Write(o)
+				T := Load(&stdin)
+				A := Compress(T)
+				b.ResetTimer()
+				for i := 0; i < b.N; i++ {
+					_ = Multiply(A, A)
 				}
 			})
 		})
