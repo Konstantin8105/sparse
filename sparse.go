@@ -63,6 +63,7 @@ type csd struct { // struct cs_dmperm_results
 //
 //	C = α*A + β*B
 //
+// Name function in CSparse : cs_add.
 func Add(A *Cs, B *Cs, α float64, β float64) (*Cs, error) {
 	// check input data
 	et := errors.New("Function Add: check input data")
@@ -990,6 +991,8 @@ func cs_cholsol(order int, A *Cs, b []float64) (result bool) {
 }
 
 // Compress - C = compressed-column form of a triplet matrix T
+//
+// Name function in CSparse : cs_compress.
 func Compress(T *Cs) *Cs {
 	if !(T != nil && T.nz >= 0) {
 		// check inputs
@@ -1673,6 +1676,8 @@ func cs_dupl(A *Cs) bool {
 }
 
 // Entry - add an entry to a triplet matrix; return 1 if ok, 0 otherwise
+//
+// Name function in CSparse : cs_entry.
 func Entry(T *Cs, i, j int, x float64) bool {
 	if !(T != nil && T.nz >= 0) || i < 0 || j < 0 {
 		// check inputs
@@ -1884,6 +1889,8 @@ func cs_fkeep(A *Cs, fkeep func(int, int, float64, interface{}) bool, other inte
 // Matrix A is sparse matrix in CSC format.
 //
 //	y = A*x+y
+//
+// Name function in CSparse : cs_gaxpy.
 func Gaxpy(A *Cs, x []float64, y []float64) error {
 	// check input data
 	et := errors.New("Function Gaxpy: check input data")
@@ -2051,6 +2058,8 @@ func cs_leaf(i int, j int, first []int, maxfirst []int, prevleaf []int, ancestor
 }
 
 // Load - load a triplet matrix from a file
+//
+// Name function in CSparse : cs_load.
 func Load(f io.Reader) *Cs {
 	var T *Cs
 	if f == nil {
@@ -2402,7 +2411,7 @@ func cs_free(p interface{}) {
 			// cs_free(v.cc) // ignore type `int[5]`
 		}
 
-	default:
+		// default:
 		// TODO (KI) : fmt.Fprintf(os.Stdout,"add memory reusing for type : %T\n", p)
 	}
 }
@@ -2683,6 +2692,8 @@ func cs_maxtrans(A *Cs, seed int) []int {
 }
 
 // Multiply - C = A*B
+//
+// Name function in CSparse : cs_multiply.
 func Multiply(A *Cs, B *Cs) *Cs {
 	var p int
 	var nz int
@@ -2759,6 +2770,8 @@ func Multiply(A *Cs, B *Cs) *Cs {
 }
 
 // Norm - 1-norm of a sparse matrix = max (sum (abs (A))), largest column sum
+//
+// Name function in CSparse : cs_norm.
 func Norm(A *Cs) float64 {
 	var norm float64
 	if !(A != nil && A.nz == -1) || A.x == nil {
@@ -2913,6 +2926,8 @@ func cs_post(parent []int, n int) []int {
 }
 
 // Print - print a sparse matrix; use %g for integers to avoid differences with csi
+//
+// Name function in CSparse : cs_print.
 func Print(A *Cs, brief bool) bool {
 	if A == nil {
 		fmt.Fprintf(osStdout, "(null)\n")
@@ -3931,6 +3946,8 @@ func cs_tdfs(j, k int, head []int, next []int, post []int, stack []int) int {
 }
 
 // Transpose - C = A'
+//
+// Name function in CSparse : cs_transpose.
 func Transpose(A *Cs, values bool) *Cs {
 	if !(A != nil && A.nz == -1) {
 		// check inputs
@@ -3980,6 +3997,8 @@ func Transpose(A *Cs, values bool) *Cs {
 }
 
 // Updown - sparse Cholesky update/downdate, L*L' + sigma*w*w' (sigma = +1 or -1)
+//
+// Name function in CSparse : cs_updown.
 func Updown(L *Cs, sigma int, C *Cs, parent []int) int {
 	var n int
 	var p int
