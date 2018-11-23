@@ -2333,13 +2333,13 @@ func cs_free(p interface{}) {
 		if v == nil {
 			return
 		}
-		// TODO (KI) : fmt.Fprintf(os.Stdout,"Type : %8d %T\n", len(v), v)
+		// TODO (KI) : fmt.Fprintf(os.Stdout, "Type : %8d %T\n", cap(v), v)
 
 	case []int:
 		if v == nil {
 			return
 		}
-		// TODO (KI) : fmt.Fprintf(os.Stdout,"Type : %8d %T\n", len(v), v)
+		// TODO (KI) : fmt.Fprintf(os.Stdout, "Type : %8d %T\n", cap(v), v)
 
 	case *Cs:
 		if v == nil {
