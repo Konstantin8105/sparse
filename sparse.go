@@ -3978,10 +3978,8 @@ func Updown(L *Cs, sigma int, C *Cs, parent []int) int {
 	Cp = C.p
 	Ci = C.i
 	Cx = C.x
-	if (func() int {
-		p = Cp[0]
-		return p
-	}()) >= Cp[1] {
+	p = Cp[0]
+	if p >= Cp[1] {
 		// return if C empty
 		return 1
 	}
@@ -3992,9 +3990,9 @@ func Updown(L *Cs, sigma int, C *Cs, parent []int) int {
 		// f = min (find (C))
 		f = int(func() int {
 			if f < Ci[p] {
-				return int(f)
+				return f
 			}
-			return (Ci[p])
+			return Ci[p]
 		}())
 	}
 
