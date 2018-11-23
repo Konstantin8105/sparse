@@ -11,6 +11,8 @@ import (
 	"math/rand"
 )
 
+var osStdout *os.File = os.Stdout
+
 // matrix in compressed-column or triplet form
 type Cs struct { // struct cs_sparse
 	nzmax int       // maximum number of entries
@@ -291,12 +293,12 @@ func cs_amd(order int, A *Cs) (result []int) {
 		} else {
 			C = nil
 		}
-		cs_spfree(A2) // TODO (KI) : remove
+		cs_free(A2) // TODO (KI) : remove
 	} else {
 		// C=A'*A
 		C = Multiply(AT, A)
 	}
-	cs_spfree(AT) // TODO (KI) : remove
+	cs_free(AT) // TODO (KI) : remove
 	if C == nil {
 		return nil
 	}
@@ -982,8 +984,8 @@ func cs_cholsol(order int, A *Cs, b []float64) (result bool) {
 		cs_pvec(S.pinv, x, b, n)
 	}
 	cs_free(x)
-	cs_sfree(S)
-	cs_nfree(N)
+	cs_free(S)
+	cs_free(N)
 	return ok
 }
 
@@ -1381,7 +1383,7 @@ func cs_bfs(A *Cs,
 	}
 	if mark != 1 {
 		// free A' if it was created
-		cs_spfree(C) // TODO (KI) : remove
+		cs_free(C) // TODO (KI) : remove
 	}
 	return true
 }
@@ -1591,7 +1593,7 @@ func cs_dmperm(A *Cs, seed int) *csd {
 	r[nb2] = m
 	s[nb2] = n
 	D.nb = nb2
-	cs_dfree(scc)
+	cs_free(scc)
 	return (cs_ddone(D, C, nil, true))
 }
 
@@ -2310,8 +2312,8 @@ func cs_lusol(order int, A *Cs, b []float64, tol float64) bool {
 		cs_ipvec(S.q, x, b, n)
 	}
 	cs_free(x)
-	cs_sfree(S)
-	cs_nfree(N)
+	cs_free(S)
+	cs_free(N)
 	return ok
 }
 
@@ -2824,7 +2826,7 @@ func cs_post(parent []int, n int) []int {
 // Print - print a sparse matrix; use %g for integers to avoid differences with csi
 func Print(A *Cs, brief bool) bool {
 	if A == nil {
-		fmt.Fprintf(os.Stdout, "(null)\n")
+		fmt.Fprintf(osStdout, "(null)\n")
 		return false
 	}
 	var (
@@ -2836,20 +2838,20 @@ func Print(A *Cs, brief bool) bool {
 		nzmax = A.nzmax
 		nz    = A.nz
 	)
-	fmt.Fprintf(os.Stdout, "CSparse Version %d.%d.%d, %s.  %s\n", 3, 2, 0, "Sept 12, 2017", "Copyright (c) Timothy A. Davis, 2006-2016")
+	fmt.Fprintf(osStdout, "CSparse Version %d.%d.%d, %s.  %s\n", 3, 2, 0, "Sept 12, 2017", "Copyright (c) Timothy A. Davis, 2006-2016")
 	if nz < 0 {
-		fmt.Fprintf(os.Stdout, "%d-by-%d, nzmax: %d nnz: %d, 1-norm: %10e\n", m, n, nzmax, Ap[n], Norm(A))
+		fmt.Fprintf(osStdout, "%d-by-%d, nzmax: %d nnz: %d, 1-norm: %10e\n", m, n, nzmax, Ap[n], Norm(A))
 		for j := 0; j < n; j++ {
-			fmt.Fprintf(os.Stdout, "    col %d : locations %d to %d\n", j, Ap[j], Ap[j+1]-1)
+			fmt.Fprintf(osStdout, "    col %d : locations %d to %d\n", j, Ap[j], Ap[j+1]-1)
 			for p := Ap[j]; p < Ap[j+1]; p++ {
-				fmt.Fprintf(os.Stdout, "      %d : %10e\n", Ai[p], func() float64 {
+				fmt.Fprintf(osStdout, "      %d : %10e\n", Ai[p], func() float64 {
 					if Ax != nil {
 						return Ax[p]
 					}
 					return 1
 				}())
 				if brief && p > 20 {
-					fmt.Fprintf(os.Stdout, "  ...\n")
+					fmt.Fprintf(osStdout, "  ...\n")
 					return true
 				}
 			}
@@ -2857,16 +2859,16 @@ func Print(A *Cs, brief bool) bool {
 		return true
 	}
 
-	fmt.Fprintf(os.Stdout, "triplet: %d-by-%d, nzmax: %d nnz: %d\n", m, n, nzmax, nz)
+	fmt.Fprintf(osStdout, "triplet: %d-by-%d, nzmax: %d nnz: %d\n", m, n, nzmax, nz)
 	for p := 0; p < nz; p++ {
-		fmt.Fprintf(os.Stdout, "    %d %d : %10e\n", Ai[p], Ap[p], func() float64 {
+		fmt.Fprintf(osStdout, "    %d %d : %10e\n", Ai[p], Ap[p], func() float64 {
 			if Ax != nil {
 				return Ax[p]
 			}
 			return 1
 		}())
 		if brief && p > 20 {
-			fmt.Fprintf(os.Stdout, "  ...\n")
+			fmt.Fprintf(osStdout, "  ...\n")
 			return true
 		}
 	}
@@ -3164,9 +3166,9 @@ func cs_qrsol(order int, A *Cs, b []float64) bool {
 		}
 	}
 	cs_free(x)
-	cs_sfree(S)
-	cs_nfree(N)
-	cs_spfree(AT)
+	cs_free(S)
+	cs_free(N)
+	cs_free(AT)
 	return ok
 }
 
@@ -3376,7 +3378,8 @@ func cs_schol(order int, A *Cs) (result *css) {
 	S.pinv = cs_pinv(P, n)
 	cs_free(P)
 	if order != 0 && S.pinv == nil {
-		return (cs_sfree(S))
+		cs_free(S)
+		return nil
 	}
 	// C = spones(triu(A(P,P)))
 	C = cs_symperm(A, S.pinv, false)
@@ -3387,7 +3390,7 @@ func cs_schol(order int, A *Cs) (result *css) {
 	// find column counts of chol(C)
 	c = cs_counts(C, S.parent, post, false)
 	cs_free(post)
-	cs_spfree(C) // TODO (KI) : remove
+	cs_free(C) // TODO (KI) : remove
 	// allocate result S->cp
 	S.cp = make([]int, n+1) // cs_malloc(n+1, uint(0)).([]int)
 	S.lnz = cs_cumsum(S.cp, c, n)
@@ -3398,7 +3401,8 @@ func cs_schol(order int, A *Cs) (result *css) {
 		if S.lnz >= 0 {
 			return S
 		}
-		return cs_sfree(S)
+		cs_free(S)
+		return nil
 	}())
 }
 
@@ -3643,7 +3647,8 @@ func cs_sqr(order int, A *Cs, qr bool) (result *css) {
 	// fill-reducing ordering
 	S.q = cs_amd(order, A)
 	if order != 0 && S.q == nil {
-		return cs_sfree(S)
+		cs_free(S)
+		return nil
 	}
 	if qr {
 		C := A
@@ -3665,7 +3670,7 @@ func cs_sqr(order int, A *Cs, qr bool) (result *css) {
 			}
 		}
 		if order != 0 {
-			cs_spfree(C)
+			cs_free(C)
 		}
 	} else {
 		// for LU factorization only,
@@ -3677,7 +3682,8 @@ func cs_sqr(order int, A *Cs, qr bool) (result *css) {
 	if ok {
 		return S
 	}
-	return cs_sfree(S)
+	cs_free(S)
+	return nil
 }
 
 // cs_symperm - C = A(p,p) where A and C are symmetric the upper part stored; pinv not p
@@ -4045,7 +4051,8 @@ func cs_spalloc(m, n, nzmax int, values bool, mf matrixFormat) *Cs {
 		A.x = make([]float64, nzmax)
 	}
 	if A.p == nil || A.i == nil || values && A.x == nil {
-		return cs_spfree(A)
+		cs_free(A)
+		return nil
 	}
 	return A
 }
@@ -4084,23 +4091,23 @@ func cs_sprealloc(A *Cs, nzmax int) (result bool) {
 	return ok
 }
 
-// cs_spfree - free a sparse matrix
-func cs_spfree(A *Cs) *Cs {
-	// free the cs struct and return NULL
-	return nil
-}
-
-// cs_nfree - free a numeric factorization
-func cs_nfree(N *csn) *csn {
-	// free the csn struct and return NULL
-	return nil
-}
-
-// cs_sfree - free a symbolic factorization
-func cs_sfree(S *css) *css {
-	// free the css struct and return NULL
-	return nil
-}
+// // cs_spfree - free a sparse matrix
+// func cs_spfree(A *Cs) *Cs {
+// 	// free the cs struct and return NULL
+// 	return nil
+// }
+//
+// // cs_nfree - free a numeric factorization
+// func cs_nfree(N *csn) *csn {
+// 	// free the csn struct and return NULL
+// 	return nil
+// }
+//
+// // cs_sfree - free a symbolic factorization
+// func cs_sfree(S *css) *css {
+// 	// free the css struct and return NULL
+// 	return nil
+// }
 
 // cs_dalloc - allocate a cs_dmperm or cs_scc result
 func cs_dalloc(m, n int) *csd {
@@ -4117,17 +4124,18 @@ func cs_dalloc(m, n int) *csd {
 	D.s = make([]int, n+6)
 	return (func() *csd {
 		if D.p == nil || D.r == nil || D.q == nil || D.s == nil {
-			return cs_dfree(D)
+			cs_free(D)
+			return nil
 		}
 		return D
 	}())
 }
 
 // cs_dfree - free a cs_dmperm or cs_scc result
-func cs_dfree(D *csd) *csd {
-	// free the csd struct and return NULL
-	return nil
-}
+// func cs_dfree(D *csd) *csd {
+// 	// free the csd struct and return NULL
+// 	return nil
+// }
 
 // cs_done - free workspace and return a sparse matrix result
 func cs_done(C *Cs, w []int, x []float64, ok bool) *Cs {
