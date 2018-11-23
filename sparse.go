@@ -2342,42 +2342,38 @@ func cs_free(p interface{}) {
 		// TODO (KI) : fmt.Fprintf(os.Stdout, "Type : %8d %T\n", cap(v), v)
 
 	case *Cs:
-		if v == nil {
-			return
+		if v != nil {
+			cs_free(v.i)
+			cs_free(v.p)
+			cs_free(v.p)
 		}
-		cs_free(v.i)
-		cs_free(v.p)
-		cs_free(v.p)
 
 	case *csn:
-		if v == nil {
-			return
+		if v != nil {
+			cs_free(v.L)
+			cs_free(v.U)
+			cs_free(v.pinv)
+			cs_free(v.B)
 		}
-		cs_free(v.L)
-		cs_free(v.U)
-		cs_free(v.pinv)
-		cs_free(v.B)
 
 	case *css:
-		if v == nil {
-			return
+		if v != nil {
+			cs_free(v.pinv)
+			cs_free(v.q)
+			cs_free(v.parent)
+			cs_free(v.cp)
+			cs_free(v.leftmost)
 		}
-		cs_free(v.pinv)
-		cs_free(v.q)
-		cs_free(v.parent)
-		cs_free(v.cp)
-		cs_free(v.leftmost)
 
 	case *csd:
-		if v == nil {
-			return
+		if v != nil {
+			cs_free(v.p)
+			cs_free(v.q)
+			cs_free(v.r)
+			cs_free(v.s)
+			// cs_free(v.rr) // ignore type `int[5]`
+			// cs_free(v.cc) // ignore type `int[5]`
 		}
-		cs_free(v.p)
-		cs_free(v.q)
-		cs_free(v.r)
-		cs_free(v.s)
-		// cs_free(v.rr) // ignore type `int[5]`
-		// cs_free(v.cc) // ignore type `int[5]`
 
 	default:
 		// TODO (KI) : fmt.Fprintf(os.Stdout,"add memory reusing for type : %T\n", p)
