@@ -1884,24 +1884,51 @@ func cs_fkeep(A *Cs, fkeep func(int, int, float64, interface{}) bool, other inte
 	return nz
 }
 
-// Gaxpy - y = A*x+y
+// Gaxpy - calculate by next formula.
+//
+// Matrix A is sparse matrix in CSC format.
+//
+//	y = A*x+y
 //
 // Name function in CSparse : cs_gaxpy.
-func Gaxpy(A *Cs, x []float64, y []float64) bool {
-	if !(A != nil && A.nz == -1) || x == nil || y == nil {
-		// check inputs
-		return false
+func Gaxpy(A *Cs, x []float64, y []float64) error {
+	// check input data
+	et := errors.New("Function Gaxpy: check input data")
+	if A == nil {
+		et.Add(fmt.Errorf("matrix A is nil"))
 	}
-	n := A.n
-	Ap := A.p
-	Ai := A.i
-	Ax := A.x
+	if A != nil && A.nz != -1 {
+		et.Add(fmt.Errorf("matrix A is not CSC(Compressed Sparse Column) format"))
+	}
+	if x == nil {
+		et.Add(fmt.Errorf("Vector x is nil"))
+	}
+	if y == nil {
+		et.Add(fmt.Errorf("Vector y is nil"))
+	}
+	if A != nil {
+		if x != nil && A.n != len(x) {
+			et.Add(fmt.Errorf("Amount of columns in matrix is not equal length of vector x: %d != %d", A.n, len(x)))
+		}
+		if y != nil && A.m != len(y) {
+			et.Add(fmt.Errorf("Amount of rows in matrix is not equal length of vector y: %d != %d", A.m, len(y)))
+		}
+	}
+
+	if et.IsError() {
+		return et
+	}
+
+	// allocate result
+	n, Ap, Ai, Ax := A.n, A.p, A.i, A.x
+
+	// calculation
 	for j := 0; j < n; j++ {
 		for p := Ap[j]; p < Ap[j+1]; p++ {
 			y[Ai[p]] += Ax[p] * x[j]
 		}
 	}
-	return true
+	return nil
 }
 
 // cs_happly - apply the ith Householder vector to x

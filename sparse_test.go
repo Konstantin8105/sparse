@@ -141,6 +141,22 @@ func Benchmark(b *testing.B) {
 					_ = Multiply(A, A)
 				}
 			})
+
+			b.Run("cs_gaxpy", func(b *testing.B) {
+				stdin.Write(o)
+				T := Load(&stdin)
+				A := Compress(T)
+				x := make([]float64, A.n)
+				y := make([]float64, A.m)
+				err := Gaxpy(A, x, y)
+				if err != nil {
+					b.Fatal(err)
+				}
+				b.ResetTimer()
+				for i := 0; i < b.N; i++ {
+					_ = Gaxpy(A, x, y)
+				}
+			})
 		})
 	}
 }
@@ -1013,6 +1029,29 @@ func TestNilCheck(t *testing.T) {
 				}(),
 			},
 		},
+		{
+			name: "Gaxpy",
+			fs: []error{
+				func() error {
+					return Gaxpy(nil, nil, nil)
+				}(),
+				func() error {
+					var s bytes.Buffer
+					s.WriteString("0 0 1\n0 1 2\n1 0 3\n1 1 4")
+					T := Load(&s)
+					return Gaxpy(T, nil, nil)
+				}(),
+				func() error {
+					var s bytes.Buffer
+					s.WriteString("0 0 1\n0 1 2\n1 0 3\n1 1 4")
+					T := Load(&s)
+					A := Compress(T)
+					x := make([]float64, 100)
+					y := make([]float64, 80)
+					return Gaxpy(A, x, y)
+				}(),
+			},
+		},
 	}
 
 	for i := range tcs {
@@ -1079,9 +1118,9 @@ func TestNilCheck(t *testing.T) {
 	if r := cs_fkeep(nil, nil, nil); r == 1 {
 		t.Errorf("cs_fkeep: not nil")
 	}
-	if r := Gaxpy(nil, nil, nil); r == true {
-		t.Errorf("cs_gaxpy: not nil")
-	}
+	// if r := Gaxpy(nil, nil, nil); r == true {
+	// 	t.Errorf("cs_gaxpy: not nil")
+	// }
 	if r := cs_happly(nil, -1, -1, nil); r == 1 {
 		t.Errorf("cs_happly: not nil")
 	}
@@ -1354,19 +1393,8 @@ func TestCodeStyle(t *testing.T) {
 	codestyle.All(t)
 }
 
-func TestAdd(t *testing.T) {
-
-	b, err := ioutil.ReadFile("./testdata/.snapshot.add")
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	var stdin bytes.Buffer
-	stdin.WriteString("0 0 1\n0 1 2\n1 0 3\n1 1 4")
-	T := Load(&stdin)
-	A := Compress(T)
-	AT := Transpose(A, true)
-	R, err := Add(A, AT, 1, 2)
+func snapshot(filename string, t *testing.T, f func()) {
+	b, err := ioutil.ReadFile(filename)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -1381,19 +1409,51 @@ func TestAdd(t *testing.T) {
 		osStdout = old
 	}()
 
-	Print(R, false)
+	f()
 
-	filename := tmpfile.Name()
+	file := tmpfile.Name()
 	err = tmpfile.Close()
 	if err != nil {
 		t.Fatal(err)
 	}
-	b2, err := ioutil.ReadFile(filename)
+	b2, err := ioutil.ReadFile(file)
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	if !bytes.Equal(b, b2) {
-		t.Fatalf("Results is not same:\n%s\n%s", string(b), string(b2))
+		t.Fatalf("Results is not same:\n`%s`\n`%s`", string(b), string(b2))
 	}
+	t.Logf("`%s`", string(b))
+}
+
+func TestGaxpy(t *testing.T) {
+	snapshot("./testdata/.snapshot.gaxpy", t, func() {
+		var s bytes.Buffer
+		s.WriteString("0 0 1\n1 0 3\n2 0 5\n0 1 2\n1 1 4\n2 1 6")
+		T := Load(&s)
+		A := Compress(T)
+		x := []float64{7, 8}
+		y := []float64{9, 10, 11}
+		err := Gaxpy(A, x, y)
+		fmt.Fprintf(osStdout, "%v\n", y)
+		if err != nil {
+			t.Fatal(err)
+		}
+	})
+}
+
+func TestAdd(t *testing.T) {
+	snapshot("./testdata/.snapshot.add", t, func() {
+		var stdin bytes.Buffer
+		stdin.WriteString("0 0 1\n0 1 2\n1 0 3\n1 1 4")
+		T := Load(&stdin)
+		A := Compress(T)
+		AT := Transpose(A, true)
+		R, err := Add(A, AT, 1, 2)
+		if err != nil {
+			t.Fatal(err)
+		}
+		Print(R, false)
+	})
 }
