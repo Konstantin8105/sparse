@@ -134,6 +134,13 @@ func TestDemo1(t *testing.T) {
 	}
 
 	for i := range matrixes {
+
+		if testing.Short() {
+			if !strings.Contains(matrixes[i], "bcsstk01") {
+				continue
+			}
+		}
+
 		t.Run("Demo1: "+matrixes[i], func(t *testing.T) {
 			// data checking
 			b, c := getCresult(t, matrixes[i])
@@ -163,7 +170,7 @@ func TestDemo1(t *testing.T) {
 			if A != nil {
 				m = A.m
 			}
-			T = cs_spalloc(m, m, m, true, true)
+			T = cs_spalloc(m, m, m, true, tripletFormat)
 			for i := 0; i < m; i++ {
 				Entry(T, i, i, 1.0)
 			}
@@ -174,7 +181,10 @@ func TestDemo1(t *testing.T) {
 			// cs_print(C, false)
 
 			// D = C + Eye*norm(C,1)
-			D := Add(C, Eye, 1, Norm(C))
+			D, err := Add(C, Eye, 1, Norm(C))
+			if err != nil {
+				t.Fatal(err)
+			}
 			Print(D, false)
 
 			filename := tmpfile.Name()
@@ -215,9 +225,16 @@ func TestDemo2(t *testing.T) {
 			continue
 		}
 
+		if testing.Short() {
+			if !strings.Contains(matrixes[i], "bcsstk01") {
+				continue
+			}
+		}
+
 		t.Run("Demo2: "+matrixes[i], func(t *testing.T) {
 			// data checking
 			b, c := getCresult(t, matrixes[i])
+			t.Log("CSparse is ok")
 
 			tmpfile, err := ioutil.TempFile("", "example")
 			if err != nil {
@@ -278,9 +295,16 @@ func TestDemo3(t *testing.T) {
 			continue
 		}
 
+		if testing.Short() {
+			if !strings.Contains(matrixes[i], "bcsstk01") {
+				continue
+			}
+		}
+
 		t.Run("Demo3: "+matrixes[i], func(t *testing.T) {
 			// data checking
 			b, c := getCresult(t, matrixes[i])
+			t.Log("CSparse is ok")
 
 			tmpfile, err := ioutil.TempFile("", "example")
 			if err != nil {
@@ -422,14 +446,15 @@ func dropdiag(i int, j int, aij float64, other interface{}) bool {
 
 // make_sym - C = A + triu(A,1)'
 func make_sym(A *Cs) *Cs {
-	var AT *Cs
-	var C *Cs
 	// AT = A'
-	AT = Transpose(A, true)
+	AT := Transpose(A, true)
 	// drop diagonal entries from AT
 	cs_fkeep(AT, dropdiag, nil)
 	// C = A+AT
-	C = Add(A, AT, 1, 1)
+	C, err := Add(A, AT, 1, 1)
+	if err != nil {
+		panic(err)
+	}
 	cs_spfree(AT)
 	return (C)
 }
@@ -751,7 +776,6 @@ func demo3(Prob *problem) int {
 	var W *Cs
 	var WW *Cs
 	var WT *Cs
-	var E *Cs
 	var W2 *Cs
 	var n int
 	var k int
@@ -817,7 +841,7 @@ func demo3(Prob *problem) int {
 	print_resid(true, C, x, b, resid)
 	// construct W
 	k = n / 2
-	W = cs_spalloc(n, 1, n, true, false)
+	W = cs_spalloc(n, 1, n, true, cscFormat)
 	if W == nil {
 		return 0 // done3(0, S, N, y, W, E, p)
 	}
@@ -864,7 +888,10 @@ func demo3(Prob *problem) int {
 	WW = Multiply(W2, WT)
 	cs_spfree(WT)
 	cs_spfree(W2)
-	E = Add(C, WW, 1, 1)
+	E, err := Add(C, WW, 1, 1)
+	if err != nil {
+		panic(err)
+	}
 	cs_spfree(WW)
 	if E == nil || p == nil {
 		return 0 // int((done3(0, S, N, y, W, E, p)))
@@ -918,8 +945,66 @@ func demo3(Prob *problem) int {
 }
 
 func TestNilCheck(t *testing.T) {
+	tcs := []struct {
+		name string
+		fs   []error
+	}{
+		{
+			name: "Add",
+			fs: []error{
+				func() error {
+					_, err := Add(nil, nil, 0, 0)
+					return err
+				}(),
+				func() error {
+					_, err := Add(nil, nil, math.NaN(), math.NaN())
+					return err
+				}(),
+				func() error {
+					_, err := Add(nil, nil, math.Inf(0), math.Inf(0))
+					return err
+				}(),
+				func() error {
+					var stdin bytes.Buffer
+					stdin.WriteString(`0 0 1
+0 1 2
+1 0 3
+1 1 4`)
+					T := Load(&stdin)
+					_, err := Add(T, T, 0, 0)
+					return err
+				}(),
+				func() error {
+					var s bytes.Buffer
+					s.WriteString("0 0 1\n0 1 2\n1 0 3\n1 1 4")
+					T := Load(&s)
+					A := Compress(T)
+
+					var s2 bytes.Buffer
+					s2.WriteString("0 0 1")
+					T2 := Load(&s2)
+					A2 := Compress(T2)
+
+					_, err := Add(A, A2, 0, 0)
+					return err
+				}(),
+			},
+		},
+	}
+
+	for i := range tcs {
+		t.Run(tcs[i].name, func(t *testing.T) {
+			for j := range tcs[i].fs {
+				if tcs[i].fs[j] == nil {
+					t.Fatalf("Error is nil in case %d", j)
+				}
+				t.Log(tcs[i].fs[j])
+			}
+		})
+	}
+
 	// TODO (KI): modify return types
-	if r := Add(nil, nil, 0, 0); r != nil {
+	if _, err := Add(nil, nil, 0, 0); err == nil {
 		t.Errorf("cs_add: not nil")
 	}
 	if r := cs_amd(-1, nil); r != nil {
@@ -1001,9 +1086,10 @@ func TestNilCheck(t *testing.T) {
 	if r := cs_lusol(-1, nil, nil, -1); r == true {
 		t.Errorf("cs_lusol: not nil")
 	}
-	if r := cs_free(nil); r != nil {
-		t.Errorf("cs_free: not nil")
-	}
+	// TODO (KI) : no need
+	// if r := cs_free(nil); r != nil {
+	// 	t.Errorf("cs_free: not nil")
+	// }
 	if r := cs_realloc(nil, -1, nil); r != nil {
 		t.Errorf("cs_realloc: not nil")
 	}
@@ -1204,6 +1290,39 @@ func TestCsCompress(t *testing.T) {
 					t.Errorf("matrix is not same")
 				}
 			})
+
+			t.Run("pair", func(t *testing.T) {
+				// pair swapping
+				lines := bytes.Split(b, []byte("\n"))
+				var buf bytes.Buffer
+				for i := 0; i < len(lines)/2; i++ {
+					lines[i], lines[len(lines)-1-i] = lines[len(lines)-1-i], lines[i] // swap
+				}
+				for i := range lines {
+					line := lines[len(lines)-1-i]
+					if len(line) == 0 {
+						continue
+					}
+					buf.Write(line)
+					if i == len(lines)-1 {
+						continue
+					}
+					buf.Write([]byte("\n"))
+				}
+				T2 := Load(&buf)
+				if T2 == nil {
+					t.Fatalf("T2 is nil")
+				}
+				A2 := Compress(T2)
+				if A2 == nil {
+					t.Fatalf("A2 is nil")
+				}
+
+				if f(A) != f(A2) {
+					t.Log(ShowDiff(f(A), f(A2)))
+					t.Errorf("matrix is not same")
+				}
+			})
 		})
 	}
 }
@@ -1220,14 +1339,14 @@ func TestAdd(t *testing.T) {
 	}
 
 	var stdin bytes.Buffer
-	stdin.WriteString(`0 0 1
-0 1 2
-1 0 3
-1 1 4`)
+	stdin.WriteString("0 0 1\n0 1 2\n1 0 3\n1 1 4")
 	T := Load(&stdin)
 	A := Compress(T)
 	AT := Transpose(A, true)
-	R := Add(A, AT, 1, 2)
+	R, err := Add(A, AT, 1, 2)
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	tmpfile, err := ioutil.TempFile("", "example")
 	if err != nil {
