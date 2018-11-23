@@ -2318,12 +2318,70 @@ func cs_lusol(order int, A *Cs, b []float64, tol float64) bool {
 }
 
 // cs_free - wrapper for free
+//
+// Names function in CSparse: cs_free, cs_spfree, cs_nfree, cs_sfree, cs_dfree.
 func cs_free(p interface{}) {
-	if p != nil {
-		_ = p
-		// free p if it is not already NULL
+	if p == nil {
+		// if input is nil, then return
+		return
 	}
-	// return NULL to simplify the use of cs_free
+
+	// TODO (KI): reused memory
+
+	switch v := p.(type) {
+	case []float64:
+		if v == nil {
+			return
+		}
+		// TODO (KI) : fmt.Printf("Type : %8d %T\n", len(v), v)
+
+	case []int:
+		if v == nil {
+			return
+		}
+		// TODO (KI) : fmt.Printf("Type : %8d %T\n", len(v), v)
+
+	case *Cs:
+		if v == nil {
+			return
+		}
+		cs_free(v.i)
+		cs_free(v.p)
+		cs_free(v.p)
+
+	case *csn:
+		if v == nil {
+			return
+		}
+		cs_free(v.L)
+		cs_free(v.U)
+		cs_free(v.pinv)
+		cs_free(v.B)
+
+	case *css:
+		if v == nil {
+			return
+		}
+		cs_free(v.pinv)
+		cs_free(v.q)
+		cs_free(v.parent)
+		cs_free(v.cp)
+		cs_free(v.leftmost)
+
+	case *csd:
+		if v == nil {
+			return
+		}
+		cs_free(v.p)
+		cs_free(v.q)
+		cs_free(v.r)
+		cs_free(v.s)
+		// cs_free(v.rr) // ignore type `int[5]`
+		// cs_free(v.cc) // ignore type `int[5]`
+
+	default:
+		// TODO (KI) : fmt.Printf("add memory reusing for type : %T\n", p)
+	}
 }
 
 // cs_realloc - wrapper for realloc
@@ -2335,14 +2393,22 @@ func cs_realloc(p interface{}, n int, ok *bool) interface{} {
 	switch v := p.(type) {
 	case []int:
 		if len(v) <= n {
-			v = append(v, make([]int, n-len(v))...)
+			arr := make([]int, n)
+			copy(arr, v)
+			v, arr = arr, v
+			cs_free(arr)
+			// v = append(v, make([]int, n-len(v))...)
 		}
 		*ok = true
 		return v
 
 	case []float64:
 		if len(v) <= n {
-			v = append(v, make([]float64, n-len(v))...)
+			arr := make([]float64, n)
+			copy(arr, v)
+			v, arr = arr, v
+			cs_free(arr)
+			// v = append(v, make([]float64, n-len(v))...)
 		}
 		*ok = true
 		return v
@@ -4140,6 +4206,8 @@ func cs_dalloc(m, n int) *csd {
 // cs_done - free workspace and return a sparse matrix result
 func cs_done(C *Cs, w []int, x []float64, ok bool) *Cs {
 	// TODO (KI) : reused memory
+	cs_free(w)
+	cs_free(x)
 	// return result if OK, else free it
 	if ok {
 		return C
@@ -4149,31 +4217,41 @@ func cs_done(C *Cs, w []int, x []float64, ok bool) *Cs {
 
 // cs_idone - free workspace and return csi array result
 func cs_idone(p []int, C *Cs, w interface{}, ok bool) []int {
+	cs_free(C)
+	cs_free(w)
 	// TODO (KI) : reused memory
 	// return result, or free it
 	if ok {
 		return p
 	}
+	cs_free(p)
 	return nil
 }
 
 // cs_ndone - free workspace and return a numeric factorization (Cholesky, LU, or QR)
 func cs_ndone(N *csn, C *Cs, w interface{}, x interface{}, ok bool) *csn {
 	// TODO (KI) : reused memory
+	cs_free(C)
+	cs_free(w)
+	cs_free(x)
 	// return result if OK, else free it
 	if ok {
 		return N
 	}
+	cs_free(N)
 	return nil
 }
 
 // cs_ddone - free workspace and return a csd result
 func cs_ddone(D *csd, C *Cs, w interface{}, ok bool) *csd {
 	// TODO (KI) : reused memory
+	cs_free(C)
+	cs_free(w)
 	// return result if OK, else free it
 	if ok {
 		return D
 	}
+	cs_free(D)
 	return nil
 }
 
