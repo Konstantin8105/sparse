@@ -2123,23 +2123,17 @@ func Load(f io.Reader) *Cs {
 
 // cs_lsolve - solve Lx=b where x and b are dense.  x=b on input, solution on output.
 func cs_lsolve(L *Cs, x []float64) bool {
-	var p int
-	var j int
-	var n int
-	var Lp []int
-	var Li []int
-	var Lx []float64
 	if !(L != nil && int(L.nz) == -1) || x == nil {
 		// check inputs
 		return false
 	}
-	n = L.n
-	Lp = L.p
-	Li = L.i
-	Lx = L.x
-	for j = 0; j < n; j++ {
+	// initialization
+	n, Lp, Li, Lx := L.n, L.p, L.i, L.x
+
+	// calculation
+	for j := 0; j < n; j++ {
 		x[j] /= Lx[Lp[j]]
-		for p = Lp[j] + 1; p < Lp[j+1]; p++ {
+		for p := Lp[j] + 1; p < Lp[j+1]; p++ {
 			x[Li[p]] -= Lx[p] * x[j]
 		}
 	}
