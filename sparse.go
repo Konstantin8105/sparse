@@ -2272,10 +2272,8 @@ func cs_lu(A *Cs, S *css, tol float64) *csn {
 			// x(i) is nonzero
 			i = xi[p]
 			if pinv[i] < 0 {
-				if (func() float64 {
-					t = math.Abs(x[i])
-					return t
-				}()) > a {
+				t = math.Abs(x[i])
+				if t > a {
 					// row i is not yet pivotal
 					// largest pivot candidate so far
 					a = t
@@ -2284,12 +2282,8 @@ func cs_lu(A *Cs, S *css, tol float64) *csn {
 			} else {
 				// x(i) is the entry U(pinv[i],k)
 				Ui[unz] = pinv[i]
-				Ux[func() int {
-					defer func() {
-						unz++
-					}()
-					return unz
-				}()] = x[i]
+				Ux[unz] = x[i]
+				unz++
 			}
 		}
 		if ipiv == -1 || a <= 0 {
@@ -2304,22 +2298,14 @@ func cs_lu(A *Cs, S *css, tol float64) *csn {
 		pivot = x[ipiv]
 		// last entry in U(:,k) is U(k,k)
 		Ui[unz] = k
-		Ux[func() int {
-			defer func() {
-				unz++
-			}()
-			return unz
-		}()] = pivot
+		Ux[unz] = pivot
+		unz++
 		// ipiv is the kth pivot row
 		pinv[ipiv] = k
 		// first entry in L(:,k) is L(k,k) = 1
 		Li[lnz] = ipiv
-		Lx[func() int {
-			defer func() {
-				lnz++
-			}()
-			return lnz
-		}()] = 1
+		Lx[lnz] = 1
+		lnz++
 
 		// L(k+1:n,k) = x / pivot
 		for p = top; p < n; p++ {
@@ -2329,12 +2315,8 @@ func cs_lu(A *Cs, S *css, tol float64) *csn {
 				// save unpermuted row in L
 				Li[lnz] = i
 				// scale pivot column
-				Lx[func() int {
-					defer func() {
-						lnz++
-					}()
-					return lnz
-				}()] = x[i] / pivot
+				Lx[lnz] = x[i] / pivot
+				lnz++
 			}
 			// x [0..n-1] = 0 for next k
 			x[i] = 0
