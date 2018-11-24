@@ -29,7 +29,7 @@
 ### Profiling
 
 ```
-go test -cpuprofile cpu.prof -memprofile mem.prof -bench=Benchmark
+go test -v -cpuprofile cpu.prof -memprofile mem.prof -run=Benchmark -bench=Benchmark -benchmem
 go tool pprof cpu.prof
 go tool pprof mem.prof
 ```
