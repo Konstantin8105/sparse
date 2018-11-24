@@ -4182,12 +4182,11 @@ func cs_usolve(U *Cs, x []float64) bool {
 		// check inputs
 		return false
 	}
-	var (
-		n  = U.n
-		Up = U.p
-		Ui = U.i
-		Ux = U.x
-	)
+
+	// initialization
+	n, Up, Ui, Ux := U.n, U.p, U.i, U.x
+
+	// calculation
 	for j := n - 1; j >= 0; j-- {
 		x[j] /= Ux[Up[j+1]-1]
 		for p := Up[j]; p < Up[j+1]-1; p++ {
