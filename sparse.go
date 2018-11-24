@@ -242,8 +242,9 @@ func cs_amd(order int, A *Cs) (result []int) {
 		return nil
 	}
 	// compute A'
-	AT := cs_transpose(A, false)
-	if AT == nil {
+	AT, err := cs_transpose(A, false)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, err.Error()) // TODO (KI) error hanling
 		return nil
 	}
 	var (
@@ -289,7 +290,11 @@ func cs_amd(order int, A *Cs) (result []int) {
 		// finalize AT
 		ATp[m] = p2
 		// A2 = AT'
-		A2 = cs_transpose(AT, false)
+		A2, err = cs_transpose(AT, false)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, err.Error()) // TODO (KI) error hanling
+			return nil
+		}
 		// C=A'*A with no dense rows
 		if A2 != nil {
 			C = Multiply(AT, A2)
@@ -1100,7 +1105,11 @@ func cs_counts(A *Cs, parent []int, post []int, ata bool) []int {
 	// get workspace
 	w := make([]int, s)
 	// AT = A'
-	AT := cs_transpose(A, false)
+	AT, err := cs_transpose(A, false)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, err.Error()) // TODO (KI) error hanling
+		return nil
+	}
 	if AT == nil || colcount == nil {
 		return cs_idone(colcount, AT, w, false)
 	}
@@ -1345,12 +1354,15 @@ func cs_bfs(A *Cs,
 		// quick return if no unmatched nodes
 		return true
 	}
-	C = func() *Cs {
-		if mark == 1 {
-			return A
+	C = A
+	if mark != 1 {
+		var err error
+		C, err = cs_transpose(A, false)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, err.Error()) // TODO (KI) error hanling
+			return false
 		}
-		return cs_transpose(A, false)
-	}()
+	}
 	if C == nil {
 		// bfs of C=A' to find R3,C3 from R0
 		return false
@@ -2590,12 +2602,15 @@ func cs_maxtrans(A *Cs, seed int) []int {
 		m2 += w[i]
 	}
 	// transpose if needed
-	C := func() *Cs {
-		if m2 < n2 {
-			return cs_transpose(A, false)
+	C := A
+	if m2 < n2 {
+		var err error
+		C, err = cs_transpose(A, false)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, err.Error()) // TODO (KI) error hanling
+			return nil
 		}
-		return (A)
-	}()
+	}
 	if C == nil {
 		return (cs_idone(jimatch, func() *Cs {
 			if m2 < n2 {
@@ -3232,7 +3247,12 @@ func cs_qrsol(order int, A *Cs, b []float64) bool {
 		}
 	} else {
 		// Ax=b is underdetermined
-		AT = cs_transpose(A, true)
+		var err error
+		AT, err = cs_transpose(A, true)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, err.Error()) // TODO (KI) error hanling
+			return false
+		}
 		// ordering and symbolic analysis
 		S = cs_sqr(int(order), AT, true)
 		// numeric QR factorization of A'
@@ -3373,7 +3393,11 @@ func cs_scc(A *Cs) *csd {
 	// allocate result
 	D := cs_dalloc(n, 0)
 	// AT = A'
-	AT := cs_transpose(A, false)
+	AT, err := cs_transpose(A, false)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, err.Error()) // TODO (KI) error hanling
+		return nil
+	}
 	// get workspace
 	xi := make([]int, 2*n+1)
 	if D == nil || AT == nil || xi == nil {
@@ -3939,23 +3963,22 @@ func cs_tdfs(j, k int, head []int, next []int, post []int, stack []int) int {
 }
 
 // Transpose - C = A'
-func Transpose(A *Cs) *Cs {
+func Transpose(A *Cs) (*Cs, error) {
 	return cs_transpose(A, true)
 }
 
 // cs_transpose - C = A'
-func cs_transpose(A *Cs, values bool) *Cs {
+func cs_transpose(A *Cs, values bool) (*Cs, error) {
 	if !(A != nil && A.nz == -1) {
 		// check inputs
-		return nil
+		return nil, fmt.Errorf("EEEEEE") // TODO (KI) : add errors
 	}
 	m, n, Ap, Ai, Ax := A.m, A.n, A.p, A.i, A.x
 
 	// allocate result
 	C, err := cs_spalloc(n, m, Ap[n], values && Ax != nil, cscFormat)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, err.Error()) // TODO (KI) error hanling
-		return nil
+		return nil, err
 	}
 	// get workspace
 	w := make([]int, m)
@@ -3963,7 +3986,8 @@ func cs_transpose(A *Cs, values bool) *Cs {
 
 	if C == nil {
 		// out of memory
-		return nil // cs_done(C, w, nil, false)
+		return nil, fmt.Errorf("EEEEEE") // TODO (KI) : add errors
+		// cs_done(C, w, nil, false)
 	}
 
 	// initialization
@@ -3988,7 +4012,7 @@ func cs_transpose(A *Cs, values bool) *Cs {
 		}
 	}
 	// success; free w and return C
-	return C // cs_done(C, nil, nil, true)
+	return C, nil // cs_done(C, nil, nil, true)
 }
 
 // Updown - sparse Cholesky update/downdate, L*L' + sigma*w*w' (sigma = +1 or -1)
