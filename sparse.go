@@ -3781,7 +3781,7 @@ func cs_vcount(A *Cs, S *css) bool {
 }
 
 // cs_sqr - symbolic ordering and analysis for QR or LU
-func cs_sqr(order int, A *Cs, qr bool) (result *css) {
+func cs_sqr(order int, A *Cs, qr bool) *css {
 	var ok bool = true
 	if !(A != nil && A.nz == -1) {
 		// check inputs
@@ -3790,10 +3790,7 @@ func cs_sqr(order int, A *Cs, qr bool) (result *css) {
 	n := A.n
 	// allocate result S
 	S := new(css)
-	if S == nil {
-		// out of memory
-		return nil
-	}
+
 	// fill-reducing ordering
 	S.q = cs_amd(order, A)
 	if order != 0 && S.q == nil {
