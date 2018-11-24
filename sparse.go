@@ -2038,12 +2038,11 @@ func cs_ipvec(p []int, b []float64, x []float64, n int) bool {
 		return false
 	}
 	for k := 0; k < n; k++ {
-		x[func() int {
-			if p != nil {
-				return p[k]
-			}
-			return k
-		}()] = b[k]
+		if p != nil {
+			x[p[k]] = b[k]
+			continue
+		}
+		x[k] = b[k]
 	}
 	return true
 }
