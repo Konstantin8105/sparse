@@ -1206,6 +1206,9 @@ func cs_counts(A *Cs, parent []int, post []int, ata bool) []int {
 
 // cs_cumsum - p [0..n] = cumulative sum of c [0..n-1], and then copy p [0..n-1] into c
 func cs_cumsum(p []int, c []int, n int) int { // TODO (KI) : research nz2 to overflow
+	// if len(p) != len(c) {
+	// 	panic(fmt.Errorf("cs_cumsum: sizes is not same: %d %d", len(p), len(c)))
+	// }
 	var nz int
 	var nz2 int
 	if p == nil || c == nil {

@@ -115,7 +115,7 @@ func Benchmark(b *testing.B) {
 				A := Compress(T)
 				b.ResetTimer()
 				for i := 0; i < b.N; i++ {
-					_ = cs_transpose(A, true)
+					_, _ = Transpose(A)
 				}
 			})
 
@@ -203,7 +203,10 @@ func TestDemo1(t *testing.T) {
 			A := Compress(T)
 			// cs_print(A, false)
 
-			AT := cs_transpose(A, true)
+			AT, err := cs_transpose(A, true)
+			if err != nil {
+				t.Fatal(err)
+			}
 			// cs_print(AT, false)
 
 			var m int
@@ -490,7 +493,10 @@ func dropdiag(i int, j int, aij float64, other interface{}) bool {
 // make_sym - C = A + triu(A,1)'
 func make_sym(A *Cs) *Cs {
 	// AT = A'
-	AT := cs_transpose(A, true)
+	AT, err := cs_transpose(A, true)
+	if err != nil {
+		return nil
+	}
 	// drop diagonal entries from AT
 	cs_fkeep(AT, dropdiag, nil)
 	// C = A+AT
@@ -817,7 +823,6 @@ func demo3(Prob *problem) int {
 	var A *Cs
 	var C *Cs
 	var WW *Cs
-	var WT *Cs
 	var W2 *Cs
 	var n int
 	var k int
@@ -930,7 +935,10 @@ func demo3(Prob *problem) int {
 	p = cs_pinv(S.pinv, int(n))
 	// E = C + (P'W)*(P'W)'
 	W2 = cs_permute(W, p, nil, true)
-	WT = cs_transpose(W2, true)
+	WT, err := cs_transpose(W2, true)
+	if err != nil {
+		panic(err)
+	}
 	WW = Multiply(W2, WT)
 	cs_free(WT)
 	cs_free(W2)
@@ -1056,6 +1064,22 @@ func TestNilCheck(t *testing.T) {
 					x := make([]float64, 100)
 					y := make([]float64, 80)
 					return Gaxpy(A, x, y)
+				}(),
+			},
+		},
+		{
+			name: "Transpose",
+			fs: []error{
+				func() error {
+					_, err := Transpose(nil)
+					return err
+				}(),
+				func() error {
+					var s bytes.Buffer
+					s.WriteString("0 0 1\n0 1 2\n1 0 3\n1 1 4")
+					T := Load(&s)
+					_, err := Transpose(T)
+					return err
 				}(),
 			},
 		},
@@ -1224,9 +1248,9 @@ func TestNilCheck(t *testing.T) {
 	if r := cs_tdfs(-1, -1, nil, nil, nil, nil); r != -1 {
 		t.Errorf("cs_tdfs: not nil")
 	}
-	if r := cs_transpose(nil, false); r != nil {
-		t.Errorf("cs_transpose: not nil")
-	}
+	// if _, err := cs_transpose(nil, false); err != nil {
+	// 	t.Errorf("cs_transpose: not nil")
+	// }
 	if r := Updown(nil, -1, nil, nil); r != 0 {
 		t.Errorf("cs_updown: not nil")
 	}
@@ -1456,7 +1480,10 @@ func TestAdd(t *testing.T) {
 		stdin.WriteString("0 0 1\n0 1 2\n1 0 3\n1 1 4")
 		T := Load(&stdin)
 		A := Compress(T)
-		AT := Transpose(A, true)
+		AT, err := Transpose(A)
+		if err != nil {
+			t.Fatal(err)
+		}
 		R, err := Add(A, AT, 1, 2)
 		if err != nil {
 			t.Fatal(err)
