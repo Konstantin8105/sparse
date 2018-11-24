@@ -3969,10 +3969,19 @@ func Transpose(A *Cs) (*Cs, error) {
 
 // cs_transpose - C = A'
 func cs_transpose(A *Cs, values bool) (*Cs, error) {
-	if !(A != nil && A.nz == -1) {
-		// check inputs
-		return nil, fmt.Errorf("EEEEEE") // TODO (KI) : add errors
+	// check input data
+	et := errors.New("Function Transpose: check input data")
+	if A == nil {
+		et.Add(fmt.Errorf("matrix A is nil"))
 	}
+	if A != nil && A.nz != -1 {
+		et.Add(fmt.Errorf("matrix A is not CSC(Compressed Sparse Column) format"))
+	}
+
+	if et.IsError() {
+		return nil, et
+	}
+
 	m, n, Ap, Ai, Ax := A.m, A.n, A.p, A.i, A.x
 
 	// allocate result
@@ -3983,12 +3992,6 @@ func cs_transpose(A *Cs, values bool) (*Cs, error) {
 	// get workspace
 	w := make([]int, m)
 	defer cs_free(w)
-
-	if C == nil {
-		// out of memory
-		return nil, fmt.Errorf("EEEEEE") // TODO (KI) : add errors
-		// cs_done(C, w, nil, false)
-	}
 
 	// initialization
 	Cp, Ci, Cx := C.p, C.i, C.x
@@ -4011,8 +4014,8 @@ func cs_transpose(A *Cs, values bool) (*Cs, error) {
 			}
 		}
 	}
-	// success; free w and return C
-	return C, nil // cs_done(C, nil, nil, true)
+	// success
+	return C, nil
 }
 
 // Updown - sparse Cholesky update/downdate, L*L' + sigma*w*w' (sigma = +1 or -1)
@@ -4165,16 +4168,16 @@ func cs_spalloc(m, n, nzmax int, values bool, mf matrixFormat) (*Cs, error) {
 		return nil, et
 	}
 
-	// if m < 0 || n < 0 || nzmax < 0 {
-	// 	return nil
-	// }
+	// create a new struct
 	A := new(Cs)
+
 	// define dimensions and nzmax
 	A.m, A.n = m, n
 	if nzmax < 1 {
 		nzmax = 1
 	}
 	A.nzmax = nzmax
+
 	// allocate triplet or comp.col
 	switch mf {
 	case tripletFormat:
@@ -4188,10 +4191,6 @@ func cs_spalloc(m, n, nzmax int, values bool, mf matrixFormat) (*Cs, error) {
 	A.x = nil
 	if values {
 		A.x = make([]float64, nzmax)
-	}
-	if A.p == nil || A.i == nil || values && A.x == nil {
-		cs_free(A)
-		return nil, fmt.Errorf("A is nil")
 	}
 	return A, nil
 }
