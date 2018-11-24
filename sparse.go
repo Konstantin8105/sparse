@@ -1041,7 +1041,7 @@ func Compress(T *Cs) *Cs {
 	}
 
 	// column pointers
-	cs_cumsum(Cp, w, n)
+	cs_cumsum(Cp, w)
 	for k := 0; k < nz; k++ {
 		// A(i,j) is the pth entry in C
 		p := w[Tj[k]]
@@ -1205,7 +1205,8 @@ func cs_counts(A *Cs, parent []int, post []int, ata bool) []int {
 }
 
 // cs_cumsum - p [0..n] = cumulative sum of c [0..n-1], and then copy p [0..n-1] into c
-func cs_cumsum(p []int, c []int, n int) (int, error) { // TODO (KI) : research nz2 to overflow
+// n is len of vector c.
+func cs_cumsum(p []int, c []int) (int, error) { // TODO (KI) : research nz2 to overflow
 	// check input data
 	et := errors.New("Function cs_cumsum: check input data")
 	if p == nil {
@@ -1219,16 +1220,9 @@ func cs_cumsum(p []int, c []int, n int) (int, error) { // TODO (KI) : research n
 		return -1, et
 	}
 
-	// if len(p) != len(c) {
-	// 	panic(fmt.Errorf("cs_cumsum: sizes is not same: %d %d", len(p), len(c)))
-	// }
 	var nz int
 	var nz2 int
-	// if p == nil || c == nil {
-	// 	// check inputs
-	// 	return -1
-	// }
-	for i := 0; i < n; i++ {
+	for i := range c {
 		p[i] = nz
 		nz += c[i]
 		// also in double to avoid csi overflow
@@ -1236,7 +1230,7 @@ func cs_cumsum(p []int, c []int, n int) (int, error) { // TODO (KI) : research n
 		// also copy p[0..n-1] back into c[0..n-1]
 		c[i] = p[i]
 	}
-	p[n] = nz
+	p[len(c)] = nz // add last summ
 	// return sum (c [0..n-1])
 	return nz2, nil // TODO (KI) : research nz2 to overflow
 }
@@ -3570,7 +3564,7 @@ func cs_schol(order int, A *Cs) (result *css) {
 	// allocate result S->cp
 	S.cp = make([]int, n+1) // cs_malloc(n+1, uint(0)).([]int)
 	var err error
-	S.lnz, err = cs_cumsum(S.cp, c, n)
+	S.lnz, err = cs_cumsum(S.cp, c)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, err.Error()) // TODO (KI) error hanling
 		return nil
@@ -3940,7 +3934,7 @@ func cs_symperm(A *Cs, pinv []int, values bool) *Cs {
 		}
 	}
 	// compute column pointers of C
-	cs_cumsum(Cp, w, n)
+	cs_cumsum(Cp, w)
 	for j = 0; j < n; j++ {
 		// column j of A is column j2 of C
 		j2 = int(func() int {
@@ -4067,7 +4061,7 @@ func cs_transpose(A *Cs, values bool) (*Cs, error) {
 	}
 
 	// row pointers
-	cs_cumsum(Cp, w, m)
+	cs_cumsum(Cp, w)
 	for j := 0; j < n; j++ {
 		for p := Ap[j]; p < Ap[j+1]; p++ {
 			// place A(i,j) as entry C(j,i)

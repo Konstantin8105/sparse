@@ -1115,7 +1115,7 @@ func TestNilCheck(t *testing.T) {
 	if r := cs_counts(nil, nil, nil, false); r != nil {
 		t.Errorf("cs_counts: not nil")
 	}
-	if _, err := cs_cumsum(nil, nil, 0); err == nil {
+	if _, err := cs_cumsum(nil, nil); err == nil {
 		t.Errorf("cs_cumsum: not nil")
 	}
 	if r := cs_dfs(0, nil, -1, nil, nil, nil); r != -1 {
