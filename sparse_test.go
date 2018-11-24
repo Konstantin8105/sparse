@@ -1115,7 +1115,7 @@ func TestNilCheck(t *testing.T) {
 	if r := cs_counts(nil, nil, nil, false); r != nil {
 		t.Errorf("cs_counts: not nil")
 	}
-	if r := cs_cumsum(nil, nil, 0); r != -1 {
+	if _, err := cs_cumsum(nil, nil, 0); err == nil {
 		t.Errorf("cs_cumsum: not nil")
 	}
 	if r := cs_dfs(0, nil, -1, nil, nil, nil); r != -1 {
@@ -1248,9 +1248,9 @@ func TestNilCheck(t *testing.T) {
 	if r := cs_tdfs(-1, -1, nil, nil, nil, nil); r != -1 {
 		t.Errorf("cs_tdfs: not nil")
 	}
-	// if _, err := cs_transpose(nil, false); err != nil {
-	// 	t.Errorf("cs_transpose: not nil")
-	// }
+	if _, err := cs_transpose(nil, false); err == nil {
+		t.Errorf("cs_transpose: not nil")
+	}
 	if r := Updown(nil, -1, nil, nil); r != 0 {
 		t.Errorf("cs_updown: not nil")
 	}

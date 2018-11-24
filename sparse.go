@@ -1205,16 +1205,29 @@ func cs_counts(A *Cs, parent []int, post []int, ata bool) []int {
 }
 
 // cs_cumsum - p [0..n] = cumulative sum of c [0..n-1], and then copy p [0..n-1] into c
-func cs_cumsum(p []int, c []int, n int) int { // TODO (KI) : research nz2 to overflow
+func cs_cumsum(p []int, c []int, n int) (int, error) { // TODO (KI) : research nz2 to overflow
+	// check input data
+	et := errors.New("Function cs_cumsum: check input data")
+	if p == nil {
+		et.Add(fmt.Errorf("Vector p is nil"))
+	}
+	if c == nil {
+		et.Add(fmt.Errorf("Vector c is nil"))
+	}
+
+	if et.IsError() {
+		return -1, et
+	}
+
 	// if len(p) != len(c) {
 	// 	panic(fmt.Errorf("cs_cumsum: sizes is not same: %d %d", len(p), len(c)))
 	// }
 	var nz int
 	var nz2 int
-	if p == nil || c == nil {
-		// check inputs
-		return -1
-	}
+	// if p == nil || c == nil {
+	// 	// check inputs
+	// 	return -1
+	// }
 	for i := 0; i < n; i++ {
 		p[i] = nz
 		nz += c[i]
@@ -1225,7 +1238,7 @@ func cs_cumsum(p []int, c []int, n int) int { // TODO (KI) : research nz2 to ove
 	}
 	p[n] = nz
 	// return sum (c [0..n-1])
-	return nz2 // TODO (KI) : research nz2 to overflow
+	return nz2, nil // TODO (KI) : research nz2 to overflow
 }
 
 // cs_dfs - depth-first-search of the graph of a matrix, starting at node j
@@ -3556,7 +3569,12 @@ func cs_schol(order int, A *Cs) (result *css) {
 	cs_free(C) // TODO (KI) : remove
 	// allocate result S->cp
 	S.cp = make([]int, n+1) // cs_malloc(n+1, uint(0)).([]int)
-	S.lnz = cs_cumsum(S.cp, c, n)
+	var err error
+	S.lnz, err = cs_cumsum(S.cp, c, n)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, err.Error()) // TODO (KI) error hanling
+		return nil
+	}
 	// find column pointers for L
 	S.unz = S.lnz
 	cs_free(c)
