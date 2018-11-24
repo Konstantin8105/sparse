@@ -242,7 +242,7 @@ func cs_amd(order int, A *Cs) (result []int) {
 		return nil
 	}
 	// compute A'
-	AT := Transpose(A, false)
+	AT := cs_transpose(A, false)
 	if AT == nil {
 		return nil
 	}
@@ -289,7 +289,7 @@ func cs_amd(order int, A *Cs) (result []int) {
 		// finalize AT
 		ATp[m] = p2
 		// A2 = AT'
-		A2 = Transpose(AT, false)
+		A2 = cs_transpose(AT, false)
 		// C=A'*A with no dense rows
 		if A2 != nil {
 			C = Multiply(AT, A2)
@@ -1100,7 +1100,7 @@ func cs_counts(A *Cs, parent []int, post []int, ata bool) []int {
 	// get workspace
 	w := make([]int, s)
 	// AT = A'
-	AT := Transpose(A, false)
+	AT := cs_transpose(A, false)
 	if AT == nil || colcount == nil {
 		return cs_idone(colcount, AT, w, false)
 	}
@@ -1349,7 +1349,7 @@ func cs_bfs(A *Cs,
 		if mark == 1 {
 			return A
 		}
-		return Transpose(A, false)
+		return cs_transpose(A, false)
 	}()
 	if C == nil {
 		// bfs of C=A' to find R3,C3 from R0
@@ -2592,7 +2592,7 @@ func cs_maxtrans(A *Cs, seed int) []int {
 	// transpose if needed
 	C := func() *Cs {
 		if m2 < n2 {
-			return Transpose(A, false)
+			return cs_transpose(A, false)
 		}
 		return (A)
 	}()
@@ -3232,7 +3232,7 @@ func cs_qrsol(order int, A *Cs, b []float64) bool {
 		}
 	} else {
 		// Ax=b is underdetermined
-		AT = Transpose(A, true)
+		AT = cs_transpose(A, true)
 		// ordering and symbolic analysis
 		S = cs_sqr(int(order), AT, true)
 		// numeric QR factorization of A'
@@ -3373,7 +3373,7 @@ func cs_scc(A *Cs) *csd {
 	// allocate result
 	D := cs_dalloc(n, 0)
 	// AT = A'
-	AT := Transpose(A, false)
+	AT := cs_transpose(A, false)
 	// get workspace
 	xi := make([]int, 2*n+1)
 	if D == nil || AT == nil || xi == nil {
@@ -3939,7 +3939,12 @@ func cs_tdfs(j, k int, head []int, next []int, post []int, stack []int) int {
 }
 
 // Transpose - C = A'
-func Transpose(A *Cs, values bool) *Cs {
+func Transpose(A *Cs) *Cs {
+	return cs_transpose(A, true)
+}
+
+// cs_transpose - C = A'
+func cs_transpose(A *Cs, values bool) *Cs {
 	if !(A != nil && A.nz == -1) {
 		// check inputs
 		return nil

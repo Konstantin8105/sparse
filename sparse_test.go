@@ -115,7 +115,7 @@ func Benchmark(b *testing.B) {
 				A := Compress(T)
 				b.ResetTimer()
 				for i := 0; i < b.N; i++ {
-					_ = Transpose(A, true)
+					_ = cs_transpose(A, true)
 				}
 			})
 
@@ -187,7 +187,7 @@ func TestDemo1(t *testing.T) {
 			A := Compress(T)
 			// cs_print(A, false)
 
-			AT := Transpose(A, true)
+			AT := cs_transpose(A, true)
 			// cs_print(AT, false)
 
 			var m int
@@ -474,7 +474,7 @@ func dropdiag(i int, j int, aij float64, other interface{}) bool {
 // make_sym - C = A + triu(A,1)'
 func make_sym(A *Cs) *Cs {
 	// AT = A'
-	AT := Transpose(A, true)
+	AT := cs_transpose(A, true)
 	// drop diagonal entries from AT
 	cs_fkeep(AT, dropdiag, nil)
 	// C = A+AT
@@ -914,7 +914,7 @@ func demo3(Prob *problem) int {
 	p = cs_pinv(S.pinv, int(n))
 	// E = C + (P'W)*(P'W)'
 	W2 = cs_permute(W, p, nil, true)
-	WT = Transpose(W2, true)
+	WT = cs_transpose(W2, true)
 	WW = Multiply(W2, WT)
 	cs_free(WT)
 	cs_free(W2)
@@ -1185,7 +1185,7 @@ func TestNilCheck(t *testing.T) {
 	if r := cs_tdfs(-1, -1, nil, nil, nil, nil); r != -1 {
 		t.Errorf("cs_tdfs: not nil")
 	}
-	if r := Transpose(nil, false); r != nil {
+	if r := cs_transpose(nil, false); r != nil {
 		t.Errorf("cs_transpose: not nil")
 	}
 	if r := Updown(nil, -1, nil, nil); r != 0 {
@@ -1372,7 +1372,7 @@ func TestAdd(t *testing.T) {
 	stdin.WriteString("0 0 1\n0 1 2\n1 0 3\n1 1 4")
 	T := Load(&stdin)
 	A := Compress(T)
-	AT := Transpose(A, true)
+	AT := cs_transpose(A, true)
 	R, err := Add(A, AT, 1, 2)
 	if err != nil {
 		t.Fatal(err)
