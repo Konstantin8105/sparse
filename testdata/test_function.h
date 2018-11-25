@@ -81,7 +81,7 @@ void print_problem(problem* P)
 #endif // PRINT
 }
 
-/* infinity-norm of x */
+// infinity-norm of x */
 static double norm(double* x, csi n)
 {
     csi i;
@@ -91,7 +91,7 @@ static double norm(double* x, csi n)
     return (normx);
 }
 
-/* create a right-hand side */
+// create a right-hand side */
 static void rhs(double* x, double* b, csi m)
 {
     csi i;
@@ -148,7 +148,7 @@ problem* free_problem(problem* Prob)
     return (cs_free(Prob));
 }
 
-/* compute residual, norm(A*x-b,inf) / (norm(A,1)*norm(x,inf) + norm(b,inf)) */
+// compute residual, norm(A*x-b,inf) / (norm(A,1)*norm(x,inf) + norm(b,inf)) */
 static void print_resid(csi ok, cs* A, double* x, double* b, double* resid)
 {
     csi i, m, n;
@@ -159,10 +159,10 @@ static void print_resid(csi ok, cs* A, double* x, double* b, double* resid)
     m = A->m;
     n = A->n;
     for (i = 0; i < m; i++)
-        resid[i] = -b[i]; /* resid = -b */
-    cs_gaxpy(A, x, resid); /* resid = resid + A*x  */
-    /* printf ("resid: %8.2e\n", norm (resid,m) / ((n == 0) ? 1 : */
-    /*     (cs_norm (A) * norm (x,n) + norm (b,m)))) ; */
+        resid[i] = -b[i]; // resid = -b */
+    cs_gaxpy(A, x, resid); // resid = resid + A*x  */
+    // printf ("resid: %8.2e\n", norm (resid,m) / ((n == 0) ? 1 : */
+    //     (cs_norm (A) * norm (x,n) + norm (b,m)))) ; */
     printf("\n");
 }
 
