@@ -117,14 +117,17 @@ func Benchmark(b *testing.B) {
 				T := Load(&stdin)
 				b.ResetTimer()
 				for i := 0; i < b.N; i++ {
-					_ = Compress(T)
+					_, _ = Compress(T)
 				}
 			})
 
 			b.Run("cs_transpose", func(b *testing.B) {
 				stdin.Write(o)
 				T := Load(&stdin)
-				A := Compress(T)
+				A, err := Compress(T)
+				if err != nil {
+					b.Fatal(err)
+				}
 				b.ResetTimer()
 				for i := 0; i < b.N; i++ {
 					_, _ = Transpose(A)
@@ -134,8 +137,11 @@ func Benchmark(b *testing.B) {
 			b.Run("cs_add", func(b *testing.B) {
 				stdin.Write(o)
 				T := Load(&stdin)
-				A := Compress(T)
-				_, err := Add(A, A, 1, 2)
+				A, err := Compress(T)
+				if err != nil {
+					b.Fatal(err)
+				}
+				_, err = Add(A, A, 1, 2)
 				if err != nil {
 					b.Fatal(err)
 				}
@@ -148,7 +154,10 @@ func Benchmark(b *testing.B) {
 			b.Run("cs_multiply", func(b *testing.B) {
 				stdin.Write(o)
 				T := Load(&stdin)
-				A := Compress(T)
+				A, err := Compress(T)
+				if err != nil {
+					b.Fatal(err)
+				}
 				b.ResetTimer()
 				for i := 0; i < b.N; i++ {
 					_ = Multiply(A, A)
@@ -158,10 +167,13 @@ func Benchmark(b *testing.B) {
 			b.Run("cs_gaxpy", func(b *testing.B) {
 				stdin.Write(o)
 				T := Load(&stdin)
-				A := Compress(T)
+				A, err := Compress(T)
+				if err != nil {
+					b.Fatal(err)
+				}
 				x := make([]float64, A.n)
 				y := make([]float64, A.m)
-				err := Gaxpy(A, x, y)
+				err = Gaxpy(A, x, y)
 				if err != nil {
 					b.Fatal(err)
 				}
@@ -473,7 +485,10 @@ func get_problem(f io.Reader, tol float64, output bool) *problem {
 	}
 	// load triplet matrix T from a file */
 	T := Load(f)
-	A := Compress(T)
+	A, err := Compress(T)
+	if err != nil {
+		panic(err)
+	}
 	// A = compressed-column form of T */
 	Prob.A = A
 	// clear T */
@@ -1044,14 +1059,20 @@ func TestNilCheck(t *testing.T) {
 					var s bytes.Buffer
 					s.WriteString("0 0 1\n0 1 2\n1 0 3\n1 1 4")
 					T := Load(&s)
-					A := Compress(T)
+					A, err := Compress(T)
+					if err != nil {
+						panic(err)
+					}
 
 					var s2 bytes.Buffer
 					s2.WriteString("0 0 1")
 					T2 := Load(&s2)
-					A2 := Compress(T2)
+					A2, err := Compress(T2)
+					if err != nil {
+						panic(err)
+					}
 
-					_, err := Add(A, A2, 0, 0)
+					_, err = Add(A, A2, 0, 0)
 					return err
 				}(),
 			},
@@ -1072,7 +1093,10 @@ func TestNilCheck(t *testing.T) {
 					var s bytes.Buffer
 					s.WriteString("0 0 1\n0 1 2\n1 0 3\n1 1 4")
 					T := Load(&s)
-					A := Compress(T)
+					A, err := Compress(T)
+					if err != nil {
+						panic(err)
+					}
 					x := make([]float64, 100)
 					y := make([]float64, 80)
 					return Gaxpy(A, x, y)
@@ -1121,7 +1145,7 @@ func TestNilCheck(t *testing.T) {
 	if r := cs_cholsol(-1, nil, nil); r == true {
 		t.Errorf("cs_cholsol: not nil")
 	}
-	if r := Compress(nil); r != nil {
+	if _, err := Compress(nil); err == nil {
 		t.Errorf("cs_compress: not nil")
 	}
 	if r := cs_counts(nil, nil, nil, false); r != nil {
@@ -1364,7 +1388,10 @@ func TestCsCompress(t *testing.T) {
 			var stdin bytes.Buffer
 			stdin.Write(b)
 			T := Load(&stdin)
-			A := Compress(T)
+			A, err := Compress(T)
+			if err != nil {
+				t.Fatal(err)
+			}
 
 			t.Run("invert", func(t *testing.T) {
 				// invert file
@@ -1385,9 +1412,9 @@ func TestCsCompress(t *testing.T) {
 				if T2 == nil {
 					t.Fatalf("T2 is nil")
 				}
-				A2 := Compress(T2)
-				if A2 == nil {
-					t.Fatalf("A2 is nil")
+				A2, err := Compress(T2)
+				if err != nil {
+					t.Fatal(err)
 				}
 
 				if f(A) != f(A2) {
@@ -1418,9 +1445,9 @@ func TestCsCompress(t *testing.T) {
 				if T2 == nil {
 					t.Fatalf("T2 is nil")
 				}
-				A2 := Compress(T2)
-				if A2 == nil {
-					t.Fatalf("A2 is nil")
+				A2, err := Compress(T2)
+				if err != nil {
+					t.Fatal(err)
 				}
 
 				if f(A) != f(A2) {
@@ -1475,10 +1502,13 @@ func TestGaxpy(t *testing.T) {
 		var s bytes.Buffer
 		s.WriteString("0 0 1\n1 0 3\n2 0 5\n0 1 2\n1 1 4\n2 1 6")
 		T := Load(&s)
-		A := Compress(T)
+		A, err := Compress(T)
+		if err != nil {
+			t.Fatal(err)
+		}
 		x := []float64{7, 8}
 		y := []float64{9, 10, 11}
-		err := Gaxpy(A, x, y)
+		err = Gaxpy(A, x, y)
 		fmt.Fprintf(osStdout, "%v\n", y)
 		if err != nil {
 			t.Fatal(err)
@@ -1491,7 +1521,10 @@ func TestAdd(t *testing.T) {
 		var stdin bytes.Buffer
 		stdin.WriteString("0 0 1\n0 1 2\n1 0 3\n1 1 4")
 		T := Load(&stdin)
-		A := Compress(T)
+		A, err := Compress(T)
+		if err != nil {
+			t.Fatal(err)
+		}
 		AT, err := Transpose(A)
 		if err != nil {
 			t.Fatal(err)

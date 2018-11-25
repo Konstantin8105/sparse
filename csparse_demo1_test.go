@@ -51,7 +51,10 @@ func TestDemo1(t *testing.T) {
 			T := Load(&stdin)
 
 			// A compressed-column form of T
-			A := Compress(T)
+			A, err := Compress(T)
+			if err != nil {
+				t.Fatal(err)
+			}
 
 			// Transpose
 			AT, err := Transpose(A)
@@ -74,7 +77,10 @@ func TestDemo1(t *testing.T) {
 			for i := 0; i < m; i++ {
 				Entry(T, i, i, 1.0)
 			}
-			Eye := Compress(T)
+			Eye, err := Compress(T)
+			if err != nil {
+				t.Fatal(err)
+			}
 
 			// C = A*A'
 			C := Multiply(A, AT)

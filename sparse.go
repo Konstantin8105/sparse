@@ -1000,39 +1000,37 @@ func cs_cholsol(order int, A *Cs, b []float64) (result bool) {
 	return ok
 }
 
-// Compress - C = compressed-column form of a triplet matrix T
+// Compress - compress triplet matrix T to compressed sparse column format.
 //
 // Name function in CSparse : cs_compress.
-func Compress(T *Cs) *Cs {
-	if !(T != nil && T.nz >= 0) {
-		// check inputs
-		return nil
+func Compress(T *Cs) (*Cs, error) {
+	// check input data
+	et := errors.New("Function Add: check input data")
+	if T == nil {
+		et.Add(fmt.Errorf("matrix T is nil"))
 	}
-	var (
-		m  = T.m
-		n  = T.n
-		Ti = T.i
-		Tj = T.p
-		Tx = T.x
-		nz = T.nz
-	)
+	if T != nil && T.nz == -1 {
+		et.Add(fmt.Errorf("matrix T is not triplet format"))
+	}
+
+	if et.IsError() {
+		return nil, et
+	}
+
+	m, n, Ti, Tj, Tx, nz := T.m, T.n, T.i, T.p, T.x, T.nz
+
 	// allocate result
 	C, err := cs_spalloc(m, n, nz, Tx != nil, cscFormat)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, err.Error()) // TODO (KI) error hanling
-		return nil
+		return nil, err
 	}
+
 	// get workspace
 	w := make([]int, n)
-	if C == nil {
-		// out of memory
-		return cs_done(C, w, nil, false)
-	}
-	var (
-		Cp = C.p
-		Ci = C.i
-		Cx = C.x
-	)
+	defer cs_free(w)
+
+	// initialization
+	Cp, Ci, Cx := C.p, C.i, C.x
 
 	// column counts
 	for k := 0; k < nz; k++ {
@@ -1042,9 +1040,10 @@ func Compress(T *Cs) *Cs {
 	// column pointers
 	_, err = cs_cumsum(Cp, w)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "%v\n", err) // TODO (KI): add error hangling
-		return nil
+		return nil, err
 	}
+
+	// calculation
 	for k := 0; k < nz; k++ {
 		// A(i,j) is the pth entry in C
 		p := w[Tj[k]]
@@ -1054,8 +1053,9 @@ func Compress(T *Cs) *Cs {
 			Cx[p] = Tx[k]
 		}
 	}
-	// success; free w and return C
-	return cs_done(C, w, nil, true)
+
+	// success
+	return C, nil
 }
 
 // init_ata - column counts of LL'=A or LL'=A'A, given parent & post ordering
