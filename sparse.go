@@ -745,7 +745,6 @@ func cs_amd(order int, A *Cs) (result []int) {
 		// --- Finalize new element------------------------------------------
 		// finalize Lk
 		p = pk1
-		pk = pk1
 		for pk = pk1; pk < pk2; pk++ {
 			i = Ci[pk]
 			nvi = -nv[i]
@@ -939,7 +938,7 @@ func cs_chol(A *Cs, S *css) *csn {
 			// s [top..n-1] is pattern of L(k,:)
 			i = s[top]
 			// L(k,i) = x (i) / L(i,i)
-			lki = x[i] / Lx[Lp[i]] // TODO (KI): check devided by zero
+			lki = x[i] / Lx[Lp[i]] // TODO (KI): check divided by zero
 			// clear x for k+1st iteration
 			x[i] = 0
 			for p = Lp[i] + 1; p < c[i]; p++ {
