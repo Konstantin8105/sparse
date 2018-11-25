@@ -1206,6 +1206,17 @@ func cs_counts(A *Cs, parent []int, post []int, ata bool) []int {
 
 // cs_cumsum - p [0..n] = cumulative sum of c [0..n-1], and then copy p [0..n-1] into c
 // n is len of vector c.
+//
+// Example:
+//
+// input data:
+// p =  [0 0 0 0 0]
+// c =  [8 8 8 6]
+// n =  len(c) = 4
+//
+// output data:
+// p =  [0 8 16 24 30]
+// c =  [0 8 16 24]
 func cs_cumsum(p []int, c []int) (int, error) { // TODO (KI) : research nz2 to overflow
 	// check input data
 	et := errors.New("Function cs_cumsum: check input data")
@@ -1215,11 +1226,15 @@ func cs_cumsum(p []int, c []int) (int, error) { // TODO (KI) : research nz2 to o
 	if c == nil {
 		et.Add(fmt.Errorf("Vector c is nil"))
 	}
+	if len(p) != len(c)+1 {
+		et.Add(fmt.Errorf("length of `p` is not length of `c` + 1: %d != %d + 1", len(p), len(c)))
+	}
 
 	if et.IsError() {
 		return -1, et
 	}
 
+	// calculation
 	var nz int
 	var nz2 int
 	for i := range c {
