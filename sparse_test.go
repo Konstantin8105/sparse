@@ -37,6 +37,7 @@ func buildC(t *testing.T, filename string) {
 	args = append(args, csFiles...)
 	args = append(args, filename)
 	args = append(args, "-lm")
+	args = append(args, "-DPRINT")
 	args = append(args, "-o")
 	args = append(args, "testdata/csparse_test")
 
@@ -87,6 +88,13 @@ func Benchmark(b *testing.B) {
 		b.Fatal(err)
 	}
 	for i := range matrixes {
+
+		if testing.Short() {
+			if !strings.Contains(matrixes[i], "bcsstk01") {
+				continue
+			}
+		}
+
 		b.Run(matrixes[i], func(b *testing.B) {
 			o, err := ioutil.ReadFile(matrixes[i])
 			if err != nil {
@@ -158,6 +166,26 @@ func Benchmark(b *testing.B) {
 				b.ResetTimer()
 				for i := 0; i < b.N; i++ {
 					_ = Gaxpy(A, x, y)
+				}
+			})
+
+			b.Run("demo1", func(b *testing.B) {
+				tmpfile, err := ioutil.TempFile("", "example")
+				if err != nil {
+					b.Fatal(err)
+				}
+				old := osStdout
+				osStdout = tmpfile
+				defer func() {
+					osStdout = old
+				}()
+
+				var stdin bytes.Buffer
+				stdin.Write(o)
+				prob := get_problem(&stdin, 1e-14, false)
+				b.ResetTimer()
+				for i := 0; i < b.N; i++ {
+					_ = demo2(prob, false)
 				}
 			})
 		})
@@ -306,9 +334,9 @@ func TestDemo2(t *testing.T) {
 
 			var stdin bytes.Buffer
 			stdin.Write(b)
-			prob := get_problem(&stdin, 1e-14)
+			prob := get_problem(&stdin, 1e-14, true)
 			// print_problem(prob)
-			result := demo2(prob)
+			result := demo2(prob, true)
 			if result {
 				fmt.Fprintf(osStdout, "Result demo2 : 1\n")
 			} else {
@@ -383,9 +411,9 @@ func TestDemo3(t *testing.T) {
 
 			var stdin bytes.Buffer
 			stdin.Write(b)
-			prob := get_problem(&stdin, 1e-14)
+			prob := get_problem(&stdin, 1e-14, true)
 			// print_problem(prob)
-			result := demo3(prob)
+			result := demo3(prob, true)
 			fmt.Fprintf(osStdout, "Result demo3 : %d\n", result)
 
 			end := time.Now() // end timer
@@ -533,7 +561,7 @@ func make_sym(A *Cs) *Cs {
 }
 
 // get_problem - read a problem from a file; use %g for integers to avoid csi conflicts */
-func get_problem(f io.Reader, tol float64) *problem {
+func get_problem(f io.Reader, tol float64, output bool) *problem {
 	var nz1 int
 	var nz2 int
 	Prob := new(problem)
@@ -565,23 +593,29 @@ func get_problem(f io.Reader, tol float64) *problem {
 	cs_dropzeros(A)
 	nz2 = A.p[n]
 
-	fmt.Fprintf(osStdout, "n   = %d\n", n)
-	fmt.Fprintf(osStdout, "nz1 = %d\n", nz1)
-	fmt.Fprintf(osStdout, "nz2 = %d\n", nz2)
-	fmt.Fprintf(osStdout, "A->p[%d] = %d\n", n, A.p[n])
+	if output {
+		fmt.Fprintf(osStdout, "n   = %d\n", n)
+		fmt.Fprintf(osStdout, "nz1 = %d\n", nz1)
+		fmt.Fprintf(osStdout, "nz2 = %d\n", nz2)
+		fmt.Fprintf(osStdout, "A->p[%d] = %d\n", n, A.p[n])
 
-	fmt.Fprintf(osStdout, "A before drop\n")
-	Print(A, false)
+		fmt.Fprintf(osStdout, "A before drop\n")
+		Print(A, false)
 
-	fmt.Fprintf(osStdout, "tol = %.5e\n", tol)
+		fmt.Fprintf(osStdout, "tol = %.5e\n", tol)
+	}
 	if tol > 0 {
 		// drop tiny entries (just to test) */
 		ok := cs_droptol(A, tol)
-		fmt.Fprintf(osStdout, "droptol = %d\n", ok)
+		if output {
+			fmt.Fprintf(osStdout, "droptol = %d\n", ok)
+		}
 	}
 
-	fmt.Fprintf(osStdout, "A before make_sym\n")
-	Print(A, false)
+	if output {
+		fmt.Fprintf(osStdout, "A before make_sym\n")
+		Print(A, false)
+	}
 
 	// C = A + triu(A,1)', or C=A */
 	C := func() *Cs {
@@ -594,29 +628,31 @@ func get_problem(f io.Reader, tol float64) *problem {
 	if C == nil {
 		return nil
 	}
-	fmt.Fprintf(osStdout, "\n--- Matrix: %g-by-%g, nnz: %g (sym: %g: nnz %g), norm: %8.2e\n",
-		float64((m)),
-		float64((n)),
-		float64((A.p[n])),
-		float64((sym)),
-		float64((func() int {
-			if sym != 0 {
-				return C.p[n]
-			}
-			return 0
-		}())),
-		0.0)
-	// cs_norm(C))
-	if nz1 != nz2 {
-		fmt.Fprintf(osStdout, "zero entries dropped: %g\n", float64(nz1-nz2))
-	}
+	if output {
+		fmt.Fprintf(osStdout, "\n--- Matrix: %g-by-%g, nnz: %g (sym: %g: nnz %g), norm: %8.2e\n",
+			float64((m)),
+			float64((n)),
+			float64((A.p[n])),
+			float64((sym)),
+			float64((func() int {
+				if sym != 0 {
+					return C.p[n]
+				}
+				return 0
+			}())),
+			0.0)
+		// cs_norm(C))
+		if nz1 != nz2 {
+			fmt.Fprintf(osStdout, "zero entries dropped: %g\n", float64(nz1-nz2))
+		}
 
-	Print(A, false)
+		Print(A, false)
 
-	fmt.Fprintf(osStdout, "nz2 = %d\n", nz2)
-	fmt.Fprintf(osStdout, "A->p[%d] = %d\n", n, A.p[n])
-	if nz2 != A.p[n] {
-		fmt.Fprintf(osStdout, "tiny entries dropped: %g\n", float64((int32(nz2 - A.p[n]))))
+		fmt.Fprintf(osStdout, "nz2 = %d\n", nz2)
+		fmt.Fprintf(osStdout, "A->p[%d] = %d\n", n, A.p[n])
+		if nz2 != A.p[n] {
+			fmt.Fprintf(osStdout, "tiny entries dropped: %g\n", float64((int32(nz2 - A.p[n]))))
+		}
 	}
 	Prob.b = make([]float64, mn)
 	Prob.x = make([]float64, mn)
@@ -630,7 +666,7 @@ func get_problem(f io.Reader, tol float64) *problem {
 }
 
 // demo2 - solve a linear system using Cholesky, LU, and QR, with various orderings
-func demo2(Prob *problem) bool {
+func demo2(Prob *problem, output bool) bool {
 	var t float64
 	var tol float64
 	var ok bool
@@ -674,35 +710,45 @@ func demo2(Prob *problem) bool {
 		}
 	}
 
-	fmt.Fprintf(osStdout, "blocks: %d singletons: %d structural rank: %d\n", nb, ns, sprank)
+	if output {
+		fmt.Fprintf(osStdout, "blocks: %d singletons: %d structural rank: %d\n", nb, ns, sprank)
+	}
 	cs_free(D)
 
 	// natural and amd(A'*A)
 	for order = 0; order <= 3; order += 3 {
-		fmt.Fprintf(osStdout, "Order : %d\n", order)
-		fmt.Fprintf(osStdout, "M is : %d\n", m)
+		if output {
+			fmt.Fprintf(osStdout, "Order : %d\n", order)
+			fmt.Fprintf(osStdout, "M is : %d\n", m)
+		}
 		// if order != 0 && m > 1000 {
 		// 	continue
 		// }
-		fmt.Fprintf(osStdout, "Start order : %d\n", order)
-		fmt.Fprintf(osStdout, "QR   ")
-		print_order(order)
+		if output {
+			fmt.Fprintf(osStdout, "Start order : %d\n", order)
+			fmt.Fprintf(osStdout, "QR   ")
+			print_order(order, output)
+		}
 		// compute right-hand side
 		rhs(x, b, m)
 		t = tic()
 		// min norm(Ax-b) with QR
 		ok = cs_qrsol(order, C, x)
-		fmt.Fprintf(osStdout, "time: %8.2f ", toc(t))
-		// print residual
-		print_resid(ok, C, x, b, resid)
-		if ok {
-			for r := 0; r < m; r++ {
-				fmt.Fprintf(osStdout, "x[%d] = %10e\n", r, x[r])
+		if output {
+			fmt.Fprintf(osStdout, "time: %8.2f ", toc(t))
+			// print residual
+			print_resid(ok, C, x, b, resid)
+			if ok {
+				for r := 0; r < m; r++ {
+					fmt.Fprintf(osStdout, "x[%d] = %10e\n", r, x[r])
+				}
 			}
 		}
 	}
 
-	fmt.Fprintf(osStdout, "m,n,sprank : %d:%d:%d\n", m, n, sprank)
+	if output {
+		fmt.Fprintf(osStdout, "m,n,sprank : %d:%d:%d\n", m, n, sprank)
+	}
 
 	if m != n || sprank < n {
 		// return if rect. or singular
@@ -711,30 +757,38 @@ func demo2(Prob *problem) bool {
 
 	// try all orderings
 	for order = 0; order <= 3; order++ {
-		fmt.Fprintf(osStdout, "Order : %d\n", order)
-		fmt.Fprintf(osStdout, "M is : %d\n", m)
+		if output {
+			fmt.Fprintf(osStdout, "Order : %d\n", order)
+			fmt.Fprintf(osStdout, "M is : %d\n", m)
+		}
 		// if order != 0 && m > 1000 {
 		// 	continue
 		// }
-		fmt.Fprintf(osStdout, "Start order : %d\n", order)
-		fmt.Fprintf(osStdout, "LU   ")
-		print_order(order)
+		if output {
+			fmt.Fprintf(osStdout, "Start order : %d\n", order)
+			fmt.Fprintf(osStdout, "LU   ")
+			print_order(order, output)
+		}
 		// compute right-hand side
 		rhs(x, b, m)
 		t = tic()
 		// solve Ax=b with LU
 		ok = cs_lusol(order, C, x, tol)
-		fmt.Fprintf(osStdout, "time: %8.2f ", toc(t))
-		// print residual
-		print_resid(ok, C, x, b, resid)
-		if ok {
-			for r := 0; r < m; r++ {
-				fmt.Fprintf(osStdout, "x[%d] = %10e\n", r, x[r])
+		if output {
+			fmt.Fprintf(osStdout, "time: %8.2f ", toc(t))
+			// print residual
+			print_resid(ok, C, x, b, resid)
+			if ok {
+				for r := 0; r < m; r++ {
+					fmt.Fprintf(osStdout, "x[%d] = %10e\n", r, x[r])
+				}
 			}
 		}
 	}
 
-	fmt.Fprintf(osStdout, "Problem sym is : %d\n", Prob.sym)
+	if output {
+		fmt.Fprintf(osStdout, "Problem sym is : %d\n", Prob.sym)
+	}
 
 	if Prob.sym == 0 {
 		return true
@@ -742,25 +796,31 @@ func demo2(Prob *problem) bool {
 
 	// natural and amd(A+A')
 	for order = 0; order <= 1; order++ {
-		fmt.Fprintf(osStdout, "Order : %d\n", order)
-		fmt.Fprintf(osStdout, "M is : %d\n", m)
+		if output {
+			fmt.Fprintf(osStdout, "Order : %d\n", order)
+			fmt.Fprintf(osStdout, "M is : %d\n", m)
+		}
 		// if order != 0 && m > 1000 {
 		// 	continue
 		// }
-		fmt.Fprintf(osStdout, "Start order : %d\n", order)
-		fmt.Fprintf(osStdout, "Chol ")
-		print_order(order)
+		if output {
+			fmt.Fprintf(osStdout, "Start order : %d\n", order)
+			fmt.Fprintf(osStdout, "Chol ")
+			print_order(order, output)
+		}
 		// compute right-hand side
 		rhs(x, b, m)
 		t = tic()
 		// solve Ax=b with Cholesky
 		ok = cs_cholsol(order, C, x)
-		fmt.Fprintf(osStdout, "time: %8.2f ", toc(t))
-		// print residual
-		print_resid(ok, C, x, b, resid)
-		if ok {
-			for r := 0; r < m; r++ {
-				fmt.Fprintf(osStdout, "x[%d] = %10e\n", r, x[r])
+		if output {
+			fmt.Fprintf(osStdout, "time: %8.2f ", toc(t))
+			// print residual
+			print_resid(ok, C, x, b, resid)
+			if ok {
+				for r := 0; r < m; r++ {
+					fmt.Fprintf(osStdout, "x[%d] = %10e\n", r, x[r])
+				}
 			}
 		}
 	}
@@ -829,7 +889,10 @@ func print_resid(ok bool, A *Cs, x []float64, b []float64, resid []float64) {
 }
 
 // print_order -
-func print_order(order int) {
+func print_order(order int, output bool) {
+	if !output {
+		return
+	}
 	switch order {
 	case 0:
 		fmt.Fprintf(osStdout, "natural    ")
@@ -840,10 +903,11 @@ func print_order(order int) {
 	case 3:
 		fmt.Fprintf(osStdout, "amd(A'*A)  ")
 	}
+
 }
 
 // Cholesky update/downdate
-func demo3(Prob *problem) int {
+func demo3(Prob *problem, output bool) int {
 	var A *Cs
 	var C *Cs
 	var W *Cs
@@ -885,17 +949,23 @@ func demo3(Prob *problem) int {
 	}
 	// compute right-hand side
 	rhs(x, b, int(n))
-	fmt.Fprintf(osStdout, "\nchol then update/downdate ")
-	print_order(1)
+	if output {
+		fmt.Fprintf(osStdout, "\nchol then update/downdate ")
+		print_order(1, output)
+	}
 	y = make([]float64, n)
 	t = tic()
 	// symbolic Chol, amd(A+A')
 	S = cs_schol(1, C)
-	fmt.Fprintf(osStdout, "\nsymbolic chol time %8.2f\n", toc(t))
+	if output {
+		fmt.Fprintf(osStdout, "\nsymbolic chol time %8.2f\n", toc(t))
+	}
 	t = tic()
 	// numeric Cholesky
 	N = cs_chol(C, S)
-	fmt.Fprintf(osStdout, "numeric  chol time %8.2f\n", toc(t))
+	if output {
+		fmt.Fprintf(osStdout, "numeric  chol time %8.2f\n", toc(t))
+	}
 	if S == nil || N == nil || y == nil {
 		return 1 //done3(0, S, N, y, W, E, p)
 	}
@@ -908,10 +978,12 @@ func demo3(Prob *problem) int {
 	cs_ltsolve(N.L, y)
 	// x = P'*y
 	cs_pvec(S.pinv, y, x, int(n))
-	fmt.Fprintf(osStdout, "solve    chol time %8.2f\n", toc(t))
-	fmt.Fprintf(osStdout, "original: ")
-	// print residual
-	print_resid(true, C, x, b, resid)
+	if output {
+		fmt.Fprintf(osStdout, "solve    chol time %8.2f\n", toc(t))
+		fmt.Fprintf(osStdout, "original: ")
+		// print residual
+		print_resid(true, C, x, b, resid)
+	}
 	// construct W
 	k = n / 2
 	W, err := cs_spalloc(n, 1, n, true, cscFormat)
@@ -943,7 +1015,9 @@ func demo3(Prob *problem) int {
 	// update: L*L'+W*W'
 	ok = Updown(N.L, int(+1), W, S.parent)
 	t1 = toc(t)
-	fmt.Fprintf(osStdout, "update:   time: %8.2f\n", t1)
+	if output {
+		fmt.Fprintf(osStdout, "update:   time: %8.2f\n", t1)
+	}
 	if ok == 0 { // check
 		return 0 // int((done3(0, S, N, y, W, E, p)))
 	}
@@ -975,15 +1049,19 @@ func demo3(Prob *problem) int {
 	if E == nil || p == nil {
 		return 0 // int((done3(0, S, N, y, W, E, p)))
 	}
-	fmt.Fprintf(osStdout, "update:   time: %8.2f (incl solve) ", t1+t)
-	// print residual
-	print_resid(true, E, x, b, resid)
+	if output {
+		fmt.Fprintf(osStdout, "update:   time: %8.2f (incl solve) ", t1+t)
+		// print residual
+		print_resid(true, E, x, b, resid)
+	}
 	// clear N
 	cs_free(N)
 	t = tic()
 	// numeric Cholesky
 	N = cs_chol(E, S)
-	Print(E, false)
+	if output {
+		Print(E, false)
+	}
 	if N == nil {
 		return 0 //int((done3(0, S, N, y, W, E, p)))
 	}
@@ -996,9 +1074,11 @@ func demo3(Prob *problem) int {
 	// x = P'*y
 	cs_pvec(S.pinv, y, x, int(n))
 	t = toc(t)
-	fmt.Fprintf(osStdout, "rechol:   time: %8.2f (incl solve) ", t)
-	// print residual
-	print_resid(true, E, x, b, resid)
+	if output {
+		fmt.Fprintf(osStdout, "rechol:   time: %8.2f (incl solve) ", t)
+		// print residual
+		print_resid(true, E, x, b, resid)
+	}
 	t = tic()
 	// downdate: L*L'-W*W'
 	ok = Updown(N.L, int(-1), W, S.parent)
@@ -1006,7 +1086,9 @@ func demo3(Prob *problem) int {
 	if ok == 0 {
 		return 0 // int((done3(0, S, N, y, W, E, p)))
 	}
-	fmt.Fprintf(osStdout, "downdate: time: %8.2f\n", t1)
+	if output {
+		fmt.Fprintf(osStdout, "downdate: time: %8.2f\n", t1)
+	}
 	t = tic()
 	// y = P*b
 	cs_ipvec(S.pinv, b, y, int(n))
@@ -1017,9 +1099,11 @@ func demo3(Prob *problem) int {
 	// x = P'*y
 	cs_pvec(S.pinv, y, x, int(n))
 	t = toc(t)
-	fmt.Fprintf(osStdout, "downdate: time: %8.2f (incl solve) ", t1+t)
-	// print residual
-	print_resid(true, C, x, b, resid)
+	if output {
+		fmt.Fprintf(osStdout, "downdate: time: %8.2f (incl solve) ", t1+t)
+		// print residual
+		print_resid(true, C, x, b, resid)
+	}
 	return 1 // int((done3(1, S, N, y, W, E, p)))
 }
 
