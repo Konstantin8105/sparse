@@ -1002,6 +1002,33 @@ func cs_cholsol(order int, A *Cs, b []float64) (result bool) {
 
 // Compress - compress triplet matrix T to compressed sparse column format.
 //
+// Example:
+//
+//	input matrix:
+//	[ 1 2 ]
+//	[ 3 4 ]
+//	triplets:
+//	[0 0 1]
+//	[0 1 2]
+//	[1 0 3]
+//	[1 1 4]
+//	matrix T:
+//	p:[]int    {0, 1, 0, 1}
+//	i:[]int    {0, 0, 1, 1}
+//	x:[]float64{1, 2, 3, 4}
+//	m:2
+//	n:2
+//	nz:4
+//	nzmax:4
+//	Result:
+//	p:[]int    {0, 2, 4}
+//	i:[]int    {0, 1, 0, 1}
+//	x:[]float64{1, 3, 2, 4}
+//	m:2
+//	n:2
+//	nz:-1 // indicate CSC format
+//	nzmax:4
+//
 // Name function in CSparse : cs_compress.
 func Compress(T *Cs) (*Cs, error) {
 	// check input data
@@ -1033,15 +1060,22 @@ func Compress(T *Cs) (*Cs, error) {
 	Cp, Ci, Cx := C.p, C.i, C.x
 
 	// column counts
+	// amount non-zero values in column
 	for k := 0; k < nz; k++ {
 		w[Tj[k]]++
 	}
 
 	// column pointers
+	// example:
+	// Cp: [0 0 0]
+	// w : [2 2]
 	_, err = cs_cumsum(Cp, w)
 	if err != nil {
 		return nil, err
 	}
+	// example:
+	// Cp: [0 2 4] - index in slice `i` for each column
+	// w : [0 2]
 
 	// calculation
 	for k := 0; k < nz; k++ {
@@ -1212,16 +1246,16 @@ func cs_counts(A *Cs, parent []int, post []int, ata bool) []int {
 //
 // Example:
 //
-// input data:
-// p =  [0 0 0 0 0]
-// c =  [8 8 8 6]
-// n =  len(c) = 4
+//	input data:
+//	p =  [0 0 0 0 0]
+//	c =  [8 8 8 6]
+//	n =  len(c) = 4
+//	output data:
+//	p =  [0 8 16 24 30]
+//	c =  [0 8 16 24]
+//	Return int is : 30
+//	Error      is : nil
 //
-// output data:
-// p =  [0 8 16 24 30]
-// c =  [0 8 16 24]
-// Return int is : 30
-// Error      is : nil
 func cs_cumsum(p []int, c []int) (int, error) { // TODO (KI) : research nz2 to overflow
 	// check input data
 	et := errors.New("Function cs_cumsum: check input data")
