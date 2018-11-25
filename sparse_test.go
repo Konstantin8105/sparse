@@ -6,7 +6,6 @@ import (
 	"io"
 	"io/ioutil"
 	"math"
-	"os"
 	"os/exec"
 	"path/filepath"
 	"sort"
@@ -208,7 +207,7 @@ func TestDemo1(t *testing.T) {
 			A := Compress(T)
 			// cs_print(A, false)
 
-			AT, err := cs_transpose(A, true)
+			AT, err := Transpose(A)
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -222,6 +221,7 @@ func TestDemo1(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
+
 			for i := 0; i < m; i++ {
 				Entry(T, i, i, 1.0)
 			}
@@ -257,7 +257,7 @@ func TestDemo1(t *testing.T) {
 				t.Fail()
 			}
 
-			t.Logf("Compare bench:\nC program  : %10d\nGo program : %10d\n",
+			t.Logf("Compare bench:\nC program  : %15d\nGo program : %15d\n",
 				cDur, end.Sub(start))
 		})
 	}
@@ -334,7 +334,7 @@ func TestDemo2(t *testing.T) {
 				t.Fail()
 			}
 
-			t.Logf("Compare bench:\nC program  : %10d\nGo program : %10d\n",
+			t.Logf("Compare bench:\nC program  : %15d\nGo program : %15d\n",
 				cDur, end.Sub(start))
 		})
 	}
@@ -369,6 +369,8 @@ func TestDemo3(t *testing.T) {
 			b, c, cDur := getCresult(t, matrixes[i])
 			t.Log("CSparse is ok")
 
+			start := time.Now() // start timer
+
 			tmpfile, err := ioutil.TempFile("", "example")
 			if err != nil {
 				t.Fatal(err)
@@ -378,8 +380,6 @@ func TestDemo3(t *testing.T) {
 			defer func() {
 				osStdout = old
 			}()
-
-			start := time.Now() // start timer
 
 			var stdin bytes.Buffer
 			stdin.Write(b)
@@ -407,7 +407,7 @@ func TestDemo3(t *testing.T) {
 				t.Fail()
 			}
 
-			t.Logf("Compare bench:\nC program  : %10d\nGo program : %10d\n",
+			t.Logf("Compare bench:\nC program  : %15d\nGo program : %15d\n",
 				cDur, end.Sub(start))
 		})
 	}
@@ -517,7 +517,7 @@ func dropdiag(i int, j int, aij float64, other interface{}) bool {
 // make_sym - C = A + triu(A,1)'
 func make_sym(A *Cs) *Cs {
 	// AT = A'
-	AT, err := cs_transpose(A, true)
+	AT, err := Transpose(A)
 	if err != nil {
 		return nil
 	}
@@ -846,7 +846,9 @@ func print_order(order int) {
 func demo3(Prob *problem) int {
 	var A *Cs
 	var C *Cs
+	var W *Cs
 	var WW *Cs
+	var WT *Cs
 	var W2 *Cs
 	var n int
 	var k int
@@ -914,12 +916,11 @@ func demo3(Prob *problem) int {
 	k = n / 2
 	W, err := cs_spalloc(n, 1, n, true, cscFormat)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, err.Error()) // TODO (KI) error hanling
-		return 0
+		panic(err)
 	}
-	// if W == nil {
-	// 	return 0 // done3(0, S, N, y, W, E, p)
-	// }
+	if W == nil {
+		return 0 // done3(0, S, N, y, W, E, p)
+	}
 	Lp = N.L.p
 	Li = N.L.i
 	Lx = N.L.x
@@ -959,7 +960,7 @@ func demo3(Prob *problem) int {
 	p = cs_pinv(S.pinv, int(n))
 	// E = C + (P'W)*(P'W)'
 	W2 = cs_permute(W, p, nil, true)
-	WT, err := cs_transpose(W2, true)
+	WT, err = Transpose(W2)
 	if err != nil {
 		panic(err)
 	}
@@ -1088,22 +1089,6 @@ func TestNilCheck(t *testing.T) {
 					x := make([]float64, 100)
 					y := make([]float64, 80)
 					return Gaxpy(A, x, y)
-				}(),
-			},
-		},
-		{
-			name: "Transpose",
-			fs: []error{
-				func() error {
-					_, err := Transpose(nil)
-					return err
-				}(),
-				func() error {
-					var s bytes.Buffer
-					s.WriteString("0 0 1\n0 1 2\n1 0 3\n1 1 4")
-					T := Load(&s)
-					_, err := Transpose(T)
-					return err
 				}(),
 			},
 		},
@@ -1272,7 +1257,7 @@ func TestNilCheck(t *testing.T) {
 	if r := cs_tdfs(-1, -1, nil, nil, nil, nil); r != -1 {
 		t.Errorf("cs_tdfs: not nil")
 	}
-	if _, err := cs_transpose(nil, false); err == nil {
+	if _, err := Transpose(nil); err == nil {
 		t.Errorf("cs_transpose: not nil")
 	}
 	if r := Updown(nil, -1, nil, nil); r != 0 {
