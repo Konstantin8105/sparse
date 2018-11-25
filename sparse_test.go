@@ -6,6 +6,7 @@ import (
 	"io"
 	"io/ioutil"
 	"math"
+	"os"
 	"os/exec"
 	"path/filepath"
 	"sort"
@@ -114,7 +115,7 @@ func Benchmark(b *testing.B) {
 				A := Compress(T)
 				b.ResetTimer()
 				for i := 0; i < b.N; i++ {
-					_ = Transpose(A, true)
+					_, _ = Transpose(A)
 				}
 			})
 
@@ -202,14 +203,20 @@ func TestDemo1(t *testing.T) {
 			A := Compress(T)
 			// cs_print(A, false)
 
-			AT := Transpose(A, true)
+			AT, err := cs_transpose(A, true)
+			if err != nil {
+				t.Fatal(err)
+			}
 			// cs_print(AT, false)
 
 			var m int
 			if A != nil {
 				m = A.m
 			}
-			T = cs_spalloc(m, m, m, true, tripletFormat)
+			T, err = cs_spalloc(m, m, m, true, tripletFormat)
+			if err != nil {
+				t.Fatal(err)
+			}
 			for i := 0; i < m; i++ {
 				Entry(T, i, i, 1.0)
 			}
@@ -486,7 +493,10 @@ func dropdiag(i int, j int, aij float64, other interface{}) bool {
 // make_sym - C = A + triu(A,1)'
 func make_sym(A *Cs) *Cs {
 	// AT = A'
-	AT := Transpose(A, true)
+	AT, err := cs_transpose(A, true)
+	if err != nil {
+		return nil
+	}
 	// drop diagonal entries from AT
 	cs_fkeep(AT, dropdiag, nil)
 	// C = A+AT
@@ -812,9 +822,7 @@ func print_order(order int) {
 func demo3(Prob *problem) int {
 	var A *Cs
 	var C *Cs
-	var W *Cs
 	var WW *Cs
-	var WT *Cs
 	var W2 *Cs
 	var n int
 	var k int
@@ -880,10 +888,14 @@ func demo3(Prob *problem) int {
 	print_resid(true, C, x, b, resid)
 	// construct W
 	k = n / 2
-	W = cs_spalloc(n, 1, n, true, cscFormat)
-	if W == nil {
-		return 0 // done3(0, S, N, y, W, E, p)
+	W, err := cs_spalloc(n, 1, n, true, cscFormat)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, err.Error()) // TODO (KI) error hanling
+		return 0
 	}
+	// if W == nil {
+	// 	return 0 // done3(0, S, N, y, W, E, p)
+	// }
 	Lp = N.L.p
 	Li = N.L.i
 	Lx = N.L.x
@@ -923,7 +935,10 @@ func demo3(Prob *problem) int {
 	p = cs_pinv(S.pinv, int(n))
 	// E = C + (P'W)*(P'W)'
 	W2 = cs_permute(W, p, nil, true)
-	WT = Transpose(W2, true)
+	WT, err := cs_transpose(W2, true)
+	if err != nil {
+		panic(err)
+	}
 	WW = Multiply(W2, WT)
 	cs_free(WT)
 	cs_free(W2)
@@ -1052,6 +1067,22 @@ func TestNilCheck(t *testing.T) {
 				}(),
 			},
 		},
+		{
+			name: "Transpose",
+			fs: []error{
+				func() error {
+					_, err := Transpose(nil)
+					return err
+				}(),
+				func() error {
+					var s bytes.Buffer
+					s.WriteString("0 0 1\n0 1 2\n1 0 3\n1 1 4")
+					T := Load(&s)
+					_, err := Transpose(T)
+					return err
+				}(),
+			},
+		},
 	}
 
 	for i := range tcs {
@@ -1084,7 +1115,7 @@ func TestNilCheck(t *testing.T) {
 	if r := cs_counts(nil, nil, nil, false); r != nil {
 		t.Errorf("cs_counts: not nil")
 	}
-	if r := cs_cumsum(nil, nil, 0); r != -1 {
+	if _, err := cs_cumsum(nil, nil); err == nil {
 		t.Errorf("cs_cumsum: not nil")
 	}
 	if r := cs_dfs(0, nil, -1, nil, nil, nil); r != -1 {
@@ -1217,7 +1248,7 @@ func TestNilCheck(t *testing.T) {
 	if r := cs_tdfs(-1, -1, nil, nil, nil, nil); r != -1 {
 		t.Errorf("cs_tdfs: not nil")
 	}
-	if r := Transpose(nil, false); r != nil {
+	if _, err := cs_transpose(nil, false); err == nil {
 		t.Errorf("cs_transpose: not nil")
 	}
 	if r := Updown(nil, -1, nil, nil); r != 0 {
@@ -1449,11 +1480,46 @@ func TestAdd(t *testing.T) {
 		stdin.WriteString("0 0 1\n0 1 2\n1 0 3\n1 1 4")
 		T := Load(&stdin)
 		A := Compress(T)
-		AT := Transpose(A, true)
+		AT, err := Transpose(A)
+		if err != nil {
+			t.Fatal(err)
+		}
 		R, err := Add(A, AT, 1, 2)
 		if err != nil {
 			t.Fatal(err)
 		}
 		Print(R, false)
+	})
+}
+
+func TestCumsum(t *testing.T) {
+	t.Run("simple check", func(t *testing.T) {
+		p := []int{0, 0, 0, 0, 0}
+		c := []int{8, 8, 8, 6}
+		nz, err := cs_cumsum(p, c)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if nz != 30 {
+			t.Fatalf("Not correct result: %d", nz)
+		}
+	})
+	t.Run("overflow check", func(t *testing.T) {
+		p := []int{0, 0, 0}
+		c := []int{math.MaxInt64, math.MaxInt64}
+		_, err := cs_cumsum(p, c)
+		if err == nil {
+			t.Fatalf("Error for overflow is not happen")
+		}
+		t.Log(err)
+	})
+	t.Run("overflow check 2", func(t *testing.T) {
+		p := []int{0, 0, 0, 0}
+		c := []int{math.MaxInt64, 1, 5}
+		_, err := cs_cumsum(p, c)
+		if err == nil {
+			t.Fatalf("Error for overflow is not happen")
+		}
+		t.Log(err)
 	})
 }
