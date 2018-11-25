@@ -1041,7 +1041,11 @@ func Compress(T *Cs) *Cs {
 	}
 
 	// column pointers
-	cs_cumsum(Cp, w)
+	_, err = cs_cumsum(Cp, w)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "%v\n", err) // TODO (KI): add error hangling
+		return nil
+	}
 	for k := 0; k < nz; k++ {
 		// A(i,j) is the pth entry in C
 		p := w[Tj[k]]
@@ -1217,6 +1221,8 @@ func cs_counts(A *Cs, parent []int, post []int, ata bool) []int {
 // output data:
 // p =  [0 8 16 24 30]
 // c =  [0 8 16 24]
+// Return int is : 30
+// Error      is : nil
 func cs_cumsum(p []int, c []int) (int, error) { // TODO (KI) : research nz2 to overflow
 	// check input data
 	et := errors.New("Function cs_cumsum: check input data")
@@ -3927,7 +3933,11 @@ func cs_symperm(A *Cs, pinv []int, values bool) *Cs {
 	}
 
 	// compute column pointers of C
-	cs_cumsum(Cp, w)
+	_, err = cs_cumsum(Cp, w)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "%v\n", err) // TODO (KI): add error hangling
+		return nil
+	}
 	for j = 0; j < n; j++ {
 		// column j of A is column j2 of C
 		j2 = j
@@ -4051,7 +4061,10 @@ func cs_transpose(A *Cs, values bool) (*Cs, error) {
 	}
 
 	// row pointers
-	cs_cumsum(Cp, w)
+	_, err = cs_cumsum(Cp, w)
+	if err != nil {
+		return nil, err
+	}
 	for j := 0; j < n; j++ {
 		for p := Ap[j]; p < Ap[j+1]; p++ {
 			// place A(i,j) as entry C(j,i)
