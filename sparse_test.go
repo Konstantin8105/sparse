@@ -171,7 +171,7 @@ func Benchmark(b *testing.B) {
 				}
 			})
 
-			b.Run("demo1", func(b *testing.B) {
+			b.Run("demo2", func(b *testing.B) {
 				tmpfile, err := ioutil.TempFile("", "example")
 				if err != nil {
 					b.Fatal(err)
