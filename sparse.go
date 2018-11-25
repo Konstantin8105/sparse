@@ -1244,13 +1244,14 @@ func cs_cumsum(p []int, c []int) (int, error) { // TODO (KI) : research nz2 to o
 		nz2 += c[i] // TODO (KI) : research nz2 to overflow
 		// also copy p[0..n-1] back into c[0..n-1]
 		c[i] = p[i]
+
+		// this is usually happen for int overflow
+		if nz < 0 {
+			return -1, fmt.Errorf("Function cs_cumsum: value overflow")
+		}
 	}
 	p[len(c)] = nz // add last summ
 
-	// this is usually happen for int overflow
-	if nz < 0 {
-		return -1, fmt.Errorf("Function cs_cumsum: value overflow")
-	}
 	// return sum (c [0..n-1])
 	return nz2, nil // TODO (KI) : research nz2 to overflow
 }
