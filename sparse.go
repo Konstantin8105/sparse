@@ -1253,7 +1253,7 @@ func cs_cumsum(p []int, c []int) (int, error) { // TODO (KI) : research nz2 to o
 
 		// this is usually happen for int overflow
 		if nz < 0 {
-			return -1, fmt.Errorf("Function cs_cumsum: value overflow")
+			return -1, fmt.Errorf("Function cs_cumsum: value overflow: %d", nz)
 		}
 	}
 	p[len(c)] = nz // add last summ
