@@ -17,7 +17,7 @@ import (
 	codestyle "github.com/Konstantin8105/cs"
 )
 
-func buildC(t *testing.T, filename string) {
+func buildC(t *testing.T, filename string, output bool) {
 	// CSparse C source
 	csFiles, err := filepath.Glob("CSparse/Source/" + "*.c")
 	if err != nil {
@@ -37,7 +37,9 @@ func buildC(t *testing.T, filename string) {
 	args = append(args, csFiles...)
 	args = append(args, filename)
 	args = append(args, "-lm")
-	args = append(args, "-DPRINT")
+	if output {
+		args = append(args, "-DPRINT")
+	}
 	args = append(args, "-o")
 	args = append(args, "testdata/csparse_test")
 
@@ -195,7 +197,7 @@ func Benchmark(b *testing.B) {
 func TestDemo1(t *testing.T) {
 
 	t.Run("Build test", func(t *testing.T) {
-		buildC(t, "testdata/csparse_demo1_test.c")
+		buildC(t, "testdata/csparse_demo1_test.c", true)
 	})
 
 	matrixes, err := filepath.Glob("CSparse/Matrix/" + "*")
@@ -294,7 +296,7 @@ func TestDemo1(t *testing.T) {
 func TestDemo2(t *testing.T) {
 
 	t.Run("Build test", func(t *testing.T) {
-		buildC(t, "testdata/csparse_demo2_test.c")
+		buildC(t, "testdata/csparse_demo2_test.c", true)
 	})
 
 	matrixes, err := filepath.Glob("CSparse/Matrix/" + "*")
@@ -371,7 +373,7 @@ func TestDemo2(t *testing.T) {
 func TestDemo3(t *testing.T) {
 
 	t.Run("Build test", func(t *testing.T) {
-		buildC(t, "testdata/csparse_demo3_test.c")
+		buildC(t, "testdata/csparse_demo3_test.c", true)
 	})
 
 	matrixes, err := filepath.Glob("CSparse/Matrix/" + "*")
