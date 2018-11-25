@@ -1323,8 +1323,8 @@ func cs_dfs(j int, G *Cs, top int, xi []int, pstack []int, pinv []int) int {
 			// pause depth-first search of node j
 			pstack[head] = p
 			// start dfs at node i
-			xi[head] = i
 			head++
+			xi[head] = i
 			// node j is not done
 			done = false
 			// break, to start dfs (i)
