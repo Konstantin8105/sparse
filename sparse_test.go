@@ -1070,6 +1070,22 @@ func TestNilCheck(t *testing.T) {
 			},
 		},
 		{
+			name: "Transpose",
+			fs: []error{
+				func() error {
+					_, err := Transpose(nil)
+					return err
+				}(),
+				func() error {
+					var s bytes.Buffer
+					s.WriteString("0 0 1\n0 1 2\n1 0 3\n1 1 4")
+					T := Load(&s)
+					_, err := Transpose(T)
+					return err
+				}(),
+			},
+		},
+		{
 			name: "Gaxpy",
 			fs: []error{
 				func() error {
