@@ -1491,3 +1491,17 @@ func TestAdd(t *testing.T) {
 		Print(R, false)
 	})
 }
+
+func TestCumsum(t *testing.T) {
+	t.Run("simple check", func(t *testing.T) {
+		p := []int{0, 0, 0, 0, 0}
+		c := []int{8, 8, 8, 6}
+		nz, err := cs_cumsum(p, c)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if nz != 30 {
+			t.Fatalf("Not correct result: %d", nz)
+		}
+	})
+}
