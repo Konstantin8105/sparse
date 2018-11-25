@@ -1015,7 +1015,7 @@ func demo3(Prob *problem, output bool) int {
 	}
 	t = tic()
 	// update: L*L'+W*W'
-	ok = Updown(N.L, int(+1), W, S.parent)
+	ok = cs_updown(N.L, int(+1), W, S.parent)
 	t1 = toc(t)
 	if output {
 		fmt.Fprintf(osStdout, "update:   time: %8.2f\n", t1)
@@ -1083,7 +1083,7 @@ func demo3(Prob *problem, output bool) int {
 	}
 	t = tic()
 	// downdate: L*L'-W*W'
-	ok = Updown(N.L, int(-1), W, S.parent)
+	ok = cs_updown(N.L, int(-1), W, S.parent)
 	t1 = toc(t)
 	if ok == 0 {
 		return 0 // int((done3(0, S, N, y, W, E, p)))
@@ -1362,7 +1362,7 @@ func TestNilCheck(t *testing.T) {
 	if _, err := Transpose(nil); err == nil {
 		t.Errorf("cs_transpose: not nil")
 	}
-	if r := Updown(nil, -1, nil, nil); r != 0 {
+	if r := cs_updown(nil, -1, nil, nil); r != 0 {
 		t.Errorf("cs_updown: not nil")
 	}
 	if r := cs_usolve(nil, nil); r == true {

@@ -4070,10 +4070,10 @@ func cs_transpose(A *Cs, values bool) (*Cs, error) {
 	return C, nil
 }
 
-// Updown - sparse Cholesky update/downdate, L*L' + sigma*w*w' (sigma = +1 or -1)
+// cs_updown - sparse Cholesky update/downdate, L*L' + sigma*w*w' (sigma = +1 or -1)
 //
 // Name function in CSparse : cs_updown.
-func Updown(L *Cs, sigma int, C *Cs, parent []int) int {
+func cs_updown(L *Cs, sigma int, C *Cs, parent []int) int {
 	var n int
 	var p int
 	var f int
