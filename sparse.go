@@ -1281,27 +1281,23 @@ func cs_dfs(j int, G *Cs, top int, xi []int, pstack []int, pinv []int) int {
 	for head >= 0 {
 		// get j from the top of the recursion stack
 		j = xi[head]
-		jnew = func() int {
-			if pinv != nil {
-				return pinv[j]
-			}
-			return j
-		}()
+		jnew = j
+		if pinv != nil {
+			jnew = pinv[j]
+		}
 		if !(Gp[j] < 0) {
-			{
-				// mark node j as visited
-				Gp[j] = -Gp[j] - 2
-			}
+
+			// mark node j as visited
+			Gp[j] = -Gp[j] - 2
+
 			pstack[head] = func() int {
 				if jnew < 0 {
 					return 0
 				}
-				return (func() int {
-					if Gp[jnew] < 0 {
-						return -Gp[jnew] - 2
-					}
-					return Gp[jnew]
-				}())
+				if Gp[jnew] < 0 {
+					return -Gp[jnew] - 2
+				}
+				return Gp[jnew]
 			}()
 		}
 		// node j done if no unvisited neighbors
@@ -1310,12 +1306,10 @@ func cs_dfs(j int, G *Cs, top int, xi []int, pstack []int, pinv []int) int {
 			if jnew < 0 {
 				return 0
 			}
-			return (func() int {
-				if Gp[jnew+1] < 0 {
-					return -Gp[jnew+1] - 2
-				}
-				return Gp[jnew+1]
-			}())
+			if Gp[jnew+1] < 0 {
+				return -Gp[jnew+1] - 2
+			}
+			return Gp[jnew+1]
 		}()
 
 		// examine all neighbors of j
@@ -1329,10 +1323,8 @@ func cs_dfs(j int, G *Cs, top int, xi []int, pstack []int, pinv []int) int {
 			// pause depth-first search of node j
 			pstack[head] = p
 			// start dfs at node i
-			xi[func() int {
-				head++
-				return head
-			}()] = i
+			xi[head] = i
+			head++
 			// node j is not done
 			done = false
 			// break, to start dfs (i)
@@ -1344,10 +1336,8 @@ func cs_dfs(j int, G *Cs, top int, xi []int, pstack []int, pinv []int) int {
 			// remove j from the recursion stack
 			head--
 			// and place in the output stack
-			xi[func() int {
-				top--
-				return top
-			}()] = j
+			top--
+			xi[top] = j
 		}
 	}
 	return top
