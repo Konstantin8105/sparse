@@ -1504,4 +1504,13 @@ func TestCumsum(t *testing.T) {
 			t.Fatalf("Not correct result: %d", nz)
 		}
 	})
+	t.Run("overflow check", func(t *testing.T) {
+		p := []int{0, 0, 0}
+		c := []int{math.MaxInt64, math.MaxInt64}
+		_, err := cs_cumsum(p, c)
+		if err == nil {
+			t.Fatalf("Error for overflow is not happen")
+		}
+		t.Log(err)
+	})
 }
