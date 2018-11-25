@@ -3872,41 +3872,8 @@ func cs_symperm(A *Cs, pinv []int, values bool) *Cs {
 	Cp = C.p
 	Ci = C.i
 	Cx = C.x
-	{
-		// count entries in each column of C
-		for j = 0; j < n; j++ {
-			// column j of A is column j2 of C
-			j2 = int(func() int {
-				if pinv != nil {
-					return (pinv[j])
-				}
-				return (j)
-			}())
-			for p = Ap[j]; p < Ap[j+1]; p++ {
-				i = Ai[p]
-				if i > j {
-					// skip lower triangular part of A
-					continue
-				}
-				// row i of A is row i2 of C
-				i2 = int(func() int {
-					if pinv != nil {
-						return (pinv[i])
-					}
-					return (i)
-				}())
-				// column count of C
-				w[func() int {
-					if i2 > j2 {
-						return (i2)
-					}
-					return (j2)
-				}()]++
-			}
-		}
-	}
-	// compute column pointers of C
-	cs_cumsum(Cp, w)
+
+	// count entries in each column of C
 	for j = 0; j < n; j++ {
 		// column j of A is column j2 of C
 		j2 = int(func() int {
@@ -3928,6 +3895,36 @@ func cs_symperm(A *Cs, pinv []int, values bool) *Cs {
 				}
 				return (i)
 			}())
+			// column count of C
+			w[func() int {
+				if i2 > j2 {
+					return (i2)
+				}
+				return (j2)
+			}()]++
+		}
+	}
+
+	// compute column pointers of C
+	cs_cumsum(Cp, w)
+	for j = 0; j < n; j++ {
+		// column j of A is column j2 of C
+		j2 = j
+		if pinv != nil {
+			j2 = pinv[j]
+		}
+		for p = Ap[j]; p < Ap[j+1]; p++ {
+			i = Ai[p]
+			if i > j {
+				// skip lower triangular part of A
+				continue
+			}
+			// row i of A is row i2 of C
+			i2 = i
+			if pinv != nil {
+				i2 = pinv[i]
+			}
+
 			Ci[(func() int {
 				q = func() int {
 					tempVar := &w[func() int {
