@@ -12,6 +12,7 @@ import (
 	"strconv"
 	"strings"
 	"testing"
+	"time"
 
 	codestyle "github.com/Konstantin8105/cs"
 )
@@ -53,7 +54,7 @@ func buildC(t *testing.T, filename string) {
 	}
 }
 
-func getCresult(t *testing.T, matrix string) (in []byte, out string) {
+func getCresult(t *testing.T, matrix string) (in []byte, out string, dur time.Duration) {
 	cmd := exec.Command(
 		"./testdata/csparse_test",
 	)
@@ -67,7 +68,9 @@ func getCresult(t *testing.T, matrix string) (in []byte, out string) {
 	cmd.Stdin = &stdin
 	cmd.Stdout = &stdout
 	cmd.Stderr = &stderr
+	start := time.Now()
 	err = cmd.Run()
+	end := time.Now()
 	if err != nil {
 		t.Fatalf("cmd.Run() failed with %s.\n%s\n%s\n",
 			err,
@@ -75,7 +78,7 @@ func getCresult(t *testing.T, matrix string) (in []byte, out string) {
 			stdout.String(),
 		)
 	}
-	return b, stdout.String()
+	return b, stdout.String(), end.Sub(start)
 }
 
 func Benchmark(b *testing.B) {
@@ -182,7 +185,7 @@ func TestDemo1(t *testing.T) {
 
 		t.Run("Demo1: "+matrixes[i], func(t *testing.T) {
 			// data checking
-			b, c := getCresult(t, matrixes[i])
+			b, c, cDur := getCresult(t, matrixes[i])
 
 			tmpfile, err := ioutil.TempFile("", "example")
 			if err != nil {
@@ -193,6 +196,8 @@ func TestDemo1(t *testing.T) {
 			defer func() {
 				osStdout = old
 			}()
+
+			start := time.Now() // start timer
 
 			var stdin bytes.Buffer
 			stdin.Write(b)
@@ -226,6 +231,8 @@ func TestDemo1(t *testing.T) {
 			}
 			Print(D, false)
 
+			end := time.Now() // end timer
+
 			filename := tmpfile.Name()
 			err = tmpfile.Close()
 			if err != nil {
@@ -242,6 +249,9 @@ func TestDemo1(t *testing.T) {
 				t.Log(ShowDiff(c, c2))
 				t.Fail()
 			}
+
+			t.Logf("Compare bench:\nC program  : %10d\nGo program : %10d\n",
+				cDur, end.Sub(start))
 		})
 	}
 }
@@ -272,7 +282,7 @@ func TestDemo2(t *testing.T) {
 
 		t.Run("Demo2: "+matrixes[i], func(t *testing.T) {
 			// data checking
-			b, c := getCresult(t, matrixes[i])
+			b, c, cDur := getCresult(t, matrixes[i])
 			t.Log("CSparse is ok")
 
 			tmpfile, err := ioutil.TempFile("", "example")
@@ -285,6 +295,8 @@ func TestDemo2(t *testing.T) {
 				osStdout = old
 			}()
 
+			start := time.Now() // start timer
+
 			var stdin bytes.Buffer
 			stdin.Write(b)
 			prob := get_problem(&stdin, 1e-14)
@@ -295,6 +307,8 @@ func TestDemo2(t *testing.T) {
 			} else {
 				fmt.Fprintf(osStdout, "Result demo2 : 0\n")
 			}
+
+			end := time.Now() // end timer
 
 			filename := tmpfile.Name()
 			err = tmpfile.Close()
@@ -312,6 +326,9 @@ func TestDemo2(t *testing.T) {
 				t.Log(ShowDiff(c, c2))
 				t.Fail()
 			}
+
+			t.Logf("Compare bench:\nC program  : %10d\nGo program : %10d\n",
+				cDur, end.Sub(start))
 		})
 	}
 }
@@ -342,7 +359,7 @@ func TestDemo3(t *testing.T) {
 
 		t.Run("Demo3: "+matrixes[i], func(t *testing.T) {
 			// data checking
-			b, c := getCresult(t, matrixes[i])
+			b, c, cDur := getCresult(t, matrixes[i])
 			t.Log("CSparse is ok")
 
 			tmpfile, err := ioutil.TempFile("", "example")
@@ -355,12 +372,16 @@ func TestDemo3(t *testing.T) {
 				osStdout = old
 			}()
 
+			start := time.Now() // start timer
+
 			var stdin bytes.Buffer
 			stdin.Write(b)
 			prob := get_problem(&stdin, 1e-14)
 			// print_problem(prob)
 			result := demo3(prob)
 			fmt.Fprintf(osStdout, "Result demo3 : %d\n", result)
+
+			end := time.Now() // end timer
 
 			filename := tmpfile.Name()
 			err = tmpfile.Close()
@@ -378,6 +399,9 @@ func TestDemo3(t *testing.T) {
 				t.Log(ShowDiff(c, c2))
 				t.Fail()
 			}
+
+			t.Logf("Compare bench:\nC program  : %10d\nGo program : %10d\n",
+				cDur, end.Sub(start))
 		})
 	}
 }
