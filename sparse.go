@@ -127,7 +127,10 @@ func Add(A *Cs, B *Cs, α float64, β float64) (*Cs, error) {
 	}()
 
 	// allocate result
-	C := cs_spalloc(m, n, anz+bnz, true, cscFormat)
+	C, err := cs_spalloc(m, n, anz+bnz, true, cscFormat)
+	if err != nil {
+		return nil, err
+	}
 	Cp, Ci, Cx := C.p, C.i, C.x
 
 	// calculation
@@ -240,8 +243,9 @@ func cs_amd(order int, A *Cs) (result []int) {
 		return nil
 	}
 	// compute A'
-	AT := Transpose(A, false)
-	if AT == nil {
+	AT, err := cs_transpose(A, false)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, err.Error()) // TODO (KI) error hanling
 		return nil
 	}
 	var (
@@ -287,7 +291,11 @@ func cs_amd(order int, A *Cs) (result []int) {
 		// finalize AT
 		ATp[m] = p2
 		// A2 = AT'
-		A2 = Transpose(AT, false)
+		A2, err = cs_transpose(AT, false)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, err.Error()) // TODO (KI) error hanling
+			return nil
+		}
 		// C=A'*A with no dense rows
 		if A2 != nil {
 			C = Multiply(AT, A2)
@@ -856,7 +864,6 @@ func cs_chol(A *Cs, S *css) *csn {
 	var s []int
 	var Cp []int
 	var Ci []int
-	var L *Cs
 	if !(A != nil && A.nz == -1) || S == nil || S.cp == nil || S.parent == nil {
 		return nil
 	}
@@ -888,7 +895,11 @@ func cs_chol(A *Cs, S *css) *csn {
 	Cp = C.p
 	Ci = C.i
 	Cx = C.x
-	L = cs_spalloc(n, n, int(cp[n]), true, cscFormat)
+	L, err := cs_spalloc(n, n, int(cp[n]), true, cscFormat)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, err.Error()) // TODO (KI) error hanling
+		return nil
+	}
 
 	// allocate result
 	N.L = L
@@ -1007,7 +1018,11 @@ func Compress(T *Cs) *Cs {
 		nz = T.nz
 	)
 	// allocate result
-	C := cs_spalloc(m, n, nz, Tx != nil, cscFormat)
+	C, err := cs_spalloc(m, n, nz, Tx != nil, cscFormat)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, err.Error()) // TODO (KI) error hanling
+		return nil
+	}
 	// get workspace
 	w := make([]int, n)
 	if C == nil {
@@ -1026,7 +1041,11 @@ func Compress(T *Cs) *Cs {
 	}
 
 	// column pointers
-	cs_cumsum(Cp, w, n)
+	_, err = cs_cumsum(Cp, w)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "%v\n", err) // TODO (KI): add error hangling
+		return nil
+	}
 	for k := 0; k < nz; k++ {
 		// A(i,j) is the pth entry in C
 		p := w[Tj[k]]
@@ -1093,7 +1112,11 @@ func cs_counts(A *Cs, parent []int, post []int, ata bool) []int {
 	// get workspace
 	w := make([]int, s)
 	// AT = A'
-	AT := Transpose(A, false)
+	AT, err := cs_transpose(A, false)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, err.Error()) // TODO (KI) error hanling
+		return nil
+	}
 	if AT == nil || colcount == nil {
 		return cs_idone(colcount, AT, w, false)
 	}
@@ -1186,24 +1209,57 @@ func cs_counts(A *Cs, parent []int, post []int, ata bool) []int {
 }
 
 // cs_cumsum - p [0..n] = cumulative sum of c [0..n-1], and then copy p [0..n-1] into c
-func cs_cumsum(p []int, c []int, n int) int { // TODO (KI) : research nz2 to overflow
+// n is len of vector c.
+//
+// Example:
+//
+// input data:
+// p =  [0 0 0 0 0]
+// c =  [8 8 8 6]
+// n =  len(c) = 4
+//
+// output data:
+// p =  [0 8 16 24 30]
+// c =  [0 8 16 24]
+// Return int is : 30
+// Error      is : nil
+func cs_cumsum(p []int, c []int) (int, error) { // TODO (KI) : research nz2 to overflow
+	// check input data
+	et := errors.New("Function cs_cumsum: check input data")
+	if p == nil {
+		et.Add(fmt.Errorf("Vector p is nil"))
+	}
+	if c == nil {
+		et.Add(fmt.Errorf("Vector c is nil"))
+	}
+	if len(p) != len(c)+1 {
+		et.Add(fmt.Errorf("length of `p` is not length of `c` + 1: %d != %d + 1", len(p), len(c)))
+	}
+
+	if et.IsError() {
+		return -1, et
+	}
+
+	// calculation
 	var nz int
 	var nz2 int
-	if p == nil || c == nil {
-		// check inputs
-		return -1
-	}
-	for i := 0; i < n; i++ {
+	for i := range c {
 		p[i] = nz
 		nz += c[i]
 		// also in double to avoid csi overflow
 		nz2 += c[i] // TODO (KI) : research nz2 to overflow
 		// also copy p[0..n-1] back into c[0..n-1]
 		c[i] = p[i]
+
+		// this is usually happen for int overflow
+		if nz < 0 {
+			return -1, fmt.Errorf("Function cs_cumsum: value overflow: %d", nz)
+		}
 	}
-	p[n] = nz
+	p[len(c)] = nz // add last summ
+
 	// return sum (c [0..n-1])
-	return nz2 // TODO (KI) : research nz2 to overflow
+	return nz2, nil // TODO (KI) : research nz2 to overflow
 }
 
 // cs_dfs - depth-first-search of the graph of a matrix, starting at node j
@@ -1225,27 +1281,23 @@ func cs_dfs(j int, G *Cs, top int, xi []int, pstack []int, pinv []int) int {
 	for head >= 0 {
 		// get j from the top of the recursion stack
 		j = xi[head]
-		jnew = func() int {
-			if pinv != nil {
-				return pinv[j]
-			}
-			return j
-		}()
+		jnew = j
+		if pinv != nil {
+			jnew = pinv[j]
+		}
 		if !(Gp[j] < 0) {
-			{
-				// mark node j as visited
-				Gp[j] = -Gp[j] - 2
-			}
+
+			// mark node j as visited
+			Gp[j] = -Gp[j] - 2
+
 			pstack[head] = func() int {
 				if jnew < 0 {
 					return 0
 				}
-				return (func() int {
-					if Gp[jnew] < 0 {
-						return -Gp[jnew] - 2
-					}
-					return Gp[jnew]
-				}())
+				if Gp[jnew] < 0 {
+					return -Gp[jnew] - 2
+				}
+				return Gp[jnew]
 			}()
 		}
 		// node j done if no unvisited neighbors
@@ -1254,12 +1306,10 @@ func cs_dfs(j int, G *Cs, top int, xi []int, pstack []int, pinv []int) int {
 			if jnew < 0 {
 				return 0
 			}
-			return (func() int {
-				if Gp[jnew+1] < 0 {
-					return -Gp[jnew+1] - 2
-				}
-				return Gp[jnew+1]
-			}())
+			if Gp[jnew+1] < 0 {
+				return -Gp[jnew+1] - 2
+			}
+			return Gp[jnew+1]
 		}()
 
 		// examine all neighbors of j
@@ -1273,10 +1323,8 @@ func cs_dfs(j int, G *Cs, top int, xi []int, pstack []int, pinv []int) int {
 			// pause depth-first search of node j
 			pstack[head] = p
 			// start dfs at node i
-			xi[func() int {
-				head++
-				return head
-			}()] = i
+			head++
+			xi[head] = i
 			// node j is not done
 			done = false
 			// break, to start dfs (i)
@@ -1288,10 +1336,8 @@ func cs_dfs(j int, G *Cs, top int, xi []int, pstack []int, pinv []int) int {
 			// remove j from the recursion stack
 			head--
 			// and place in the output stack
-			xi[func() int {
-				top--
-				return top
-			}()] = j
+			top--
+			xi[top] = j
 		}
 	}
 	return top
@@ -1338,12 +1384,15 @@ func cs_bfs(A *Cs,
 		// quick return if no unmatched nodes
 		return true
 	}
-	C = func() *Cs {
-		if mark == 1 {
-			return A
+	C = A
+	if mark != 1 {
+		var err error
+		C, err = cs_transpose(A, false)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, err.Error()) // TODO (KI) error hanling
+			return false
 		}
-		return Transpose(A, false)
-	}()
+	}
 	if C == nil {
 		// bfs of C=A' to find R3,C3 from R0
 		return false
@@ -2006,12 +2055,11 @@ func cs_ipvec(p []int, b []float64, x []float64, n int) bool {
 		return false
 	}
 	for k := 0; k < n; k++ {
-		x[func() int {
-			if p != nil {
-				return p[k]
-			}
-			return k
-		}()] = b[k]
+		if p != nil {
+			x[p[k]] = b[k]
+			continue
+		}
+		x[k] = b[k]
 	}
 	return true
 }
@@ -2061,14 +2109,17 @@ func cs_leaf(i int, j int, first []int, maxfirst []int, prevleaf []int, ancestor
 //
 // Name function in CSparse : cs_load.
 func Load(f io.Reader) *Cs {
-	var T *Cs
 	if f == nil {
 		// use double for integers to avoid csi conflicts
 		// check inputs
 		return nil
 	}
 	// allocate result
-	T = cs_spalloc(0, 0, 1, true, tripletFormat)
+	T, err := cs_spalloc(0, 0, 1, true, tripletFormat)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, err.Error()) // TODO (KI) error hanling
+		return nil
+	}
 	for {
 		var i, j int
 		var x float64
@@ -2089,23 +2140,17 @@ func Load(f io.Reader) *Cs {
 
 // cs_lsolve - solve Lx=b where x and b are dense.  x=b on input, solution on output.
 func cs_lsolve(L *Cs, x []float64) bool {
-	var p int
-	var j int
-	var n int
-	var Lp []int
-	var Li []int
-	var Lx []float64
 	if !(L != nil && int(L.nz) == -1) || x == nil {
 		// check inputs
 		return false
 	}
-	n = L.n
-	Lp = L.p
-	Li = L.i
-	Lx = L.x
-	for j = 0; j < n; j++ {
+	// initialization
+	n, Lp, Li, Lx := L.n, L.p, L.i, L.x
+
+	// calculation
+	for j := 0; j < n; j++ {
 		x[j] /= Lx[Lp[j]]
-		for p = Lp[j] + 1; p < Lp[j+1]; p++ {
+		for p := Lp[j] + 1; p < Lp[j+1]; p++ {
 			x[Li[p]] -= Lx[p] * x[j]
 		}
 	}
@@ -2139,8 +2184,6 @@ func cs_ltsolve(L *Cs, x []float64) bool {
 
 // cs_lu - [L,U,pinv]=lu(A, [q lnz unz]). lnz and unz can be guess
 func cs_lu(A *Cs, S *css, tol float64) *csn {
-	var L *Cs
-	var U *Cs
 	var pivot float64
 	var Lx []float64
 	var Ux []float64
@@ -2175,10 +2218,18 @@ func cs_lu(A *Cs, S *css, tol float64) *csn {
 	if x == nil || xi == nil || N == nil {
 		return (cs_ndone(N, nil, xi, x, false))
 	}
-	L = cs_spalloc(n, n, lnz, true, cscFormat)
+	L, err := cs_spalloc(n, n, lnz, true, cscFormat)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, err.Error()) // TODO (KI) error hanling
+		return nil
+	}
 	N.L = L
 	// allocate result L
-	U = cs_spalloc(n, n, unz, true, cscFormat)
+	U, err := cs_spalloc(n, n, unz, true, cscFormat)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, err.Error()) // TODO (KI) error hanling
+		return nil
+	}
 	N.U = U
 	// allocate result U
 	pinv = make([]int, n)
@@ -2238,10 +2289,8 @@ func cs_lu(A *Cs, S *css, tol float64) *csn {
 			// x(i) is nonzero
 			i = xi[p]
 			if pinv[i] < 0 {
-				if (func() float64 {
-					t = math.Abs(x[i])
-					return t
-				}()) > a {
+				t = math.Abs(x[i])
+				if t > a {
 					// row i is not yet pivotal
 					// largest pivot candidate so far
 					a = t
@@ -2250,12 +2299,8 @@ func cs_lu(A *Cs, S *css, tol float64) *csn {
 			} else {
 				// x(i) is the entry U(pinv[i],k)
 				Ui[unz] = pinv[i]
-				Ux[func() int {
-					defer func() {
-						unz++
-					}()
-					return unz
-				}()] = x[i]
+				Ux[unz] = x[i]
+				unz++
 			}
 		}
 		if ipiv == -1 || a <= 0 {
@@ -2270,22 +2315,14 @@ func cs_lu(A *Cs, S *css, tol float64) *csn {
 		pivot = x[ipiv]
 		// last entry in U(:,k) is U(k,k)
 		Ui[unz] = k
-		Ux[func() int {
-			defer func() {
-				unz++
-			}()
-			return unz
-		}()] = pivot
+		Ux[unz] = pivot
+		unz++
 		// ipiv is the kth pivot row
 		pinv[ipiv] = k
 		// first entry in L(:,k) is L(k,k) = 1
 		Li[lnz] = ipiv
-		Lx[func() int {
-			defer func() {
-				lnz++
-			}()
-			return lnz
-		}()] = 1
+		Lx[lnz] = 1
+		lnz++
 
 		// L(k+1:n,k) = x / pivot
 		for p = top; p < n; p++ {
@@ -2295,12 +2332,8 @@ func cs_lu(A *Cs, S *css, tol float64) *csn {
 				// save unpermuted row in L
 				Li[lnz] = i
 				// scale pivot column
-				Lx[func() int {
-					defer func() {
-						lnz++
-					}()
-					return lnz
-				}()] = x[i] / pivot
+				Lx[lnz] = x[i] / pivot
+				lnz++
 			}
 			// x [0..n-1] = 0 for next k
 			x[i] = 0
@@ -2607,12 +2640,15 @@ func cs_maxtrans(A *Cs, seed int) []int {
 		m2 += w[i]
 	}
 	// transpose if needed
-	C := func() *Cs {
-		if m2 < n2 {
-			return Transpose(A, false)
+	C := A
+	if m2 < n2 {
+		var err error
+		C, err = cs_transpose(A, false)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, err.Error()) // TODO (KI) error hanling
+			return nil
 		}
-		return (A)
-	}()
+	}
 	if C == nil {
 		return (cs_idone(jimatch, func() *Cs {
 			if m2 < n2 {
@@ -2709,7 +2745,6 @@ func Multiply(A *Cs, B *Cs) *Cs {
 	var x []float64
 	var Bx []float64
 	var Cx []float64
-	var C *Cs
 	if !(A != nil && A.nz == -1) || !(B != nil && B.nz == -1) {
 		// check inputs
 		return nil
@@ -2732,7 +2767,11 @@ func Multiply(A *Cs, B *Cs) *Cs {
 		x = make([]float64, m)
 	}
 	// allocate result
-	C = cs_spalloc(m, n, anz+bnz, values, cscFormat)
+	C, err := cs_spalloc(m, n, anz+bnz, values, cscFormat)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, err.Error()) // TODO (KI) error hanling
+		return nil
+	}
 	if C == nil || w == nil || bool(values) && x == nil {
 		return cs_done(C, w, x, false)
 	}
@@ -2811,11 +2850,15 @@ func cs_permute(A *Cs, pinv []int, q []int, values bool) *Cs {
 	Ai := A.i
 	Ax := A.x
 	// alloc result
-	C := cs_spalloc(m, n, Ap[n], values && Ax != nil, cscFormat)
-	if C == nil {
-		// out of memory
-		return cs_done(C, nil, nil, false)
+	C, err := cs_spalloc(m, n, Ap[n], values && Ax != nil, cscFormat)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, err.Error()) // TODO (KI) error hanling
+		return nil
 	}
+	// if C == nil {
+	// 	// out of memory
+	// 	return cs_done(C, nil, nil, false)
+	// }
 	Cp := C.p
 	Ci := C.i
 	Cx := C.x
@@ -3027,8 +3070,6 @@ func cs_qr(A *Cs, S *css) *csn {
 	var w []int
 	var pinv []int
 	var q []int
-	var R *Cs
-	var V *Cs
 	var N *csn
 	if !(A != nil && A.nz == -1) || S == nil {
 		return nil
@@ -3062,10 +3103,18 @@ func cs_qr(A *Cs, S *css) *csn {
 		x[k] = 0
 	}
 
-	V = cs_spalloc(int(m2), n, int(vnz), true, cscFormat)
+	V, err := cs_spalloc(int(m2), n, int(vnz), true, cscFormat)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, err.Error()) // TODO (KI) error hanling
+		return nil
+	}
 	// allocate result V
 	N.L = V
-	R = cs_spalloc(int(m2), n, int(rnz), true, cscFormat)
+	R, err := cs_spalloc(int(m2), n, int(rnz), true, cscFormat)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, err.Error()) // TODO (KI) error hanling
+		return nil
+	}
 	// allocate result R
 	N.U = R
 	Beta = make([]float64, n) // cs_malloc(n, uint(8)).([]float64)
@@ -3242,7 +3291,12 @@ func cs_qrsol(order int, A *Cs, b []float64) bool {
 		}
 	} else {
 		// Ax=b is underdetermined
-		AT = Transpose(A, true)
+		var err error
+		AT, err = cs_transpose(A, true)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, err.Error()) // TODO (KI) error hanling
+			return false
+		}
 		// ordering and symbolic analysis
 		S = cs_sqr(int(order), AT, true)
 		// numeric QR factorization of A'
@@ -3383,7 +3437,11 @@ func cs_scc(A *Cs) *csd {
 	// allocate result
 	D := cs_dalloc(n, 0)
 	// AT = A'
-	AT := Transpose(A, false)
+	AT, err := cs_transpose(A, false)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, err.Error()) // TODO (KI) error hanling
+		return nil
+	}
 	// get workspace
 	xi := make([]int, 2*n+1)
 	if D == nil || AT == nil || xi == nil {
@@ -3497,7 +3555,12 @@ func cs_schol(order int, A *Cs) (result *css) {
 	cs_free(C) // TODO (KI) : remove
 	// allocate result S->cp
 	S.cp = make([]int, n+1) // cs_malloc(n+1, uint(0)).([]int)
-	S.lnz = cs_cumsum(S.cp, c, n)
+	var err error
+	S.lnz, err = cs_cumsum(S.cp, c)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, err.Error()) // TODO (KI) error hanling
+		return nil
+	}
 	// find column pointers for L
 	S.unz = S.lnz
 	cs_free(c)
@@ -3735,7 +3798,7 @@ func cs_vcount(A *Cs, S *css) bool {
 }
 
 // cs_sqr - symbolic ordering and analysis for QR or LU
-func cs_sqr(order int, A *Cs, qr bool) (result *css) {
+func cs_sqr(order int, A *Cs, qr bool) *css {
 	var ok bool = true
 	if !(A != nil && A.nz == -1) {
 		// check inputs
@@ -3744,10 +3807,7 @@ func cs_sqr(order int, A *Cs, qr bool) (result *css) {
 	n := A.n
 	// allocate result S
 	S := new(css)
-	if S == nil {
-		// out of memory
-		return nil
-	}
+
 	// fill-reducing ordering
 	S.q = cs_amd(order, A)
 	if order != 0 && S.q == nil {
@@ -3806,7 +3866,6 @@ func cs_symperm(A *Cs, pinv []int, values bool) *Cs {
 	var w []int
 	var Cx []float64
 	var Ax []float64
-	var C *Cs
 	if !(A != nil && A.nz == -1) {
 		// check inputs
 		return nil
@@ -3816,7 +3875,11 @@ func cs_symperm(A *Cs, pinv []int, values bool) *Cs {
 	Ai = A.i
 	Ax = A.x
 	// alloc result
-	C = cs_spalloc(n, n, Ap[n], values && Ax != nil, cscFormat)
+	C, err := cs_spalloc(n, n, Ap[n], values && Ax != nil, cscFormat)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, err.Error()) // TODO (KI) error hanling
+		return nil
+	}
 	// get workspace
 	w = make([]int, n)
 	if C == nil {
@@ -3826,41 +3889,8 @@ func cs_symperm(A *Cs, pinv []int, values bool) *Cs {
 	Cp = C.p
 	Ci = C.i
 	Cx = C.x
-	{
-		// count entries in each column of C
-		for j = 0; j < n; j++ {
-			// column j of A is column j2 of C
-			j2 = int(func() int {
-				if pinv != nil {
-					return (pinv[j])
-				}
-				return (j)
-			}())
-			for p = Ap[j]; p < Ap[j+1]; p++ {
-				i = Ai[p]
-				if i > j {
-					// skip lower triangular part of A
-					continue
-				}
-				// row i of A is row i2 of C
-				i2 = int(func() int {
-					if pinv != nil {
-						return (pinv[i])
-					}
-					return (i)
-				}())
-				// column count of C
-				w[func() int {
-					if i2 > j2 {
-						return (i2)
-					}
-					return (j2)
-				}()]++
-			}
-		}
-	}
-	// compute column pointers of C
-	cs_cumsum(Cp, w, n)
+
+	// count entries in each column of C
 	for j = 0; j < n; j++ {
 		// column j of A is column j2 of C
 		j2 = int(func() int {
@@ -3882,6 +3912,40 @@ func cs_symperm(A *Cs, pinv []int, values bool) *Cs {
 				}
 				return (i)
 			}())
+			// column count of C
+			w[func() int {
+				if i2 > j2 {
+					return (i2)
+				}
+				return (j2)
+			}()]++
+		}
+	}
+
+	// compute column pointers of C
+	_, err = cs_cumsum(Cp, w)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "%v\n", err) // TODO (KI): add error hangling
+		return nil
+	}
+	for j = 0; j < n; j++ {
+		// column j of A is column j2 of C
+		j2 = j
+		if pinv != nil {
+			j2 = pinv[j]
+		}
+		for p = Ap[j]; p < Ap[j+1]; p++ {
+			i = Ai[p]
+			if i > j {
+				// skip lower triangular part of A
+				continue
+			}
+			// row i of A is row i2 of C
+			i2 = i
+			if pinv != nil {
+				i2 = pinv[i]
+			}
+
 			Ci[(func() int {
 				q = func() int {
 					tempVar := &w[func() int {
@@ -3948,31 +4012,38 @@ func cs_tdfs(j, k int, head []int, next []int, post []int, stack []int) int {
 // Transpose - C = A'
 //
 // Name function in CSparse : cs_transpose.
-func Transpose(A *Cs, values bool) *Cs {
-	if !(A != nil && A.nz == -1) {
-		// check inputs
-		return nil
+func Transpose(A *Cs) (*Cs, error) {
+	return cs_transpose(A, true)
+}
+
+// cs_transpose - C = A'
+func cs_transpose(A *Cs, values bool) (*Cs, error) {
+	// check input data
+	et := errors.New("Function Transpose: check input data")
+	if A == nil {
+		et.Add(fmt.Errorf("matrix A is nil"))
 	}
-	var (
-		m  = A.m
-		n  = A.n
-		Ap = A.p
-		Ai = A.i
-		Ax = A.x
-	)
+	if A != nil && A.nz != -1 {
+		et.Add(fmt.Errorf("matrix A is not CSC(Compressed Sparse Column) format"))
+	}
+
+	if et.IsError() {
+		return nil, et
+	}
+
+	m, n, Ap, Ai, Ax := A.m, A.n, A.p, A.i, A.x
+
 	// allocate result
-	C := cs_spalloc(n, m, Ap[n], values && Ax != nil, cscFormat)
+	C, err := cs_spalloc(n, m, Ap[n], values && Ax != nil, cscFormat)
+	if err != nil {
+		return nil, err
+	}
 	// get workspace
 	w := make([]int, m)
-	if C == nil {
-		// out of memory
-		return cs_done(C, w, nil, false)
-	}
-	var (
-		Cp = C.p
-		Ci = C.i
-		Cx = C.x
-	)
+	defer cs_free(w)
+
+	// initialization
+	Cp, Ci, Cx := C.p, C.i, C.x
 
 	// row counts
 	for p := 0; p < Ap[n]; p++ {
@@ -3980,7 +4051,10 @@ func Transpose(A *Cs, values bool) *Cs {
 	}
 
 	// row pointers
-	cs_cumsum(Cp, w, m)
+	_, err = cs_cumsum(Cp, w)
+	if err != nil {
+		return nil, err
+	}
 	for j := 0; j < n; j++ {
 		for p := Ap[j]; p < Ap[j+1]; p++ {
 			// place A(i,j) as entry C(j,i)
@@ -3992,8 +4066,8 @@ func Transpose(A *Cs, values bool) *Cs {
 			}
 		}
 	}
-	// success; free w and return C
-	return cs_done(C, w, nil, true)
+	// success
+	return C, nil
 }
 
 // Updown - sparse Cholesky update/downdate, L*L' + sigma*w*w' (sigma = +1 or -1)
@@ -4029,10 +4103,8 @@ func Updown(L *Cs, sigma int, C *Cs, parent []int) int {
 	Cp = C.p
 	Ci = C.i
 	Cx = C.x
-	if (func() int {
-		p = Cp[0]
-		return p
-	}()) >= Cp[1] {
+	p = Cp[0]
+	if p >= Cp[1] {
 		// return if C empty
 		return 1
 	}
@@ -4043,9 +4115,9 @@ func Updown(L *Cs, sigma int, C *Cs, parent []int) int {
 		// f = min (find (C))
 		f = int(func() int {
 			if f < Ci[p] {
-				return int(f)
+				return f
 			}
-			return (Ci[p])
+			return Ci[p]
 		}())
 	}
 
@@ -4110,12 +4182,11 @@ func cs_usolve(U *Cs, x []float64) bool {
 		// check inputs
 		return false
 	}
-	var (
-		n  = U.n
-		Up = U.p
-		Ui = U.i
-		Ux = U.x
-	)
+
+	// initialization
+	n, Up, Ui, Ux := U.n, U.p, U.i, U.x
+
+	// calculation
 	for j := n - 1; j >= 0; j-- {
 		x[j] /= Ux[Up[j+1]-1]
 		for p := Up[j]; p < Up[j+1]-1; p++ {
@@ -4133,17 +4204,33 @@ const (
 )
 
 // cs_spalloc - allocate a sparse matrix (triplet form or compressed-column form)
-func cs_spalloc(m, n, nzmax int, values bool, mf matrixFormat) *Cs {
-	// if m < 0 || n < 0 || nzmax < 0 {
-	// 	return nil
-	// }
+func cs_spalloc(m, n, nzmax int, values bool, mf matrixFormat) (*Cs, error) {
+	// check input data
+	et := errors.New("Function cs_spalloc: check input data")
+	if m < 0 {
+		et.Add(fmt.Errorf("Value m is less zero : %d", m))
+	}
+	if n < 0 {
+		et.Add(fmt.Errorf("Value n is less zero : %d", n))
+	}
+	if nzmax < 0 {
+		et.Add(fmt.Errorf("Value nzmax is less zero : %d", nzmax))
+	}
+
+	if et.IsError() {
+		return nil, et
+	}
+
+	// create a new struct
 	A := new(Cs)
+
 	// define dimensions and nzmax
 	A.m, A.n = m, n
 	if nzmax < 1 {
 		nzmax = 1
 	}
 	A.nzmax = nzmax
+
 	// allocate triplet or comp.col
 	switch mf {
 	case tripletFormat:
@@ -4158,11 +4245,7 @@ func cs_spalloc(m, n, nzmax int, values bool, mf matrixFormat) *Cs {
 	if values {
 		A.x = make([]float64, nzmax)
 	}
-	if A.p == nil || A.i == nil || values && A.x == nil {
-		cs_free(A)
-		return nil
-	}
-	return A
+	return A, nil
 }
 
 // cs_sprealloc - change the max # of entries sparse matrix
