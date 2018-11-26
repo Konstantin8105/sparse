@@ -1282,7 +1282,7 @@ func cs_cumsum(p []int, c []int) (int, error) {
 	}
 
 	// calculation
-	var nz int
+	nz := 0
 	for i := range c {
 		p[i] = nz
 		nz += c[i]
