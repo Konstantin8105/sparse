@@ -194,10 +194,7 @@ func TestNilCheck(t *testing.T) {
 				}(),
 				func() error {
 					var stdin bytes.Buffer
-					stdin.WriteString(`0 0 1
-0 1 2
-1 0 3
-1 1 4`)
+					stdin.WriteString("0 0 1\n 0 1 2\n 1 0 3\n 1 1 4")
 					T := Load(&stdin)
 					_, err := Add(T, T, 0, 0)
 					return err
