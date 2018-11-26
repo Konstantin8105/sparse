@@ -2209,10 +2209,10 @@ func cs_lu(A *Cs, S *css, tol float64) *csn {
 	var Ux []float64
 	var a float64
 	var t float64
-	var Lp []int
-	var Li []int
-	var Up []int
-	var Ui []int
+	// var Lp []int
+	// var Li []int
+	// var Up []int
+	// var Ui []int
 	var pinv []int
 	// var xi []int
 	var ipiv int
@@ -2258,8 +2258,7 @@ func cs_lu(A *Cs, S *css, tol float64) *csn {
 	if L == nil || U == nil || pinv == nil {
 		return (cs_ndone(N, nil, xi, x, false))
 	}
-	Lp = L.p
-	Up = U.p
+	Lp, Up := L.p, U.p
 
 	// clear workspace
 	for i := 0; i < n; i++ {
