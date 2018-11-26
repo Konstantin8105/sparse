@@ -5,83 +5,14 @@ import (
 	"fmt"
 	"io/ioutil"
 	"math"
-	"os/exec"
 	"path/filepath"
 	"sort"
 	"strconv"
 	"strings"
 	"testing"
-	"time"
 
 	codestyle "github.com/Konstantin8105/cs"
 )
-
-func buildC(t *testing.T, filename string, output bool) {
-	// CSparse C source
-	csFiles, err := filepath.Glob("CSparse/Source/" + "*.c")
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	// build testdata application :
-	//
-	// clang -ICSparse/Include/   \
-	//  ./CSparse/Source/*.c      \
-	//  ./testdata/csparse_test.c \
-	//  -lm                       \
-	//  -o                        \
-	//  ./testdata/csparse_test
-	var args []string
-	args = append(args, "-ICSparse/Include/")
-	args = append(args, csFiles...)
-	args = append(args, filename)
-	args = append(args, "-lm")
-	if output {
-		args = append(args, "-DPRINT")
-	}
-	args = append(args, "-o")
-	args = append(args, "testdata/csparse_test")
-
-	cmd := exec.Command("clang", args...)
-	var stdout, stderr bytes.Buffer
-	cmd.Stdout = &stdout
-	cmd.Stderr = &stderr
-	err = cmd.Run()
-	if err != nil {
-		t.Fatalf("cmd.Run() failed with %s.\n%s\n%s\n",
-			err,
-			stderr.String(),
-			stdout.String(),
-		)
-	}
-}
-
-func getCresult(t *testing.T, matrix string) (in []byte, out string, dur time.Duration) {
-	cmd := exec.Command(
-		"./testdata/csparse_test",
-	)
-
-	var stdin, stdout, stderr bytes.Buffer
-	b, err := ioutil.ReadFile(matrix)
-	if err != nil {
-		t.Fatal(err)
-	}
-	stdin.Write(b)
-	cmd.Stdin = &stdin
-	cmd.Stdout = &stdout
-	cmd.Stderr = &stderr
-	start := time.Now()
-	err = cmd.Run()
-	end := time.Now()
-	if err != nil {
-		t.Fatalf("cmd.Run() failed with %s.\n%s\n%s\n",
-			err,
-			stderr.String(),
-			stdout.String(),
-		)
-	}
-	return b, stdout.String(), end.Sub(start)
-}
 
 func Benchmark(b *testing.B) {
 	matrixes, err := filepath.Glob("CSparse/Matrix/" + "*")
