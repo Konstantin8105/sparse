@@ -2285,23 +2285,22 @@ func cs_lu(A *Cs, S *css, tol float64) *csn {
 		Lp[k] = lnz
 		// U(:,k) starts here
 		Up[k] = unz
-		if (int(lnz)+n > L.nzmax && !cs_sprealloc(L, 2*L.nzmax+n)) ||
-			(int(unz)+n > U.nzmax && !cs_sprealloc(U, 2*(U.nzmax)+n)) {
+		if (lnz+n > L.nzmax && !cs_sprealloc(L, 2*L.nzmax+n)) ||
+			(unz+n > U.nzmax && !cs_sprealloc(U, 2*(U.nzmax)+n)) {
 			return cs_ndone(N, nil, xi, x, false)
 		}
 		Li, Lx, Ui, Ux := L.i, L.x, U.i, U.x
 
-		col = func() int {
-			if q != nil {
-				return (q[k])
-			}
-			return (k)
-		}()
+		col = k
+		if q != nil {
+			col = q[k]
+		}
+
 		// x = L\A(:,col)
 		top = cs_spsolve(L, A, col, xi, x, pinv, true)
 		// --- Find pivot ---------------------------------------------------
 		ipiv = -1
-		a = float64(-1)
+		a = -1
 		for p := top; p < n; p++ {
 			// x(i) is nonzero
 			i := xi[p]
