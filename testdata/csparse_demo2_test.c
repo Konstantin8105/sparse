@@ -1,4 +1,4 @@
-#include "test_function.h"
+#include "csparse_demo_test.h"
 
 // solve a linear system using Cholesky, LU, and QR, with various orderings */
 csi demo2(problem* Prob)

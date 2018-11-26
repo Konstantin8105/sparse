@@ -1,4 +1,4 @@
-#include "test_function.h"
+#include "csparse_demo_test.h"
 
 // free workspace for demo3 */
 static csi done3 (csi ok, css *S, csn *N, double *y, cs *W, cs *E, csi *p)
