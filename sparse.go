@@ -2892,17 +2892,13 @@ func cs_permute(A *Cs, pinv []int, q []int, values bool) *Cs {
 				// row i of A is row pinv[i] of C
 				Cx[nz] = Ax[t]
 			}
-			Ci[func() int {
-				defer func() {
-					nz++
-				}()
-				return nz
-			}()] = func() int {
+			Ci[nz] = func() int {
 				if pinv != nil {
 					return pinv[Ai[t]]
 				}
 				return Ai[t]
 			}()
+			nz++
 		}
 	}
 	// finalize the last column of C
@@ -2911,18 +2907,18 @@ func cs_permute(A *Cs, pinv []int, q []int, values bool) *Cs {
 }
 
 // cs_pinv - pinv = p', or p = pinv'
-func cs_pinv(p []int, n int) (result []int) {
-	var pinv []int
+func cs_pinv(p []int, n int) []int {
+	// var pinv []int
 	if p == nil {
 		// p = NULL denotes identity
 		return nil
 	}
 	// allocate result
-	pinv = make([]int, n) // cs_malloc(n, uint(0)).([]int)
-	if pinv == nil {
-		// out of memory
-		return nil
-	}
+	pinv := make([]int, n) // cs_malloc(n, uint(0)).([]int)
+	// if pinv == nil {
+	// 	// out of memory
+	// 	return nil
+	// }
 
 	// invert the permutation
 	for k := 0; k < n; k++ {
@@ -2930,40 +2926,43 @@ func cs_pinv(p []int, n int) (result []int) {
 	}
 
 	// return result
-	return (pinv)
+	return pinv
 }
 
 // cs_post - post order a forest
 func cs_post(parent []int, n int) []int {
-	var j int
+	// var j int
 	var k int
-	var post []int
-	var w []int
-	var head []int
-	var next []int
-	var stack []int
+	// var post []int
+	// var w []int
+	// var head []int
+	// var next []int
+	// var stack []int
 	if parent == nil {
 		// check inputs
 		return nil
 	}
 	// allocate result
-	post = make([]int, n)
+	post := make([]int, n)
+	defer cs_free(post)
 	// get workspace
-	w = make([]int, 3*n)
-	if w == nil || post == nil {
-		return (cs_idone(post, nil, w, false))
-	}
-	head = w
-	next = w[n:]
-	stack = w[2*n:]
-
+	w := make([]int, 3*n)
+	defer cs_free(w)
+	// if w == nil || post == nil {
+	// 	return (cs_idone(post, nil, w, false))
+	// }
+	var (
+		head  = w
+		next  = w[n:]
+		stack = w[2*n:]
+	)
 	// empty linked lists
-	for j = 0; j < n; j++ {
+	for j := 0; j < n; j++ {
 		head[j] = -1
 	}
 
 	// traverse nodes in reverse order
-	for j = n - 1; j >= 0; j-- {
+	for j := n - 1; j >= 0; j-- {
 		if parent[j] == -1 {
 			// j is a root
 			continue
@@ -2973,15 +2972,15 @@ func cs_post(parent []int, n int) []int {
 		head[parent[j]] = j
 	}
 
-	for j = 0; j < n; j++ {
+	for j := 0; j < n; j++ {
 		if parent[j] != -1 {
 			// skip j if it is not a root
 			continue
 		}
-		k = cs_tdfs(int(j), int(k), head, next, post, stack)
+		k = cs_tdfs(j, k, head, next, post, stack)
 	}
 	// success; free w, return post
-	return (cs_idone(post, nil, w, true))
+	return post //(cs_idone(post, nil, w, true))
 }
 
 // Print - print a sparse matrix; use %g for integers to avoid differences with csi
