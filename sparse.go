@@ -2205,8 +2205,8 @@ func cs_ltsolve(L *Cs, x []float64) bool {
 // cs_lu - [L,U,pinv]=lu(A, [q lnz unz]). lnz and unz can be guess
 func cs_lu(A *Cs, S *css, tol float64) *csn {
 	var pivot float64
-	var Lx []float64
-	var Ux []float64
+	// var Lx []float64
+	// var Ux []float64
 	var a float64
 	var t float64
 	// var Lp []int
@@ -2289,10 +2289,8 @@ func cs_lu(A *Cs, S *css, tol float64) *csn {
 			(int(unz)+n > U.nzmax && !cs_sprealloc(U, 2*(U.nzmax)+n)) {
 			return cs_ndone(N, nil, xi, x, false)
 		}
-		Li = L.i
-		Lx = L.x
-		Ui = U.i
-		Ux = U.x
+		Li, Lx, Ui, Ux := L.i, L.x, U.i, U.x
+
 		col = func() int {
 			if q != nil {
 				return (q[k])
@@ -2364,7 +2362,7 @@ func cs_lu(A *Cs, S *css, tol float64) *csn {
 	Lp[n] = lnz
 	Up[n] = unz
 	// fix row indices of L for final pinv
-	Li = L.i
+	Li := L.i
 	for p := 0; p < lnz; p++ {
 		Li[p] = pinv[Li[p]]
 	}
