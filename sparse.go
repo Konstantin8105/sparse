@@ -1256,7 +1256,15 @@ func cs_counts(A *Cs, parent []int, post []int, ata bool) []int {
 //	Return int is : 30
 //	Error      is : nil
 //
-func cs_cumsum(p []int, c []int) (int, error) { // TODO (KI) : research nz2 to overflow
+// Overflow checking: Let`s take square dense matrix with rows, columns `g`.
+// So, vector `c` have length `g` with value `g` in input data.
+// Last value of vector `p` in output is `g`*`g`.
+// If we suppose type of `p` is `int`, then limit of matrix size `g`:
+//
+// * for 32-bit machine is math.Sqrt(float64(math.MaxInt32-1)) = 4e+4.
+// * for 64-bit machine is math.Sqrt(float64(math.MaxInt64-1)) = 3e+9.
+//
+func cs_cumsum(p []int, c []int) (int, error) {
 	// check input data
 	et := errors.New("Function cs_cumsum: check input data")
 	if p == nil {
@@ -1275,12 +1283,9 @@ func cs_cumsum(p []int, c []int) (int, error) { // TODO (KI) : research nz2 to o
 
 	// calculation
 	var nz int
-	var nz2 int
 	for i := range c {
 		p[i] = nz
 		nz += c[i]
-		// also in double to avoid csi overflow
-		nz2 += c[i] // TODO (KI) : research nz2 to overflow
 		// also copy p[0..n-1] back into c[0..n-1]
 		c[i] = p[i]
 
@@ -1292,7 +1297,7 @@ func cs_cumsum(p []int, c []int) (int, error) { // TODO (KI) : research nz2 to o
 	p[len(c)] = nz // add last summ
 
 	// return sum (c [0..n-1])
-	return nz2, nil // TODO (KI) : research nz2 to overflow
+	return nz, nil
 }
 
 // cs_dfs - depth-first-search of the graph of a matrix, starting at node j
