@@ -2214,12 +2214,12 @@ func cs_lu(A *Cs, S *css, tol float64) *csn {
 	var Up []int
 	var Ui []int
 	var pinv []int
-	var xi []int
+	// var xi []int
 	var ipiv int
-	var k int
+	// var k int
 	var top int
-	var p int
-	var i int
+	// var p int
+	// var i int
 	var col int
 	if !(A != nil && A.nz == -1) || S == nil {
 		// check inputs
@@ -2232,7 +2232,7 @@ func cs_lu(A *Cs, S *css, tol float64) *csn {
 	// get double workspace
 	x := make([]float64, n)
 	// get csi workspace
-	xi = make([]int, 2*n)
+	xi := make([]int, 2*n)
 	// allocate result
 	N := new(csn)
 	if x == nil || xi == nil || N == nil {
@@ -2262,17 +2262,17 @@ func cs_lu(A *Cs, S *css, tol float64) *csn {
 	Up = U.p
 
 	// clear workspace
-	for i = 0; i < n; i++ {
+	for i := 0; i < n; i++ {
 		x[i] = 0
 	}
 
 	// no rows pivotal yet
-	for i = 0; i < n; i++ {
+	for i := 0; i < n; i++ {
 		pinv[i] = -1
 	}
 
 	// no cols of L yet
-	for k = 0; k <= n; k++ {
+	for k := 0; k <= n; k++ {
 		Lp[k] = 0
 	}
 
@@ -2280,7 +2280,7 @@ func cs_lu(A *Cs, S *css, tol float64) *csn {
 	lnz = unz
 
 	// compute L(:,k) and U(:,k)
-	for k = 0; k < n; k++ {
+	for k := 0; k < n; k++ {
 		// --- Triangular solve ---------------------------------------------
 		// L(:,k) starts here
 		Lp[k] = lnz
@@ -2305,9 +2305,9 @@ func cs_lu(A *Cs, S *css, tol float64) *csn {
 		// --- Find pivot ---------------------------------------------------
 		ipiv = -1
 		a = float64(-1)
-		for p = top; p < n; p++ {
+		for p := top; p < n; p++ {
 			// x(i) is nonzero
-			i = xi[p]
+			i := xi[p]
 			if pinv[i] < 0 {
 				t = math.Abs(x[i])
 				if t > a {
@@ -2345,8 +2345,8 @@ func cs_lu(A *Cs, S *css, tol float64) *csn {
 		lnz++
 
 		// L(k+1:n,k) = x / pivot
-		for p = top; p < n; p++ {
-			i = xi[p]
+		for p := top; p < n; p++ {
+			i := xi[p]
 			if pinv[i] < 0 {
 				// x(i) is an entry in L(:,k)
 				// save unpermuted row in L
@@ -2366,7 +2366,7 @@ func cs_lu(A *Cs, S *css, tol float64) *csn {
 	Up[n] = unz
 	// fix row indices of L for final pinv
 	Li = L.i
-	for p = 0; p < lnz; p++ {
+	for p := 0; p < lnz; p++ {
 		Li[p] = pinv[Li[p]]
 	}
 	// remove extra space from L and U
