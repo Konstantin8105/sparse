@@ -1512,12 +1512,8 @@ func cs_unmatched(m int, wi []int, p []int, rr *[5]int, set int) {
 	kr := rr[set]
 	for i := 0; i < m; i++ {
 		if wi[i] == 0 {
-			p[func() int {
-				defer func() {
-					kr++
-				}()
-				return kr
-			}()] = i
+			p[kr] = i
+			kr++
 		}
 	}
 	rr[set+1] = kr
@@ -1723,6 +1719,7 @@ func cs_dupl(A *Cs) bool {
 	Ax := A.x
 	// get workspace
 	w := make([]int, m)
+	defer cs_free(w)
 
 	// row i not yet seen
 	for i := 0; i < m; i++ {
@@ -1743,12 +1740,8 @@ func cs_dupl(A *Cs) bool {
 				w[i] = nz
 				// keep A(i,j)
 				Ai[nz] = i
-				Ax[func() int {
-					defer func() {
-						nz++
-					}()
-					return nz
-				}()] = Ax[p]
+				Ax[nz] = Ax[p]
+				nz++
 			}
 		}
 		// record start of column j
@@ -1756,8 +1749,6 @@ func cs_dupl(A *Cs) bool {
 	}
 	// finalize A
 	Ap[n] = nz
-	// free workspace
-	cs_free(w)
 	// remove extra space from A
 	return (cs_sprealloc(A, 0))
 }
@@ -1805,10 +1796,10 @@ func cs_ereach(A *Cs, k int, parent []int, s []int, w []int) int {
 	top = n
 	Ap = A.p
 	Ai = A.i
-	{
-		// mark node k as visited
-		w[k] = -int((w[k])) - 2
-	}
+
+	// mark node k as visited
+	w[k] = -w[k] - 2
+
 	for p = Ap[k]; p < Ap[k+1]; p++ {
 		// A(i,k) is nonzero
 		i = Ai[p]
@@ -1820,40 +1811,31 @@ func cs_ereach(A *Cs, k int, parent []int, s []int, w []int) int {
 		// traverse up etree
 		for len = 0; !(w[i] < 0); i = parent[i] {
 			// L(k,i) is nonzero
-			s[func() int {
-				defer func() {
-					len++
-				}()
-				return len
-			}()] = i
-			{
-				// mark i as visited
-				w[i] = -int((w[i])) - 2
-			}
+			s[len] = i
+			len++
+
+			// mark i as visited
+			w[i] = -w[i] - 2
 		}
 
 		for len > 0 {
 			// push path onto stack
-			s[func() int {
-				top--
-				return top
-			}()] = s[func() int {
-				len--
-				return len
-			}()]
+			top--
+			len--
+			s[top] = s[len]
 		}
 	}
 
 	// unmark all nodes
 	for p = top; p < n; p++ {
-		w[s[p]] = -int((w[s[p]])) - 2
+		w[s[p]] = -w[s[p]] - 2
 	}
 
 	// unmark node k
-	w[k] = -int((w[k])) - 2
+	w[k] = -w[k] - 2
 
 	// s [top..n-1] contains pattern of L(k,:)
-	return int((top))
+	return top
 }
 
 // cs_etree - compute the etree of A (using triu(A), or A'A without forming A'A
@@ -3428,10 +3410,10 @@ func cs_reach(G *Cs, B *Cs, k int, xi []int, pinv []int) int {
 
 	// restore G
 	for p = top; p < n; p++ {
-		Gp[xi[p]] = -int((Gp[xi[p]])) - 2
+		Gp[xi[p]] = -Gp[xi[p]] - 2
 	}
 
-	return int((top))
+	return top
 }
 
 // cs_scatter - x = x + beta * A(:,j), where x is a dense vector and A(:,j) is sparse
@@ -3567,7 +3549,7 @@ func cs_schol(order int, A *Cs) (result *css) {
 	}
 	n = A.n
 	// allocate result S
-	S = new(css) // cs_calloc(1, uint(0)).([]css)
+	S = new(css)
 	if S == nil {
 		// out of memory
 		return nil
@@ -3592,7 +3574,7 @@ func cs_schol(order int, A *Cs) (result *css) {
 	cs_free(post)
 	cs_free(C) // TODO (KI) : remove
 	// allocate result S->cp
-	S.cp = make([]int, n+1) // cs_malloc(n+1, uint(0)).([]int)
+	S.cp = make([]int, n+1)
 	var err error
 	S.lnz, err = cs_cumsum(S.cp, c)
 	if err != nil {
@@ -3632,12 +3614,12 @@ func cs_spsolve(G *Cs, B *Cs, k int, xi []int, x []float64, pinv []int, lo bool)
 	Gp = G.p
 	Gi = G.i
 	Gx = G.x
-	n = int(G.n)
+	n = G.n
 	Bp = B.p
 	Bi = B.i
 	Bx = B.x
 	// xi[top..n-1]=Reach(B(:,k))
-	top = cs_reach(G, B, int(k), xi, pinv)
+	top = cs_reach(G, B, k, xi, pinv)
 
 	// clear x
 	for p = top; p < n; p++ {
@@ -3653,12 +3635,12 @@ func cs_spsolve(G *Cs, B *Cs, k int, xi []int, x []float64, pinv []int, lo bool)
 		// x(j) is nonzero
 		j = xi[px]
 		// j maps to col J of G
-		J = int(func() int {
+		J = func() int {
 			if pinv != nil {
 				return (pinv[j])
 			}
 			return (j)
-		}())
+		}()
 		if J < 0 {
 			// column J is empty
 			continue
@@ -3666,17 +3648,17 @@ func cs_spsolve(G *Cs, B *Cs, k int, xi []int, x []float64, pinv []int, lo bool)
 		// x(j) /= G(j,j)
 		x[j] /= Gx[func() int {
 			if lo {
-				return (Gp[J])
+				return Gp[J]
 			}
-			return (int(Gp[J+1] - 1))
+			return (Gp[J+1] - 1)
 		}()]
 		// lo: L(j,j) 1st entry
-		p = int(func() int {
+		p = func() int {
 			if lo {
-				return (int(Gp[J] + 1))
+				return (Gp[J] + 1)
 			}
-			return (Gp[J])
-		}())
+			return Gp[J]
+		}()
 		// up: U(j,j) last entry
 		q = func() int {
 			if lo {
@@ -3690,7 +3672,7 @@ func cs_spsolve(G *Cs, B *Cs, k int, xi []int, x []float64, pinv []int, lo bool)
 		}
 	}
 	// return top of stack
-	return int((top))
+	return top
 }
 
 // cs_vcount - compute nnz(V) = S->lnz, S->pinv, S->leftmost, S->m2 from A and S->parent
