@@ -1734,10 +1734,19 @@ func Dupl(A *Cs) error {
 		w[i] = -1
 	}
 
+	// Example of input:
+	// Ap =  [0     4      6]
+	// Ai =  [0 1 0 1  0 1]
+	// Ax =  [1 3 1 10 2 4]
+
 	var nz int = 0
 	for j := 0; j < n; j++ {
 		// column j will start at q
 		q := nz
+
+		// Example of w:
+		// step 0 : [-1 -1]
+		// step 1 : [ 0  1]
 		for p := Ap[j]; p < Ap[j+1]; p++ {
 			// A(i,j) is nonzero
 			i := Ai[p]
@@ -1761,6 +1770,11 @@ func Dupl(A *Cs) error {
 	Ap[n] = nz
 	// remove extra space from A
 	cs_sprealloc(A, 0)
+
+	// Example of output:
+	// Ap =  [0    2    4]
+	// Ai =  [0 1  0 1 ]
+	// Ax =  [2 13 2 4 ]
 
 	return nil
 }
