@@ -887,38 +887,183 @@ func ExampleDupl() {
 
 func ExamplePrint() {
 	T := new(Cs)
-	err := Entry(T, 1, 1, 10)
-	if err != nil {
-		panic(err)
-	}
-	err = Entry(T, 0, 0, 1)
-	if err != nil {
-		panic(err)
+	for i := 0; i < 25; i++ {
+		err := Entry(T, i, i, 10)
+		if err != nil {
+			panic(err)
+		}
 	}
 	osStdout = os.Stdout // for output in standart stdout
 
-	fmt.Fprintln(os.Stdout, "Print triplets:")
+	fmt.Fprintln(os.Stdout, "Full print of triplets:")
 	Print(T, false)
+
+	fmt.Fprintln(os.Stdout, "Short print of triplets:")
+	Print(T, true)
 
 	A, err := Compress(T)
 	if err != nil {
 		panic(err)
 	}
 
-	fmt.Fprintln(os.Stdout, "Print CSC matrix:")
+	fmt.Fprintln(os.Stdout, "Full print of CSC matrix:")
 	Print(A, false)
 
+	fmt.Fprintln(os.Stdout, "Short print of CSC matrix:")
+	Print(A, true)
+
 	// Output:
-	// Print triplets:
+	// Full print of triplets:
 	// CSparse Version 3.2.0, Sept 12, 2017.  Copyright (c) Timothy A. Davis, 2006-2016
-	// triplet: 2-by-2, nzmax: 2 nnz: 2
-	//     1 1 : 1.000000e+00
+	// triplet: 25-by-25, nzmax: 32 nnz: 25
 	//     0 0 : 1.000000e+00
-	// Print CSC matrix:
+	//     1 1 : 1.000000e+00
+	//     2 2 : 1.000000e+00
+	//     3 3 : 1.000000e+00
+	//     4 4 : 1.000000e+00
+	//     5 5 : 1.000000e+00
+	//     6 6 : 1.000000e+00
+	//     7 7 : 1.000000e+00
+	//     8 8 : 1.000000e+00
+	//     9 9 : 1.000000e+00
+	//     10 10 : 1.000000e+00
+	//     11 11 : 1.000000e+00
+	//     12 12 : 1.000000e+00
+	//     13 13 : 1.000000e+00
+	//     14 14 : 1.000000e+00
+	//     15 15 : 1.000000e+00
+	//     16 16 : 1.000000e+00
+	//     17 17 : 1.000000e+00
+	//     18 18 : 1.000000e+00
+	//     19 19 : 1.000000e+00
+	//     20 20 : 1.000000e+00
+	//     21 21 : 1.000000e+00
+	//     22 22 : 1.000000e+00
+	//     23 23 : 1.000000e+00
+	//     24 24 : 1.000000e+00
+	// Short print of triplets:
 	// CSparse Version 3.2.0, Sept 12, 2017.  Copyright (c) Timothy A. Davis, 2006-2016
-	// 2-by-2, nzmax: 2 nnz: 2, 1-norm: -1.000000e+00
+	// triplet: 25-by-25, nzmax: 32 nnz: 25
+	//     0 0 : 1.000000e+00
+	//     1 1 : 1.000000e+00
+	//     2 2 : 1.000000e+00
+	//     3 3 : 1.000000e+00
+	//     4 4 : 1.000000e+00
+	//     5 5 : 1.000000e+00
+	//     6 6 : 1.000000e+00
+	//     7 7 : 1.000000e+00
+	//     8 8 : 1.000000e+00
+	//     9 9 : 1.000000e+00
+	//     10 10 : 1.000000e+00
+	//     11 11 : 1.000000e+00
+	//     12 12 : 1.000000e+00
+	//     13 13 : 1.000000e+00
+	//     14 14 : 1.000000e+00
+	//     15 15 : 1.000000e+00
+	//     16 16 : 1.000000e+00
+	//     17 17 : 1.000000e+00
+	//     18 18 : 1.000000e+00
+	//     19 19 : 1.000000e+00
+	//     20 20 : 1.000000e+00
+	//     21 21 : 1.000000e+00
+	//   ...
+	// Full print of CSC matrix:
+	// CSparse Version 3.2.0, Sept 12, 2017.  Copyright (c) Timothy A. Davis, 2006-2016
+	// 25-by-25, nzmax: 25 nnz: 25, 1-norm: -1.000000e+00
 	//     col 0 : locations 0 to 0
 	//       0 : 1.000000e+00
 	//     col 1 : locations 1 to 1
 	//       1 : 1.000000e+00
+	//     col 2 : locations 2 to 2
+	//       2 : 1.000000e+00
+	//     col 3 : locations 3 to 3
+	//       3 : 1.000000e+00
+	//     col 4 : locations 4 to 4
+	//       4 : 1.000000e+00
+	//     col 5 : locations 5 to 5
+	//       5 : 1.000000e+00
+	//     col 6 : locations 6 to 6
+	//       6 : 1.000000e+00
+	//     col 7 : locations 7 to 7
+	//       7 : 1.000000e+00
+	//     col 8 : locations 8 to 8
+	//       8 : 1.000000e+00
+	//     col 9 : locations 9 to 9
+	//       9 : 1.000000e+00
+	//     col 10 : locations 10 to 10
+	//       10 : 1.000000e+00
+	//     col 11 : locations 11 to 11
+	//       11 : 1.000000e+00
+	//     col 12 : locations 12 to 12
+	//       12 : 1.000000e+00
+	//     col 13 : locations 13 to 13
+	//       13 : 1.000000e+00
+	//     col 14 : locations 14 to 14
+	//       14 : 1.000000e+00
+	//     col 15 : locations 15 to 15
+	//       15 : 1.000000e+00
+	//     col 16 : locations 16 to 16
+	//       16 : 1.000000e+00
+	//     col 17 : locations 17 to 17
+	//       17 : 1.000000e+00
+	//     col 18 : locations 18 to 18
+	//       18 : 1.000000e+00
+	//     col 19 : locations 19 to 19
+	//       19 : 1.000000e+00
+	//     col 20 : locations 20 to 20
+	//       20 : 1.000000e+00
+	//     col 21 : locations 21 to 21
+	//       21 : 1.000000e+00
+	//     col 22 : locations 22 to 22
+	//       22 : 1.000000e+00
+	//     col 23 : locations 23 to 23
+	//       23 : 1.000000e+00
+	//     col 24 : locations 24 to 24
+	//       24 : 1.000000e+00
+	// Short print of CSC matrix:
+	// CSparse Version 3.2.0, Sept 12, 2017.  Copyright (c) Timothy A. Davis, 2006-2016
+	//       0 : 1.000000e+00
+	//     col 1 : locations 1 to 1
+	//       1 : 1.000000e+00
+	//     col 2 : locations 2 to 2
+	//       2 : 1.000000e+00
+	//     col 3 : locations 3 to 3
+	//       3 : 1.000000e+00
+	//     col 4 : locations 4 to 4
+	//       4 : 1.000000e+00
+	//     col 5 : locations 5 to 5
+	//       5 : 1.000000e+00
+	//     col 6 : locations 6 to 6
+	//       6 : 1.000000e+00
+	//     col 7 : locations 7 to 7
+	//       7 : 1.000000e+00
+	//     col 8 : locations 8 to 8
+	//       8 : 1.000000e+00
+	//     col 9 : locations 9 to 9
+	//       9 : 1.000000e+00
+	//     col 10 : locations 10 to 10
+	//       10 : 1.000000e+00
+	//     col 11 : locations 11 to 11
+	//       11 : 1.000000e+00
+	//     col 12 : locations 12 to 12
+	//       12 : 1.000000e+00
+	//     col 13 : locations 13 to 13
+	//       13 : 1.000000e+00
+	//     col 14 : locations 14 to 14
+	//       14 : 1.000000e+00
+	//     col 15 : locations 15 to 15
+	//       15 : 1.000000e+00
+	//     col 16 : locations 16 to 16
+	//       16 : 1.000000e+00
+	//     col 17 : locations 17 to 17
+	//       17 : 1.000000e+00
+	//     col 18 : locations 18 to 18
+	//       18 : 1.000000e+00
+	//     col 19 : locations 19 to 19
+	//       19 : 1.000000e+00
+	//     col 20 : locations 20 to 20
+	//       20 : 1.000000e+00
+	//     col 21 : locations 21 to 21
+	//       21 : 1.000000e+00
+	//   ...
 }
