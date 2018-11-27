@@ -1745,8 +1745,8 @@ func Dupl(A *Cs) error {
 		q := nz
 
 		// Example of w:
-		// step 0 : [-1 -1]
-		// step 1 : [ 0  1]
+		// step j = 0 : [-1 -1]
+		// step j = 1 : [ 0  1]
 		for p := Ap[j]; p < Ap[j+1]; p++ {
 			// A(i,j) is nonzero
 			i := Ai[p]
