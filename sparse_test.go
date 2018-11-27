@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"math"
+	"os"
 	"path/filepath"
 	"sort"
 	"strconv"
@@ -700,6 +701,32 @@ func TestGaxpy(t *testing.T) {
 	})
 }
 
+func ExampleGaxpy() {
+	var s bytes.Buffer
+	s.WriteString("0 0 1\n1 0 3\n2 0 5\n0 1 2\n1 1 4\n2 1 6")
+	T := Load(&s)
+	A, err := Compress(T)
+	if err != nil {
+		panic(err)
+	}
+	x := []float64{7, 8}
+	y := []float64{9, 10, 11}
+	fmt.Fprintln(os.Stdout, "Vector `y` before:")
+	fmt.Fprintln(os.Stdout, y)
+	err = Gaxpy(A, x, y)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Fprintln(os.Stdout, "Vector `y` before:")
+	fmt.Fprintln(os.Stdout, y)
+
+	// Output:
+	// Vector `y` before:
+	// [9 10 11]
+	// Vector `y` before:
+	// [32 63 94]
+}
+
 func TestAdd(t *testing.T) {
 	snapshot("./testdata/.snapshot.add", t, func() {
 		var stdin bytes.Buffer
@@ -719,6 +746,36 @@ func TestAdd(t *testing.T) {
 		}
 		Print(R, false)
 	})
+}
+
+func ExampleAdd() {
+	var stdin bytes.Buffer
+	stdin.WriteString("0 0 1\n0 1 2\n1 0 3\n1 1 4")
+	T := Load(&stdin)
+	A, err := Compress(T)
+	if err != nil {
+		panic(err)
+	}
+	AT, err := Transpose(A)
+	if err != nil {
+		panic(err)
+	}
+	R, err := Add(A, AT, 1, 2)
+	if err != nil {
+		panic(err)
+	}
+	osStdout = os.Stdout // for output in standart stdout
+	Print(R, false)
+
+	// Output:
+	// CSparse Version 3.2.0, Sept 12, 2017.  Copyright (c) Timothy A. Davis, 2006-2016
+	// 2-by-2, nzmax: 4 nnz: 4, 1-norm: 2.000000e+01
+	//     col 0 : locations 0 to 1
+	//       0 : 3.000000e+00
+	//       1 : 7.000000e+00
+	//     col 1 : locations 2 to 3
+	//       0 : 8.000000e+00
+	//       1 : 1.200000e+01
 }
 
 func TestCumsum(t *testing.T) {
@@ -785,4 +842,231 @@ func TestDupl(t *testing.T) {
 		}
 		Print(A, false)
 	})
+}
+
+func ExampleDupl() {
+	var stdin bytes.Buffer
+	stdin.WriteString(" 1 0 10\n 0 0 1\n 1 1 4\n 1 0 3\n 0 1 2\n 0 0 1 ")
+	T := Load(&stdin)
+	A, err := Compress(T)
+	if err != nil {
+		panic(err)
+	}
+	osStdout = os.Stdout // for output in standart stdout
+	fmt.Fprintln(os.Stdout, "Before:")
+	Print(A, false)
+	err = Dupl(A)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Fprintln(os.Stdout, "After:")
+	Print(A, false)
+
+	// Output:
+	// Before:
+	// CSparse Version 3.2.0, Sept 12, 2017.  Copyright (c) Timothy A. Davis, 2006-2016
+	// 2-by-2, nzmax: 6 nnz: 6, 1-norm: 1.500000e+01
+	//     col 0 : locations 0 to 3
+	//       1 : 1.000000e+01
+	//       0 : 1.000000e+00
+	//       1 : 3.000000e+00
+	//       0 : 1.000000e+00
+	//     col 1 : locations 4 to 5
+	//       1 : 4.000000e+00
+	//       0 : 2.000000e+00
+	// After:
+	// CSparse Version 3.2.0, Sept 12, 2017.  Copyright (c) Timothy A. Davis, 2006-2016
+	// 2-by-2, nzmax: 4 nnz: 4, 1-norm: 1.500000e+01
+	//     col 0 : locations 0 to 1
+	//       1 : 1.300000e+01
+	//       0 : 2.000000e+00
+	//     col 1 : locations 2 to 3
+	//       1 : 4.000000e+00
+	//       0 : 2.000000e+00
+}
+
+func ExamplePrint() {
+	T := new(Cs)
+	for i := 0; i < 25; i++ {
+		err := Entry(T, i, i, 10)
+		if err != nil {
+			panic(err)
+		}
+	}
+	osStdout = os.Stdout // for output in standart stdout
+
+	fmt.Fprintln(os.Stdout, "Full print of triplets:")
+	Print(T, false)
+
+	fmt.Fprintln(os.Stdout, "Short print of triplets:")
+	Print(T, true)
+
+	A, err := Compress(T)
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Fprintln(os.Stdout, "Full print of CSC matrix:")
+	Print(A, false)
+
+	fmt.Fprintln(os.Stdout, "Short print of CSC matrix:")
+	Print(A, true)
+
+	// Output:
+	// Full print of triplets:
+	// CSparse Version 3.2.0, Sept 12, 2017.  Copyright (c) Timothy A. Davis, 2006-2016
+	// triplet: 25-by-25, nzmax: 32 nnz: 25
+	//     0 0 : 1.000000e+00
+	//     1 1 : 1.000000e+00
+	//     2 2 : 1.000000e+00
+	//     3 3 : 1.000000e+00
+	//     4 4 : 1.000000e+00
+	//     5 5 : 1.000000e+00
+	//     6 6 : 1.000000e+00
+	//     7 7 : 1.000000e+00
+	//     8 8 : 1.000000e+00
+	//     9 9 : 1.000000e+00
+	//     10 10 : 1.000000e+00
+	//     11 11 : 1.000000e+00
+	//     12 12 : 1.000000e+00
+	//     13 13 : 1.000000e+00
+	//     14 14 : 1.000000e+00
+	//     15 15 : 1.000000e+00
+	//     16 16 : 1.000000e+00
+	//     17 17 : 1.000000e+00
+	//     18 18 : 1.000000e+00
+	//     19 19 : 1.000000e+00
+	//     20 20 : 1.000000e+00
+	//     21 21 : 1.000000e+00
+	//     22 22 : 1.000000e+00
+	//     23 23 : 1.000000e+00
+	//     24 24 : 1.000000e+00
+	// Short print of triplets:
+	// CSparse Version 3.2.0, Sept 12, 2017.  Copyright (c) Timothy A. Davis, 2006-2016
+	// triplet: 25-by-25, nzmax: 32 nnz: 25
+	//     0 0 : 1.000000e+00
+	//     1 1 : 1.000000e+00
+	//     2 2 : 1.000000e+00
+	//     3 3 : 1.000000e+00
+	//     4 4 : 1.000000e+00
+	//     5 5 : 1.000000e+00
+	//     6 6 : 1.000000e+00
+	//     7 7 : 1.000000e+00
+	//     8 8 : 1.000000e+00
+	//     9 9 : 1.000000e+00
+	//     10 10 : 1.000000e+00
+	//     11 11 : 1.000000e+00
+	//     12 12 : 1.000000e+00
+	//     13 13 : 1.000000e+00
+	//     14 14 : 1.000000e+00
+	//     15 15 : 1.000000e+00
+	//     16 16 : 1.000000e+00
+	//     17 17 : 1.000000e+00
+	//     18 18 : 1.000000e+00
+	//     19 19 : 1.000000e+00
+	//     20 20 : 1.000000e+00
+	//     21 21 : 1.000000e+00
+	//   ...
+	// Full print of CSC matrix:
+	// CSparse Version 3.2.0, Sept 12, 2017.  Copyright (c) Timothy A. Davis, 2006-2016
+	// 25-by-25, nzmax: 25 nnz: 25, 1-norm: -1.000000e+00
+	//     col 0 : locations 0 to 0
+	//       0 : 1.000000e+00
+	//     col 1 : locations 1 to 1
+	//       1 : 1.000000e+00
+	//     col 2 : locations 2 to 2
+	//       2 : 1.000000e+00
+	//     col 3 : locations 3 to 3
+	//       3 : 1.000000e+00
+	//     col 4 : locations 4 to 4
+	//       4 : 1.000000e+00
+	//     col 5 : locations 5 to 5
+	//       5 : 1.000000e+00
+	//     col 6 : locations 6 to 6
+	//       6 : 1.000000e+00
+	//     col 7 : locations 7 to 7
+	//       7 : 1.000000e+00
+	//     col 8 : locations 8 to 8
+	//       8 : 1.000000e+00
+	//     col 9 : locations 9 to 9
+	//       9 : 1.000000e+00
+	//     col 10 : locations 10 to 10
+	//       10 : 1.000000e+00
+	//     col 11 : locations 11 to 11
+	//       11 : 1.000000e+00
+	//     col 12 : locations 12 to 12
+	//       12 : 1.000000e+00
+	//     col 13 : locations 13 to 13
+	//       13 : 1.000000e+00
+	//     col 14 : locations 14 to 14
+	//       14 : 1.000000e+00
+	//     col 15 : locations 15 to 15
+	//       15 : 1.000000e+00
+	//     col 16 : locations 16 to 16
+	//       16 : 1.000000e+00
+	//     col 17 : locations 17 to 17
+	//       17 : 1.000000e+00
+	//     col 18 : locations 18 to 18
+	//       18 : 1.000000e+00
+	//     col 19 : locations 19 to 19
+	//       19 : 1.000000e+00
+	//     col 20 : locations 20 to 20
+	//       20 : 1.000000e+00
+	//     col 21 : locations 21 to 21
+	//       21 : 1.000000e+00
+	//     col 22 : locations 22 to 22
+	//       22 : 1.000000e+00
+	//     col 23 : locations 23 to 23
+	//       23 : 1.000000e+00
+	//     col 24 : locations 24 to 24
+	//       24 : 1.000000e+00
+	// Short print of CSC matrix:
+	// CSparse Version 3.2.0, Sept 12, 2017.  Copyright (c) Timothy A. Davis, 2006-2016
+	// 25-by-25, nzmax: 25 nnz: 25, 1-norm: -1.000000e+00
+	//     col 0 : locations 0 to 0
+	//       0 : 1.000000e+00
+	//     col 1 : locations 1 to 1
+	//       1 : 1.000000e+00
+	//     col 2 : locations 2 to 2
+	//       2 : 1.000000e+00
+	//     col 3 : locations 3 to 3
+	//       3 : 1.000000e+00
+	//     col 4 : locations 4 to 4
+	//       4 : 1.000000e+00
+	//     col 5 : locations 5 to 5
+	//       5 : 1.000000e+00
+	//     col 6 : locations 6 to 6
+	//       6 : 1.000000e+00
+	//     col 7 : locations 7 to 7
+	//       7 : 1.000000e+00
+	//     col 8 : locations 8 to 8
+	//       8 : 1.000000e+00
+	//     col 9 : locations 9 to 9
+	//       9 : 1.000000e+00
+	//     col 10 : locations 10 to 10
+	//       10 : 1.000000e+00
+	//     col 11 : locations 11 to 11
+	//       11 : 1.000000e+00
+	//     col 12 : locations 12 to 12
+	//       12 : 1.000000e+00
+	//     col 13 : locations 13 to 13
+	//       13 : 1.000000e+00
+	//     col 14 : locations 14 to 14
+	//       14 : 1.000000e+00
+	//     col 15 : locations 15 to 15
+	//       15 : 1.000000e+00
+	//     col 16 : locations 16 to 16
+	//       16 : 1.000000e+00
+	//     col 17 : locations 17 to 17
+	//       17 : 1.000000e+00
+	//     col 18 : locations 18 to 18
+	//       18 : 1.000000e+00
+	//     col 19 : locations 19 to 19
+	//       19 : 1.000000e+00
+	//     col 20 : locations 20 to 20
+	//       20 : 1.000000e+00
+	//     col 21 : locations 21 to 21
+	//       21 : 1.000000e+00
+	//   ...
+
 }
