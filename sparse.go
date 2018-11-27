@@ -68,36 +68,36 @@ func Add(A *Cs, B *Cs, α float64, β float64) (*Cs, error) {
 	// check input data
 	et := errors.New("Function Add: check input data")
 	if A == nil {
-		et.Add(fmt.Errorf("matrix A is nil"))
+		_ = et.Add(fmt.Errorf("matrix A is nil"))
 	}
 	if A != nil && A.nz != -1 {
-		et.Add(fmt.Errorf("matrix A is not CSC(Compressed Sparse Column) format"))
+		_ = et.Add(fmt.Errorf("matrix A is not CSC(Compressed Sparse Column) format"))
 	}
 	if B == nil {
-		et.Add(fmt.Errorf("matrix B is nil"))
+		_ = et.Add(fmt.Errorf("matrix B is nil"))
 	}
 	if B != nil && B.nz != -1 {
-		et.Add(fmt.Errorf("matrix B is not CSC(Compressed Sparse Column) format"))
+		_ = et.Add(fmt.Errorf("matrix B is not CSC(Compressed Sparse Column) format"))
 	}
 	if A != nil && B != nil {
 		if A.m != B.m {
-			et.Add(fmt.Errorf("amount of rows in matrixes A and B is not same: %d != %d", A.m, B.m))
+			_ = et.Add(fmt.Errorf("amount of rows in matrixes A and B is not same: %d != %d", A.m, B.m))
 		}
 		if A.n != B.n {
-			et.Add(fmt.Errorf("amount of columns in matrixes A and B is not same: %d != %d", A.n, B.n))
+			_ = et.Add(fmt.Errorf("amount of columns in matrixes A and B is not same: %d != %d", A.n, B.n))
 		}
 	}
 	if math.IsNaN(α) {
-		et.Add(fmt.Errorf("factor α is Nan value"))
+		_ = et.Add(fmt.Errorf("factor α is Nan value"))
 	}
 	if math.IsNaN(β) {
-		et.Add(fmt.Errorf("factor β is Nan value"))
+		_ = et.Add(fmt.Errorf("factor β is Nan value"))
 	}
 	if math.IsInf(α, 0) {
-		et.Add(fmt.Errorf("factor α is infinity value"))
+		_ = et.Add(fmt.Errorf("factor α is infinity value"))
 	}
 	if math.IsInf(β, 0) {
-		et.Add(fmt.Errorf("factor β is infinity value"))
+		_ = et.Add(fmt.Errorf("factor β is infinity value"))
 	}
 
 	if et.IsError() {
@@ -1034,10 +1034,10 @@ func Compress(T *Cs) (*Cs, error) {
 	// check input data
 	et := errors.New("Function Add: check input data")
 	if T == nil {
-		et.Add(fmt.Errorf("matrix T is nil"))
+		_ = et.Add(fmt.Errorf("matrix T is nil"))
 	}
 	if T != nil && T.nz == -1 {
-		et.Add(fmt.Errorf("matrix T is not triplet format"))
+		_ = et.Add(fmt.Errorf("matrix T is not triplet format"))
 	}
 
 	if et.IsError() {
@@ -1268,13 +1268,13 @@ func cs_cumsum(p []int, c []int) (int, error) {
 	// check input data
 	et := errors.New("Function cs_cumsum: check input data")
 	if p == nil {
-		et.Add(fmt.Errorf("Vector p is nil"))
+		_ = et.Add(fmt.Errorf("Vector p is nil"))
 	}
 	if c == nil {
-		et.Add(fmt.Errorf("Vector c is nil"))
+		_ = et.Add(fmt.Errorf("Vector c is nil"))
 	}
 	if len(p) != len(c)+1 {
-		et.Add(fmt.Errorf("length of `p` is not length of `c` + 1: %d != %d + 1", len(p), len(c)))
+		_ = et.Add(fmt.Errorf("length of `p` is not length of `c` + 1: %d != %d + 1", len(p), len(c)))
 	}
 
 	if et.IsError() {
@@ -1712,10 +1712,10 @@ func Dupl(A *Cs) error {
 	// check input data
 	et := errors.New("Function Dupl: check input data")
 	if A == nil {
-		et.Add(fmt.Errorf("matrix A is nil"))
+		_ = et.Add(fmt.Errorf("matrix A is nil"))
 	}
 	if A != nil && A.nz != -1 {
-		et.Add(fmt.Errorf("matrix A is not CSC(Compressed Sparse Column) format"))
+		_ = et.Add(fmt.Errorf("matrix A is not CSC(Compressed Sparse Column) format"))
 	}
 
 	if et.IsError() {
@@ -1786,27 +1786,27 @@ func Entry(T *Cs, i, j int, x float64) error {
 	// check input data
 	et := errors.New("Function Entry: check input data")
 	if T == nil {
-		et.Add(fmt.Errorf("matrix T is nil"))
+		_ = et.Add(fmt.Errorf("matrix T is nil"))
 	}
 	if T != nil && T.nz < 0 {
-		et.Add(fmt.Errorf("matrix T is not triplet format"))
+		_ = et.Add(fmt.Errorf("matrix T is not triplet format"))
 	}
 	if i < 0 {
-		et.Add(fmt.Errorf("index `i` is less zero"))
+		_ = et.Add(fmt.Errorf("index `i` is less zero"))
 	}
 	if j < 0 {
-		et.Add(fmt.Errorf("index `j` is less zero"))
+		_ = et.Add(fmt.Errorf("index `j` is less zero"))
 	}
 	if math.IsNaN(x) {
-		et.Add(fmt.Errorf("value `x` is Nan value"))
+		_ = et.Add(fmt.Errorf("value `x` is Nan value"))
 	}
 	if math.IsInf(x, 0) {
-		et.Add(fmt.Errorf("value `x` is infinity value"))
+		_ = et.Add(fmt.Errorf("value `x` is infinity value"))
 	}
 	// memory reallocation
 	if T != nil {
 		if T.nz >= T.nzmax && !cs_sprealloc(T, 2*T.nzmax) { // TODO (KI) : add error handling
-			et.Add(fmt.Errorf("cannot allocate new vector"))
+			_ = et.Add(fmt.Errorf("cannot allocate new vector"))
 		}
 	}
 
@@ -2017,23 +2017,23 @@ func Gaxpy(A *Cs, x []float64, y []float64) error {
 	// check input data
 	et := errors.New("Function Gaxpy: check input data")
 	if A == nil {
-		et.Add(fmt.Errorf("matrix A is nil"))
+		_ = et.Add(fmt.Errorf("matrix A is nil"))
 	}
 	if A != nil && A.nz != -1 {
-		et.Add(fmt.Errorf("matrix A is not CSC(Compressed Sparse Column) format"))
+		_ = et.Add(fmt.Errorf("matrix A is not CSC(Compressed Sparse Column) format"))
 	}
 	if x == nil {
-		et.Add(fmt.Errorf("Vector x is nil"))
+		_ = et.Add(fmt.Errorf("Vector x is nil"))
 	}
 	if y == nil {
-		et.Add(fmt.Errorf("Vector y is nil"))
+		_ = et.Add(fmt.Errorf("Vector y is nil"))
 	}
 	if A != nil {
 		if x != nil && A.n != len(x) {
-			et.Add(fmt.Errorf("Amount of columns in matrix is not equal length of vector x: %d != %d", A.n, len(x)))
+			_ = et.Add(fmt.Errorf("Amount of columns in matrix is not equal length of vector x: %d != %d", A.n, len(x)))
 		}
 		if y != nil && A.m != len(y) {
-			et.Add(fmt.Errorf("Amount of rows in matrix is not equal length of vector y: %d != %d", A.m, len(y)))
+			_ = et.Add(fmt.Errorf("Amount of rows in matrix is not equal length of vector y: %d != %d", A.m, len(y)))
 		}
 	}
 
@@ -4091,10 +4091,10 @@ func cs_transpose(A *Cs, values bool) (*Cs, error) {
 	// check input data
 	et := errors.New("Function Transpose: check input data")
 	if A == nil {
-		et.Add(fmt.Errorf("matrix A is nil"))
+		_ = et.Add(fmt.Errorf("matrix A is nil"))
 	}
 	if A != nil && A.nz != -1 {
-		et.Add(fmt.Errorf("matrix A is not CSC(Compressed Sparse Column) format"))
+		_ = et.Add(fmt.Errorf("matrix A is not CSC(Compressed Sparse Column) format"))
 	}
 
 	if et.IsError() {
@@ -4278,13 +4278,13 @@ func cs_spalloc(m, n, nzmax int, values bool, mf matrixFormat) (*Cs, error) {
 	// check input data
 	et := errors.New("Function cs_spalloc: check input data")
 	if m < 0 {
-		et.Add(fmt.Errorf("Value m is less zero : %d", m))
+		_ = et.Add(fmt.Errorf("Value m is less zero : %d", m))
 	}
 	if n < 0 {
-		et.Add(fmt.Errorf("Value n is less zero : %d", n))
+		_ = et.Add(fmt.Errorf("Value n is less zero : %d", n))
 	}
 	if nzmax < 0 {
-		et.Add(fmt.Errorf("Value nzmax is less zero : %d", nzmax))
+		_ = et.Add(fmt.Errorf("Value nzmax is less zero : %d", nzmax))
 	}
 
 	if et.IsError() {
