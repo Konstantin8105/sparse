@@ -1710,7 +1710,7 @@ func cs_dropzeros(A *Cs) int {
 // Name function in CSparse: cs_dupl
 func Dupl(A *Cs) error {
 	// check input data
-	et := errors.New("Function Add: check input data")
+	et := errors.New("Function Dupl: check input data")
 	if A == nil {
 		et.Add(fmt.Errorf("matrix A is nil"))
 	}

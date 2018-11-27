@@ -1,0 +1,18 @@
+CSparse Version 3.2.0, Sept 12, 2017.  Copyright (c) Timothy A. Davis, 2006-2016
+2-by-2, nzmax: 6 nnz: 6, 1-norm: 1.500000e+01
+    col 0 : locations 0 to 3
+      0 : 1.000000e+00
+      1 : 3.000000e+00
+      0 : 1.000000e+00
+      1 : 1.000000e+01
+    col 1 : locations 4 to 5
+      0 : 2.000000e+00
+      1 : 4.000000e+00
+CSparse Version 3.2.0, Sept 12, 2017.  Copyright (c) Timothy A. Davis, 2006-2016
+2-by-2, nzmax: 4 nnz: 4, 1-norm: 1.500000e+01
+    col 0 : locations 0 to 1
+      0 : 2.000000e+00
+      1 : 1.300000e+01
+    col 1 : locations 2 to 3
+      0 : 2.000000e+00
+      1 : 4.000000e+00

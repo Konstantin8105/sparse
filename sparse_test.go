@@ -728,3 +728,21 @@ func TestCumsum(t *testing.T) {
 		t.Log(err)
 	})
 }
+
+func TestDupl(t *testing.T) {
+	snapshot("./testdata/.snapshot.dupl", t, func() {
+		var stdin bytes.Buffer
+		stdin.WriteString("0 0 1\n0 1 2\n1 0 3\n1 1 4\n 0 0 1\n 1 0 10")
+		T := Load(&stdin)
+		A, err := Compress(T)
+		if err != nil {
+			t.Fatal(err)
+		}
+		Print(A, false)
+		err = Dupl(A)
+		if err != nil {
+			t.Fatal(err)
+		}
+		Print(A, false)
+	})
+}
