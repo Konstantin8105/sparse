@@ -711,14 +711,14 @@ func ExampleGaxpy() {
 	}
 	x := []float64{7, 8}
 	y := []float64{9, 10, 11}
-	fmt.Println("Vector `y` before:")
-	fmt.Println(y)
+	fmt.Fprintln(os.Stdout, "Vector `y` before:")
+	fmt.Fprintln(os.Stdout, y)
 	err = Gaxpy(A, x, y)
 	if err != nil {
 		panic(err)
 	}
-	fmt.Println("Vector `y` before:")
-	fmt.Println(y)
+	fmt.Fprintln(os.Stdout, "Vector `y` before:")
+	fmt.Fprintln(os.Stdout, y)
 
 	// Output:
 	// Vector `y` before:
@@ -853,13 +853,13 @@ func ExampleDupl() {
 		panic(err)
 	}
 	osStdout = os.Stdout // for output in standart stdout
-	fmt.Println("Before:")
+	fmt.Fprintln(os.Stdout, "Before:")
 	Print(A, false)
 	err = Dupl(A)
 	if err != nil {
 		panic(err)
 	}
-	fmt.Println("After:")
+	fmt.Fprintln(os.Stdout, "After:")
 	Print(A, false)
 
 	// Output:
@@ -883,4 +883,42 @@ func ExampleDupl() {
 	//     col 1 : locations 2 to 3
 	//       1 : 4.000000e+00
 	//       0 : 2.000000e+00
+}
+
+func ExamplePrint() {
+	T := new(Cs)
+	err := Entry(T, 1, 1, 10)
+	if err != nil {
+		panic(err)
+	}
+	err = Entry(T, 0, 0, 1)
+	if err != nil {
+		panic(err)
+	}
+	osStdout = os.Stdout // for output in standart stdout
+
+	fmt.Fprintln(os.Stdout, "Print triplets:")
+	Print(T, false)
+
+	A, err := Compress(T)
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Fprintln(os.Stdout, "Print CSC matrix:")
+	Print(A, false)
+
+	// Output:
+	// Print triplets:
+	// CSparse Version 3.2.0, Sept 12, 2017.  Copyright (c) Timothy A. Davis, 2006-2016
+	// triplet: 2-by-2, nzmax: 2 nnz: 2
+	//     1 1 : 1.000000e+00
+	//     0 0 : 1.000000e+00
+	// Print CSC matrix:
+	// CSparse Version 3.2.0, Sept 12, 2017.  Copyright (c) Timothy A. Davis, 2006-2016
+	// 2-by-2, nzmax: 2 nnz: 2, 1-norm: -1.000000e+00
+	//     col 0 : locations 0 to 0
+	//       0 : 1.000000e+00
+	//     col 1 : locations 1 to 1
+	//       1 : 1.000000e+00
 }
