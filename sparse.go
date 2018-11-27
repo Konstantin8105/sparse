@@ -1706,6 +1706,8 @@ func cs_dropzeros(A *Cs) int {
 }
 
 // Dupl - remove duplicate entries from A
+//
+// Name function in CSparse: cs_dupl
 func Dupl(A *Cs) error {
 	// check input data
 	et := errors.New("Function Add: check input data")
@@ -2757,6 +2759,7 @@ func cs_maxtrans(A *Cs, seed int) []int {
 //
 // Name function in CSparse : cs_multiply.
 func Multiply(A *Cs, B *Cs) *Cs {
+	// TODO (KI): add error handling
 	var p int
 	var nz int
 	var anz int
