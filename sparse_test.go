@@ -1022,6 +1022,8 @@ func ExamplePrint() {
 	//       24 : 1.000000e+00
 	// Short print of CSC matrix:
 	// CSparse Version 3.2.0, Sept 12, 2017.  Copyright (c) Timothy A. Davis, 2006-2016
+	// 25-by-25, nzmax: 25 nnz: 25, 1-norm: -1.000000e+00
+	//     col 0 : locations 0 to 0
 	//       0 : 1.000000e+00
 	//     col 1 : locations 1 to 1
 	//       1 : 1.000000e+00
@@ -1066,4 +1068,5 @@ func ExamplePrint() {
 	//     col 21 : locations 21 to 21
 	//       21 : 1.000000e+00
 	//   ...
+
 }
