@@ -36,5 +36,24 @@ go tool pprof mem.prof
 
 ### Questions for CSparse
 
-* Variables `css.lnz` and `css.unz` is not float type `double`, better to use integer type like `long`.
-* Value `values` in function `cs_add` is no need.
+* Variables `css.lnz` and `css.unz` is not float type `double`, better to use integer type like `int`.
+* Not clear size of variable `w` in function `cs_dupl`. By default it is take - amount of rows, but we can take less memory, if we will use next calculation. But we have to reindex :
+```go
+	// find maximal amount of non-zero values in row
+	m := 0
+	for j := 0; j < n; j++ {      // iteration by columns in CSC
+		if mz < Ap[j+1]-Ap[j] {   // comparing
+			mz = Ap[j+1] - Ap[j]  // save new size
+		}
+	}
+	fmt.Printf("Max. non-zero values in row: %d \n", mz)
+	for i := 0; i < mz; i++ {
+		w[i] = -1
+	}
+	// TODO: need reindex
+	...
+	i := Ai[p]
+	if w[i] >= g{ // need reindex w[i]
+	...
+```
+* 
