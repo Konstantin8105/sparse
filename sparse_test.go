@@ -263,6 +263,22 @@ func TestNilCheck(t *testing.T) {
 				}(),
 			},
 		},
+		{
+			name: "Dupl",
+			fs: []error{
+				func() error {
+					err := Dupl(nil)
+					return err
+				}(),
+				func() error {
+					var s bytes.Buffer
+					s.WriteString("0 0 1\n0 1 2\n1 0 3\n1 1 4")
+					T := Load(&s)
+					err := Dupl(T)
+					return err
+				}(),
+			},
+		},
 	}
 
 	for i := range tcs {
@@ -314,9 +330,9 @@ func TestNilCheck(t *testing.T) {
 	if r := cs_dropzeros(nil); r != -1 {
 		t.Errorf("cs_dropzeros: not nil")
 	}
-	if err := Dupl(nil); err == nil {
-		t.Errorf("cs_dupl: not nil")
-	}
+	// if err := Dupl(nil); err == nil {
+	// 	t.Errorf("cs_dupl: not nil")
+	// }
 	if r := Entry(nil, -1, -1, 0); r == true {
 		t.Errorf("cs_entry: not nil")
 	}
