@@ -3,6 +3,7 @@
 
 csi test_cs_print(const cs* A, csi brief)
 {
+#ifdef PRINT
     csi p, j, m, n, nzmax, nz, *Ap, *Ai;
     double* Ax;
     if (!A) {
@@ -44,6 +45,7 @@ csi test_cs_print(const cs* A, csi brief)
             }
         }
     }
+#endif // PRINT
     return (1);
 }
 
@@ -58,6 +60,7 @@ typedef struct problem_struct {
 
 void print_problem(problem* P)
 {
+#ifdef PRINT
     printf("Matrix A:\n");
     if (P->A) {
         test_cs_print(P->A, 0);
@@ -75,9 +78,10 @@ void print_problem(problem* P)
         printf("b[%d] = %f\n", i, (double)P->b[i]);
     for (int i = 0; i < P->A->n; i++)
         printf("resid[%d] = %f\n", i, (double)P->resid[i]);
+#endif // PRINT
 }
 
-/* infinity-norm of x */
+// infinity-norm of x */
 static double norm(double* x, csi n)
 {
     csi i;
@@ -87,7 +91,7 @@ static double norm(double* x, csi n)
     return (normx);
 }
 
-/* create a right-hand side */
+// create a right-hand side */
 static void rhs(double* x, double* b, csi m)
 {
     csi i;
@@ -144,7 +148,7 @@ problem* free_problem(problem* Prob)
     return (cs_free(Prob));
 }
 
-/* compute residual, norm(A*x-b,inf) / (norm(A,1)*norm(x,inf) + norm(b,inf)) */
+// compute residual, norm(A*x-b,inf) / (norm(A,1)*norm(x,inf) + norm(b,inf)) */
 static void print_resid(csi ok, cs* A, double* x, double* b, double* resid)
 {
     csi i, m, n;
@@ -155,15 +159,16 @@ static void print_resid(csi ok, cs* A, double* x, double* b, double* resid)
     m = A->m;
     n = A->n;
     for (i = 0; i < m; i++)
-        resid[i] = -b[i]; /* resid = -b */
-    cs_gaxpy(A, x, resid); /* resid = resid + A*x  */
-    /* printf ("resid: %8.2e\n", norm (resid,m) / ((n == 0) ? 1 : */
-    /*     (cs_norm (A) * norm (x,n) + norm (b,m)))) ; */
+        resid[i] = -b[i]; // resid = -b */
+    cs_gaxpy(A, x, resid); // resid = resid + A*x  */
+    // printf ("resid: %8.2e\n", norm (resid,m) / ((n == 0) ? 1 : */
+    //     (cs_norm (A) * norm (x,n) + norm (b,m)))) ; */
     printf("\n");
 }
 
 static void print_order(csi order)
 {
+#ifdef PRINT
     switch (order) {
     case 0:
         printf("natural    ");
@@ -178,6 +183,7 @@ static void print_order(csi order)
         printf("amd(A'*A)  ");
         break;
     }
+#endif // PRINT
 }
 
 // read a problem from a file; use %g for integers to avoid csi conflicts */
@@ -202,6 +208,7 @@ problem* get_problem(FILE* f, double tol)
     cs_dropzeros(A); // drop zero entries */
 	nz2 = A->p[n];
 
+#ifdef PRINT
 	printf("n   = %d\n",(int) n  );
 	printf("nz1 = %d\n",(int) nz1);
 	printf("nz2 = %d\n",(int) nz2);
@@ -211,18 +218,24 @@ problem* get_problem(FILE* f, double tol)
 	test_cs_print(A,0);
 
 	printf("tol = %.5e\n", tol);
+#endif // PRINT
     if (tol > 0){
         int ok = cs_droptol(A, tol); // drop tiny entries (just to test) */
+#ifdef PRINT
 		printf("droptol = %d\n", ok);
+#endif // PRINT
 	}
 
+#ifdef PRINT
 	printf("A before make_sym\n");
 	test_cs_print(A,0);
+#endif // PRINT
 
 
     Prob->C = C = sym ? make_sym(A) : A; // C = A + triu(A,1)', or C=A */
     if (!C)
         return (free_problem(Prob));
+#ifdef PRINT
     printf("\n--- Matrix: %g-by-%g, nnz: %g (sym: %g: nnz %g), norm: %8.2e\n",
         (double)m, (double)n, (double)(A->p[n]), (double)sym,
         (double)(sym ? C->p[n] : 0), 
@@ -238,6 +251,7 @@ problem* get_problem(FILE* f, double tol)
     if (nz2 != A->p[n])
         printf("tiny entries dropped: %g\n",
             (double)(nz2 - A->p[n]));
+#endif // PRINT
     Prob->b = cs_malloc(mn, sizeof(double));
     Prob->x = cs_malloc(mn, sizeof(double));
     Prob->resid = cs_malloc(mn, sizeof(double));
