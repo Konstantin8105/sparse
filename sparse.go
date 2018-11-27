@@ -1705,18 +1705,26 @@ func cs_dropzeros(A *Cs) int {
 	return cs_fkeep(A, cs_nonzero, nil)
 }
 
-// cs_dupl - remove duplicate entries from A
-func cs_dupl(A *Cs) bool {
-	var nz int
-	if !(A != nil && A.nz == -1) {
-		// check inputs
-		return false
+// Dupl - remove duplicate entries from A
+//
+// Name function in CSparse: cs_dupl
+func Dupl(A *Cs) error {
+	// check input data
+	et := errors.New("Function Dupl: check input data")
+	if A == nil {
+		et.Add(fmt.Errorf("matrix A is nil"))
 	}
-	m := A.m
-	n := A.n
-	Ap := A.p
-	Ai := A.i
-	Ax := A.x
+	if A != nil && A.nz != -1 {
+		et.Add(fmt.Errorf("matrix A is not CSC(Compressed Sparse Column) format"))
+	}
+
+	if et.IsError() {
+		return et
+	}
+
+	// initialization
+	m, n, Ap, Ai, Ax := A.m, A.n, A.p, A.i, A.x
+
 	// get workspace
 	w := make([]int, m)
 	defer cs_free(w)
@@ -1726,23 +1734,34 @@ func cs_dupl(A *Cs) bool {
 		w[i] = -1
 	}
 
+	// Example of input:
+	// Ap =  [0     4      6]
+	// Ai =  [0 1 0 1  0 1]
+	// Ax =  [1 3 1 10 2 4]
+
+	var nz int = 0
 	for j := 0; j < n; j++ {
 		// column j will start at q
 		q := nz
+
+		// Example of w:
+		// step j = 0 : [-1 -1]
+		// step j = 1 : [ 0  1]
 		for p := Ap[j]; p < Ap[j+1]; p++ {
 			// A(i,j) is nonzero
 			i := Ai[p]
 			if w[i] >= q {
 				// A(i,j) is a duplicate
 				Ax[w[i]] += Ax[p]
-			} else {
-				// record where row i occurs
-				w[i] = nz
-				// keep A(i,j)
-				Ai[nz] = i
-				Ax[nz] = Ax[p]
-				nz++
+				continue
 			}
+
+			// record where row i occurs
+			w[i] = nz
+			// keep A(i,j)
+			Ai[nz] = i
+			Ax[nz] = Ax[p]
+			nz++
 		}
 		// record start of column j
 		Ap[j] = q
@@ -1750,33 +1769,67 @@ func cs_dupl(A *Cs) bool {
 	// finalize A
 	Ap[n] = nz
 	// remove extra space from A
-	return (cs_sprealloc(A, 0))
+	cs_sprealloc(A, 0)
+
+	// Example of output:
+	// Ap =  [0    2    4]
+	// Ai =  [0 1  0 1 ]
+	// Ax =  [2 13 2 4 ]
+
+	return nil
 }
 
 // Entry - add an entry to a triplet matrix; return 1 if ok, 0 otherwise
 //
 // Name function in CSparse : cs_entry.
-func Entry(T *Cs, i, j int, x float64) bool {
-	if !(T != nil && T.nz >= 0) || i < 0 || j < 0 {
-		// check inputs
-		return false
+func Entry(T *Cs, i, j int, x float64) error {
+	// check input data
+	et := errors.New("Function Entry: check input data")
+	if T == nil {
+		et.Add(fmt.Errorf("matrix T is nil"))
 	}
-	if T.nz >= T.nzmax && !cs_sprealloc(T, 2*T.nzmax) {
-		return false
+	if T != nil && T.nz < 0 {
+		et.Add(fmt.Errorf("matrix T is not triplet format"))
 	}
+	if i < 0 {
+		et.Add(fmt.Errorf("index `i` is less zero"))
+	}
+	if j < 0 {
+		et.Add(fmt.Errorf("index `j` is less zero"))
+	}
+	if math.IsNaN(x) {
+		et.Add(fmt.Errorf("value `x` is Nan value"))
+	}
+	if math.IsInf(x, 0) {
+		et.Add(fmt.Errorf("value `x` is infinity value"))
+	}
+	// memory reallocation
+	if T != nil {
+		if T.nz >= T.nzmax && !cs_sprealloc(T, 2*T.nzmax) { // TODO (KI) : add error handling
+			et.Add(fmt.Errorf("cannot allocate new vector"))
+		}
+	}
+
+	if et.IsError() {
+		return et
+	}
+
+	// add value at the end of vectors
 	if T.x != nil {
 		T.x[T.nz] = x
 	}
 	T.i[T.nz] = i
 	T.p[T.nz] = j
 	T.nz++
+
+	// calculate amount rows and columns
 	if T.m < i+1 {
 		T.m = i + 1
 	}
 	if T.n < j+1 {
 		T.n = j + 1
 	}
-	return true
+	return nil
 }
 
 // cs_ereach - find nonzero pattern of Cholesky L(k,1:k-1) using etree and triu(A(:,k))
@@ -2151,7 +2204,8 @@ func Load(f io.Reader) *Cs {
 		if err != nil || n != 3 {
 			return nil
 		}
-		if !Entry(T, i, j, x) {
+		if err := Entry(T, i, j, x); err != nil { // TODO (KI) error handling
+			_ = err
 			return nil
 		}
 	}
@@ -2747,6 +2801,7 @@ func cs_maxtrans(A *Cs, seed int) []int {
 //
 // Name function in CSparse : cs_multiply.
 func Multiply(A *Cs, B *Cs) *Cs {
+	// TODO (KI): add error handling
 	var p int
 	var nz int
 	var anz int
@@ -4317,24 +4372,17 @@ func cs_sprealloc(A *Cs, nzmax int) (result bool) {
 
 // cs_dalloc - allocate a cs_dmperm or cs_scc result
 func cs_dalloc(m, n int) *csd {
-	// if m < 1 || n < 1 {
+	// if m < 1 || n < 1 { // TODO (KI) error handling
 	// 	return nil
 	// }
 	D := new(csd)
-	if D == nil {
-		return nil
-	}
+
 	D.p = make([]int, m)
 	D.r = make([]int, m+6)
 	D.q = make([]int, n)
 	D.s = make([]int, n+6)
-	return (func() *csd {
-		if D.p == nil || D.r == nil || D.q == nil || D.s == nil {
-			cs_free(D)
-			return nil
-		}
-		return D
-	}())
+
+	return D
 }
 
 // cs_dfree - free a cs_dmperm or cs_scc result

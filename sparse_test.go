@@ -263,6 +263,46 @@ func TestNilCheck(t *testing.T) {
 				}(),
 			},
 		},
+		{
+			name: "Dupl",
+			fs: []error{
+				func() error {
+					err := Dupl(nil)
+					return err
+				}(),
+				func() error {
+					var s bytes.Buffer
+					s.WriteString("0 0 1\n0 1 2\n1 0 3\n1 1 4")
+					T := Load(&s)
+					err := Dupl(T)
+					return err
+				}(),
+			},
+		},
+		{
+			name: "Entry",
+			fs: []error{
+				func() error {
+					err := Entry(nil, -1, -1, math.NaN())
+					return err
+				}(),
+				func() error {
+					err := Entry(nil, -1, -1, math.Inf(0))
+					return err
+				}(),
+				func() error {
+					var s bytes.Buffer
+					s.WriteString("0 0 1\n0 1 2\n1 0 3\n1 1 4")
+					T := Load(&s)
+					A, err := Compress(T)
+					if err != nil {
+						panic(err)
+					}
+					err = Entry(A, 1, 1, 12)
+					return err
+				}(),
+			},
+		},
 	}
 
 	for i := range tcs {
@@ -314,12 +354,12 @@ func TestNilCheck(t *testing.T) {
 	if r := cs_dropzeros(nil); r != -1 {
 		t.Errorf("cs_dropzeros: not nil")
 	}
-	if r := cs_dupl(nil); r == true {
-		t.Errorf("cs_dupl: not nil")
-	}
-	if r := Entry(nil, -1, -1, 0); r == true {
-		t.Errorf("cs_entry: not nil")
-	}
+	// if err := Dupl(nil); err == nil {
+	// 	t.Errorf("cs_dupl: not nil")
+	// }
+	// if r := Entry(nil, -1, -1, 0); r == true {
+	// 	t.Errorf("cs_entry: not nil")
+	// }
 	if r := cs_ereach(nil, -1, nil, nil, nil); r == 1 {
 		t.Errorf("cs_ereach: not nil")
 	}
@@ -710,5 +750,39 @@ func TestCumsum(t *testing.T) {
 			t.Fatalf("Error for overflow is not happen")
 		}
 		t.Log(err)
+	})
+}
+
+func TestDupl(t *testing.T) {
+	snapshot("./testdata/.snapshot.dupl", t, func() {
+		var stdin bytes.Buffer
+		stdin.WriteString("0 0 1\n0 1 2\n1 0 3\n1 1 4\n 0 0 1\n 1 0 10")
+		T := Load(&stdin)
+		A, err := Compress(T)
+		if err != nil {
+			t.Fatal(err)
+		}
+		Print(A, false)
+		err = Dupl(A)
+		if err != nil {
+			t.Fatal(err)
+		}
+		Print(A, false)
+	})
+	// invert data
+	snapshot("./testdata/.snapshot.dupl.invert", t, func() {
+		var stdin bytes.Buffer
+		stdin.WriteString(" 1 0 10\n 0 0 1\n 1 1 4\n 1 0 3\n 0 1 2\n 0 0 1 ")
+		T := Load(&stdin)
+		A, err := Compress(T)
+		if err != nil {
+			t.Fatal(err)
+		}
+		Print(A, false)
+		err = Dupl(A)
+		if err != nil {
+			t.Fatal(err)
+		}
+		Print(A, false)
 	})
 }
