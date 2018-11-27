@@ -516,6 +516,24 @@ func TestNilCheck(t *testing.T) {
 }
 
 func TestCsCompress(t *testing.T) {
+
+	t.Run("BigMatrix", func(t *testing.T) {
+		T := new(Cs)
+		err := Entry(T, 0, 0, 1)
+		if err != nil {
+			t.Fatal(err)
+		}
+		err = Entry(T, math.MaxInt64-2, math.MaxInt64-2, 1)
+		if err != nil {
+			t.Fatal(err)
+		}
+		_, err = Compress(T)
+		if err == nil {
+			t.Fatal("Haven`t overflow error")
+		}
+		t.Log(err)
+	})
+
 	matrixes, err := filepath.Glob("CSparse/Matrix/" + "*")
 	if err != nil {
 		t.Fatal(err)
