@@ -1768,27 +1768,54 @@ func Dupl(A *Cs) error {
 // Entry - add an entry to a triplet matrix; return 1 if ok, 0 otherwise
 //
 // Name function in CSparse : cs_entry.
-func Entry(T *Cs, i, j int, x float64) bool {
-	if !(T != nil && T.nz >= 0) || i < 0 || j < 0 {
-		// check inputs
-		return false
+func Entry(T *Cs, i, j int, x float64) error {
+	// check input data
+	et := errors.New("Function Entry: check input data")
+	if T == nil {
+		et.Add(fmt.Errorf("matrix T is nil"))
 	}
-	if T.nz >= T.nzmax && !cs_sprealloc(T, 2*T.nzmax) {
-		return false
+	if T != nil && T.nz < 0 {
+		et.Add(fmt.Errorf("matrix T is not triplet format"))
 	}
+	if i < 0 {
+		et.Add(fmt.Errorf("index `i` is less zero"))
+	}
+	if j < 0 {
+		et.Add(fmt.Errorf("index `j` is less zero"))
+	}
+	if math.IsNaN(x) {
+		et.Add(fmt.Errorf("value `x` is Nan value"))
+	}
+	if math.IsInf(x, 0) {
+		et.Add(fmt.Errorf("value `x` is infinity value"))
+	}
+	// memory reallocation
+	if T != nil {
+		if T.nz >= T.nzmax && !cs_sprealloc(T, 2*T.nzmax) { // TODO (KI) : add error handling
+			et.Add(fmt.Errorf("cannot allocate new vector"))
+		}
+	}
+
+	if et.IsError() {
+		return et
+	}
+
+	// add value at the end of vectors
 	if T.x != nil {
 		T.x[T.nz] = x
 	}
 	T.i[T.nz] = i
 	T.p[T.nz] = j
 	T.nz++
+
+	// calculate amount rows and columns
 	if T.m < i+1 {
 		T.m = i + 1
 	}
 	if T.n < j+1 {
 		T.n = j + 1
 	}
-	return true
+	return nil
 }
 
 // cs_ereach - find nonzero pattern of Cholesky L(k,1:k-1) using etree and triu(A(:,k))
@@ -2163,7 +2190,8 @@ func Load(f io.Reader) *Cs {
 		if err != nil || n != 3 {
 			return nil
 		}
-		if !Entry(T, i, j, x) {
+		if err := Entry(T, i, j, x); err != nil { // TODO (KI) error handling
+			_ = err
 			return nil
 		}
 	}

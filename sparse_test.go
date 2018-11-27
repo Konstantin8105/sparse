@@ -279,6 +279,30 @@ func TestNilCheck(t *testing.T) {
 				}(),
 			},
 		},
+		{
+			name: "Entry",
+			fs: []error{
+				func() error {
+					err := Entry(nil, -1, -1, math.NaN())
+					return err
+				}(),
+				func() error {
+					err := Entry(nil, -1, -1, math.Inf(0))
+					return err
+				}(),
+				func() error {
+					var s bytes.Buffer
+					s.WriteString("0 0 1\n0 1 2\n1 0 3\n1 1 4")
+					T := Load(&s)
+					A, err := Compress(T)
+					if err != nil {
+						panic(err)
+					}
+					err = Entry(A, 1, 1, 12)
+					return err
+				}(),
+			},
+		},
 	}
 
 	for i := range tcs {
@@ -333,9 +357,9 @@ func TestNilCheck(t *testing.T) {
 	// if err := Dupl(nil); err == nil {
 	// 	t.Errorf("cs_dupl: not nil")
 	// }
-	if r := Entry(nil, -1, -1, 0); r == true {
-		t.Errorf("cs_entry: not nil")
-	}
+	// if r := Entry(nil, -1, -1, 0); r == true {
+	// 	t.Errorf("cs_entry: not nil")
+	// }
 	if r := cs_ereach(nil, -1, nil, nil, nil); r == 1 {
 		t.Errorf("cs_ereach: not nil")
 	}
