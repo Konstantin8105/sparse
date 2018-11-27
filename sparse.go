@@ -4358,24 +4358,17 @@ func cs_sprealloc(A *Cs, nzmax int) (result bool) {
 
 // cs_dalloc - allocate a cs_dmperm or cs_scc result
 func cs_dalloc(m, n int) *csd {
-	// if m < 1 || n < 1 {
+	// if m < 1 || n < 1 { // TODO (KI) error handling
 	// 	return nil
 	// }
 	D := new(csd)
-	if D == nil {
-		return nil
-	}
+
 	D.p = make([]int, m)
 	D.r = make([]int, m+6)
 	D.q = make([]int, n)
 	D.s = make([]int, n+6)
-	return (func() *csd {
-		if D.p == nil || D.r == nil || D.q == nil || D.s == nil {
-			cs_free(D)
-			return nil
-		}
-		return D
-	}())
+
+	return D
 }
 
 // cs_dfree - free a cs_dmperm or cs_scc result
