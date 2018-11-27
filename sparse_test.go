@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"math"
+	"os"
 	"path/filepath"
 	"sort"
 	"strconv"
@@ -700,6 +701,32 @@ func TestGaxpy(t *testing.T) {
 	})
 }
 
+func ExampleGaxpy() {
+	var s bytes.Buffer
+	s.WriteString("0 0 1\n1 0 3\n2 0 5\n0 1 2\n1 1 4\n2 1 6")
+	T := Load(&s)
+	A, err := Compress(T)
+	if err != nil {
+		panic(err)
+	}
+	x := []float64{7, 8}
+	y := []float64{9, 10, 11}
+	fmt.Println("Vector `y` before:")
+	fmt.Println(y)
+	err = Gaxpy(A, x, y)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println("Vector `y` before:")
+	fmt.Println(y)
+
+	// Output:
+	// Vector `y` before:
+	// [9 10 11]
+	// Vector `y` before:
+	// [32 63 94]
+}
+
 func TestAdd(t *testing.T) {
 	snapshot("./testdata/.snapshot.add", t, func() {
 		var stdin bytes.Buffer
@@ -719,6 +746,36 @@ func TestAdd(t *testing.T) {
 		}
 		Print(R, false)
 	})
+}
+
+func ExampleAdd() {
+	var stdin bytes.Buffer
+	stdin.WriteString("0 0 1\n0 1 2\n1 0 3\n1 1 4")
+	T := Load(&stdin)
+	A, err := Compress(T)
+	if err != nil {
+		panic(err)
+	}
+	AT, err := Transpose(A)
+	if err != nil {
+		panic(err)
+	}
+	R, err := Add(A, AT, 1, 2)
+	if err != nil {
+		panic(err)
+	}
+	osStdout = os.Stdout // for output in standart stdout
+	Print(R, false)
+
+	// Output:
+	// CSparse Version 3.2.0, Sept 12, 2017.  Copyright (c) Timothy A. Davis, 2006-2016
+	// 2-by-2, nzmax: 4 nnz: 4, 1-norm: 2.000000e+01
+	//     col 0 : locations 0 to 1
+	//       0 : 3.000000e+00
+	//       1 : 7.000000e+00
+	//     col 1 : locations 2 to 3
+	//       0 : 8.000000e+00
+	//       1 : 1.200000e+01
 }
 
 func TestCumsum(t *testing.T) {
@@ -785,4 +842,45 @@ func TestDupl(t *testing.T) {
 		}
 		Print(A, false)
 	})
+}
+
+func ExampleDupl() {
+	var stdin bytes.Buffer
+	stdin.WriteString(" 1 0 10\n 0 0 1\n 1 1 4\n 1 0 3\n 0 1 2\n 0 0 1 ")
+	T := Load(&stdin)
+	A, err := Compress(T)
+	if err != nil {
+		panic(err)
+	}
+	osStdout = os.Stdout // for output in standart stdout
+	fmt.Println("Before:")
+	Print(A, false)
+	err = Dupl(A)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println("After:")
+	Print(A, false)
+
+	// Output:
+	// Before:
+	// CSparse Version 3.2.0, Sept 12, 2017.  Copyright (c) Timothy A. Davis, 2006-2016
+	// 2-by-2, nzmax: 6 nnz: 6, 1-norm: 1.500000e+01
+	//     col 0 : locations 0 to 3
+	//       1 : 1.000000e+01
+	//       0 : 1.000000e+00
+	//       1 : 3.000000e+00
+	//       0 : 1.000000e+00
+	//     col 1 : locations 4 to 5
+	//       1 : 4.000000e+00
+	//       0 : 2.000000e+00
+	// After:
+	// CSparse Version 3.2.0, Sept 12, 2017.  Copyright (c) Timothy A. Davis, 2006-2016
+	// 2-by-2, nzmax: 4 nnz: 4, 1-norm: 1.500000e+01
+	//     col 0 : locations 0 to 1
+	//       1 : 1.300000e+01
+	//       0 : 2.000000e+00
+	//     col 1 : locations 2 to 3
+	//       1 : 4.000000e+00
+	//       0 : 2.000000e+00
 }

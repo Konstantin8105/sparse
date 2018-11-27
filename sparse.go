@@ -3038,7 +3038,7 @@ func cs_post(parent []int, n int) []int {
 	return post //(cs_idone(post, nil, w, true))
 }
 
-// Print - print a sparse matrix; use %g for integers to avoid differences with csi
+// Print - print a sparse matrix.
 //
 // Name function in CSparse : cs_print.
 func Print(A *Cs, brief bool) bool {
@@ -3487,7 +3487,9 @@ func cs_scatter(A *Cs, j int, beta float64, w []int, x []float64, mark int, C *C
 				// x(i) = beta*A(i,j)
 				x[i] = beta * Ax[p]
 			}
-		} else if x != nil {
+			continue
+		}
+		if x != nil {
 			// i exists in C(:,j) already
 			x[i] += beta * Ax[p]
 		}
