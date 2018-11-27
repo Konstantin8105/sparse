@@ -5,6 +5,7 @@ import (
 	"io"
 	"math"
 	"os"
+	"runtime/debug"
 
 	"github.com/Konstantin8105/errors"
 
@@ -1030,7 +1031,7 @@ func cs_cholsol(order int, A *Cs, b []float64) (result bool) {
 //	nzmax:4
 //
 // Name function in CSparse : cs_compress.
-func Compress(T *Cs) (*Cs, error) {
+func Compress(T *Cs) (_ *Cs, err error) {
 	// check input data
 	et := errors.New("Function Add: check input data")
 	if T == nil {
@@ -1043,6 +1044,13 @@ func Compress(T *Cs) (*Cs, error) {
 	if et.IsError() {
 		return nil, et
 	}
+
+	defer func() {
+		if r := recover(); r != nil {
+			err = errors.New("Recovery").Add(fmt.Errorf("%v", r)).
+				Add(fmt.Errorf("Stack:\n%s", debug.Stack()))
+		}
+	}()
 
 	m, n, Ti, Tj, Tx, nz := T.m, T.n, T.i, T.p, T.x, T.nz
 
