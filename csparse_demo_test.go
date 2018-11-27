@@ -181,7 +181,7 @@ func get_problem(f io.Reader, tol float64, output bool) *problem {
 	Prob.A = A
 	// clear T */
 	cs_free(T)
-	if !cs_dupl(A) {
+	if err := Dupl(A); err != nil {
 		// sum up duplicates */
 		return nil
 	}

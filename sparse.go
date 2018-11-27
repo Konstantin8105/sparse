@@ -1705,18 +1705,24 @@ func cs_dropzeros(A *Cs) int {
 	return cs_fkeep(A, cs_nonzero, nil)
 }
 
-// cs_dupl - remove duplicate entries from A
-func cs_dupl(A *Cs) bool {
-	var nz int
-	if !(A != nil && A.nz == -1) {
-		// check inputs
-		return false
+// Dupl - remove duplicate entries from A
+func Dupl(A *Cs) error {
+	// check input data
+	et := errors.New("Function Add: check input data")
+	if A == nil {
+		et.Add(fmt.Errorf("matrix A is nil"))
 	}
-	m := A.m
-	n := A.n
-	Ap := A.p
-	Ai := A.i
-	Ax := A.x
+	if A != nil && A.nz != -1 {
+		et.Add(fmt.Errorf("matrix A is not CSC(Compressed Sparse Column) format"))
+	}
+
+	if et.IsError() {
+		return et
+	}
+
+	// initialization
+	m, n, Ap, Ai, Ax := A.m, A.n, A.p, A.i, A.x
+
 	// get workspace
 	w := make([]int, m)
 	defer cs_free(w)
@@ -1726,6 +1732,7 @@ func cs_dupl(A *Cs) bool {
 		w[i] = -1
 	}
 
+	var nz int = 0
 	for j := 0; j < n; j++ {
 		// column j will start at q
 		q := nz
@@ -1735,14 +1742,15 @@ func cs_dupl(A *Cs) bool {
 			if w[i] >= q {
 				// A(i,j) is a duplicate
 				Ax[w[i]] += Ax[p]
-			} else {
-				// record where row i occurs
-				w[i] = nz
-				// keep A(i,j)
-				Ai[nz] = i
-				Ax[nz] = Ax[p]
-				nz++
+				continue
 			}
+
+			// record where row i occurs
+			w[i] = nz
+			// keep A(i,j)
+			Ai[nz] = i
+			Ax[nz] = Ax[p]
+			nz++
 		}
 		// record start of column j
 		Ap[j] = q
@@ -1750,7 +1758,9 @@ func cs_dupl(A *Cs) bool {
 	// finalize A
 	Ap[n] = nz
 	// remove extra space from A
-	return (cs_sprealloc(A, 0))
+	cs_sprealloc(A, 0)
+
+	return nil
 }
 
 // Entry - add an entry to a triplet matrix; return 1 if ok, 0 otherwise

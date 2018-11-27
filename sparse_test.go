@@ -314,7 +314,7 @@ func TestNilCheck(t *testing.T) {
 	if r := cs_dropzeros(nil); r != -1 {
 		t.Errorf("cs_dropzeros: not nil")
 	}
-	if r := cs_dupl(nil); r == true {
+	if err := Dupl(nil); err == nil {
 		t.Errorf("cs_dupl: not nil")
 	}
 	if r := Entry(nil, -1, -1, 0); r == true {
