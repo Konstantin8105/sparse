@@ -329,25 +329,34 @@ func cs_amd(order int, A *Matrix) (result []int) {
 	// allocate result
 	P := make([]int, n+1)
 	// get workspace
-	W := make([]int, 8*(n+1))
+	// W := make([]int, 8*(n+1))
 	// add elbow room to C
 	t := cnz + cnz/5 + 2*n
-	if P == nil || W == nil || !cs_sprealloc(C, t) {
-		return cs_idone(P, C, W, false)
+	if P == nil || !cs_sprealloc(C, t) {
+		return cs_idone(P, C, nil, false)
 	}
 	var (
-		len    = W[0:]
-		nv     = W[1*(n+1):]
-		next   = W[2*(n+1):]
-		head   = W[3*(n+1):]
-		elen   = W[4*(n+1):]
-		degree = W[5*(n+1):]
-		w      = W[6*(n+1):]
-		hhead  = W[7*(n+1):]
+		len    = make([]int, n+1) // W[0:]
+		nv     = make([]int, n+1) // W[1*(n+1):]
+		next   = make([]int, n+1) // W[2*(n+1):]
+		head   = make([]int, n+1) // W[3*(n+1):]
+		elen   = make([]int, n+1) // W[4*(n+1):]
+		degree = make([]int, n+1) // W[5*(n+1):]
+		w      = make([]int, n+1) // W[6*(n+1):]
+		hhead  = make([]int, n+1) // W[7*(n+1):]
 
 		// use P as workspace for last
 		last = P
 	)
+
+	defer cs_free(len)
+	defer cs_free(nv)
+	defer cs_free(next)
+	defer cs_free(head)
+	defer cs_free(elen)
+	defer cs_free(degree)
+	defer cs_free(w)
+	defer cs_free(hhead)
 
 	// --- Initialize quotient graph ----------------------------------------
 	for k := 0; k < n; k++ {
@@ -856,7 +865,7 @@ func cs_amd(order int, A *Matrix) (result []int) {
 		}
 	}
 
-	return cs_idone(P, C, W, true)
+	return cs_idone(P, C, nil, true)
 }
 
 // cs_chol - L = chol (A, [pinv parent cp]), pinv is optional
