@@ -35,12 +35,19 @@ func IsSingular(A *Matrix) (bool, error) {
 			// zero column
 			return true, nil
 		}
+		var found bool
 		for p := Ap[j]; p < Ap[j+1]; p++ {
 			i := Ai[p]
 			x := Ax[p]
+			if i == j {
+				found = true
+			}
 			if i == j && x == 0 {
 				return true, nil
 			}
+		}
+		if !found {
+			return true, nil
 		}
 	}
 
@@ -69,6 +76,9 @@ func IsSymmetrical(A *Matrix) (bool, error) {
 
 	// initialization
 	n, Ap, Ai, Ax := A.n, A.p, A.i, A.x
+
+	_ = Ai
+	_ = Ax
 
 	// calculation
 	for j := 0; j < n; j++ {

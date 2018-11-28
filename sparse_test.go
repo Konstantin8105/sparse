@@ -1203,6 +1203,7 @@ func TestIsSingular(t *testing.T) {
 		{"0 0 1\n 2 2 4", true},
 		{"2 2 4", true},
 		{"0 0 1\n 2 2 4\n 1 1 0", true},
+		{"0 0 1\n 0 1 1\n 0 2 1\n1 2 1\n2 2 1", true},
 	}
 
 	for i := range tcs {
