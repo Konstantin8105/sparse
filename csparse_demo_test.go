@@ -13,8 +13,8 @@ import (
 )
 
 type problem struct {
-	A     *Cs
-	C     *Cs
+	A     *Matrix
+	C     *Matrix
 	sym   int
 	x     []float64
 	b     []float64
@@ -65,7 +65,7 @@ func rhs(x []float64, b []float64, m int) {
 }
 
 // is_sym - 1 if A is square & upper tri., -1 if square & lower tri., 0 otherwise
-func is_sym(A *Cs) int {
+func is_sym(A *Matrix) int {
 	var is_upper bool
 	var is_lower bool
 	n := A.n
@@ -102,7 +102,7 @@ func dropdiag(i int, j int, aij float64, other interface{}) bool {
 }
 
 // make_sym - C = A + triu(A,1)'
-func make_sym(A *Cs) *Cs {
+func make_sym(A *Matrix) *Matrix {
 	// AT = A'
 	AT, err := Transpose(A)
 	if err != nil {
@@ -120,7 +120,7 @@ func make_sym(A *Cs) *Cs {
 }
 
 // print_resid - compute residual, norm(A*x-b,inf) / (norm(A,1)*norm(x,inf) + norm(b,inf))
-func print_resid(ok bool, A *Cs, x []float64, b []float64, resid []float64) {
+func print_resid(ok bool, A *Matrix, x []float64, b []float64, resid []float64) {
 	if !ok {
 		fmt.Fprintf(osStdout, "    (failed)\n")
 		return
@@ -224,7 +224,7 @@ func get_problem(f io.Reader, tol float64, output bool) *problem {
 	}
 
 	// C = A + triu(A,1)', or C=A */
-	C := func() *Cs {
+	C := func() *Matrix {
 		if sym != 0 {
 			return make_sym(A)
 		}

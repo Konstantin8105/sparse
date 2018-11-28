@@ -518,7 +518,7 @@ func TestNilCheck(t *testing.T) {
 func TestCsCompress(t *testing.T) {
 
 	t.Run("BigMatrix", func(t *testing.T) {
-		T := new(Cs)
+		T := new(Matrix)
 		err := Entry(T, 0, 0, 1)
 		if err != nil {
 			t.Fatal(err)
@@ -539,7 +539,7 @@ func TestCsCompress(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	f := func(A *Cs) string {
+	f := func(A *Matrix) string {
 		tmpfile, err := ioutil.TempFile("", "cs_compress")
 		if err != nil {
 			panic(err)
@@ -904,7 +904,7 @@ func ExampleDupl() {
 }
 
 func ExamplePrint() {
-	T := new(Cs)
+	T := new(Matrix)
 	for i := 0; i < 25; i++ {
 		err := Entry(T, i, i, 10)
 		if err != nil {

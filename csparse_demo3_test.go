@@ -85,12 +85,12 @@ func TestDemo3(t *testing.T) {
 
 // Cholesky update/downdate
 func demo3(Prob *problem, output bool) int {
-	var A *Cs
-	var C *Cs
-	var W *Cs
-	var WW *Cs
-	var WT *Cs
-	var W2 *Cs
+	var A *Matrix
+	var C *Matrix
+	var W *Matrix
+	var WW *Matrix
+	var WT *Matrix
+	var W2 *Matrix
 	var n int
 	var k int
 	var Li []int
