@@ -215,7 +215,10 @@ func demo3(Prob *problem, output bool) int {
 	if err != nil {
 		panic(err)
 	}
-	WW = Multiply(W2, WT)
+	WW, err = Multiply(W2, WT)
+	if err != nil {
+		panic(err)
+	}
 	cs_free(WT)
 	cs_free(W2)
 	E, err := Add(C, WW, 1, 1)

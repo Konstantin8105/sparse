@@ -83,7 +83,10 @@ func TestDemo1(t *testing.T) {
 			}
 
 			// C = A*A'
-			C := Multiply(A, AT)
+			C, err := Multiply(A, AT)
+			if err != nil {
+				t.Fatal(err)
+			}
 
 			// D = C + Eye*norm(C,1)
 			D, err := Add(C, Eye, 1, Norm(C))

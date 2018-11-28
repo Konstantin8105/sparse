@@ -91,7 +91,7 @@ func Benchmark(b *testing.B) {
 				}
 				b.ResetTimer()
 				for i := 0; i < b.N; i++ {
-					_ = Multiply(A, A)
+					_, _ = Multiply(A, A)
 				}
 			})
 
@@ -410,7 +410,7 @@ func TestNilCheck(t *testing.T) {
 	if r := cs_maxtrans(nil, -1); r != nil {
 		t.Errorf("cs_maxtrans: not nil")
 	}
-	if r := Multiply(nil, nil); r != nil {
+	if _, r := Multiply(nil, nil); r == nil {
 		t.Errorf("cs_multiply: not nil")
 	}
 	if r := Norm(nil); r != -1 {
