@@ -2487,13 +2487,13 @@ func cs_free(p interface{}) {
 
 	switch v := p.(type) {
 	case []float64:
-		if v == nil {
+		if v == nil || (v != nil && cap(v) == 0) {
 			return
 		}
 		// TODO (KI) : fmt.Fprintf(os.Stdout, "Type : %8d %T\n", cap(v), v)
 
 	case []int:
-		if v == nil {
+		if v == nil || (v != nil && cap(v) == 0) {
 			return
 		}
 		// TODO (KI) : fmt.Fprintf(os.Stdout, "Type : %8d %T\n", cap(v), v)
@@ -2854,9 +2854,9 @@ func Multiply(A *Matrix, B *Matrix) (*Matrix, error) {
 	// get workspace
 	values := (A.x != nil && Bx != nil)
 	var x []float64
+	defer cs_free(x)
 	if values {
 		x = make([]float64, m)
-		defer cs_free(x)
 	}
 
 	// allocate result

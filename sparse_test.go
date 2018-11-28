@@ -1126,5 +1126,34 @@ func ExamplePrint() {
 	//     col 21 : locations 21 to 21
 	//       21 : 1.000000e+00
 	//   ...
+}
 
+func ExampleMultiply() {
+	var stdin bytes.Buffer
+	stdin.WriteString(" 1 0 10\n 0 0 1\n 1 1 4\n 1 0 3\n 0 1 2\n 0 0 1 ")
+	T := Load(&stdin)
+	A, err := Compress(T)
+	if err != nil {
+		panic(err)
+	}
+	osStdout = os.Stdout // for output in standart stdout
+	AT, err := Transpose(A)
+	if err != nil {
+		panic(err)
+	}
+	M, err := Multiply(A, AT)
+	if err != nil {
+		panic(err)
+	}
+	Print(M, false)
+
+	// Output:
+	// Sparse
+	// 2-by-2, nzmax: 4 nnz: 4, 1-norm: 2.190000e+02
+	//     col 0 : locations 0 to 1
+	//       1 : 3.400000e+01
+	//       0 : 8.000000e+00
+	//     col 1 : locations 2 to 3
+	//       1 : 1.850000e+02
+	//       0 : 3.400000e+01
 }
