@@ -304,6 +304,45 @@ func TestNilCheck(t *testing.T) {
 				}(),
 			},
 		},
+		{
+			name: "Multiply",
+			fs: []error{
+				func() error {
+					_, err := Multiply(nil, nil)
+					return err
+				}(),
+				func() error {
+					var s bytes.Buffer
+					s.WriteString("0 0 1\n0 1 2\n1 0 3\n1 1 4")
+					T := Load(&s)
+					_, err := Multiply(T, T)
+					return err
+				}(),
+				func() error {
+					var s bytes.Buffer
+					var A, B *Matrix
+					var err error
+					{
+						s.WriteString("0 0 1\n0 1 2\n1 0 3\n1 1 4")
+						T := Load(&s)
+						A, err = Compress(T)
+						if err != nil {
+							panic(err)
+						}
+					}
+					{
+						s.WriteString("0 0 1\n0 1 2\n1 0 3\n1 1 4\n12 12 1")
+						T := Load(&s)
+						B, err = Compress(T)
+						if err != nil {
+							panic(err)
+						}
+					}
+					_, err = Multiply(A, B)
+					return err
+				}(),
+			},
+		},
 	}
 
 	for i := range tcs {
@@ -410,9 +449,9 @@ func TestNilCheck(t *testing.T) {
 	if r := cs_maxtrans(nil, -1); r != nil {
 		t.Errorf("cs_maxtrans: not nil")
 	}
-	if _, r := Multiply(nil, nil); r == nil {
-		t.Errorf("cs_multiply: not nil")
-	}
+	// if _, r := Multiply(nil, nil); r == nil {
+	// 	t.Errorf("cs_multiply: not nil")
+	// }
 	if r := Norm(nil); r != -1 {
 		t.Errorf("cs_norm: not nil")
 	}

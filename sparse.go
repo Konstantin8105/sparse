@@ -2858,21 +2858,20 @@ func Multiply(A *Matrix, B *Matrix) (*Matrix, error) {
 		x = make([]float64, m)
 		defer cs_free(x)
 	}
+
 	// allocate result
 	C, err := cs_spalloc(m, n, anz+bnz, values, cscFormat)
 	if err != nil {
 		return nil, err
 	}
-	// if C == nil || w == nil || bool(values) && x == nil {
-	// 	return nil // cs_done(C, nil, nil, false)
-	// }
 	Cp := C.p
 
+	// calculation
 	var nz int
 	for j := 0; j < n; j++ {
 		if nz+m > C.nzmax && !cs_sprealloc(C, 2*C.nzmax+m) {
 			// out of memory
-			return nil, fmt.Errorf("Out of memory") ///TODO(KI) error handling //cs_done(C, nil, nil, false)
+			return nil, fmt.Errorf("Out of memory") ///TODO(KI) error handling
 		}
 		// C->i and C->x may be reallocated
 		Ci, Cx := C.i, C.x
@@ -2895,10 +2894,12 @@ func Multiply(A *Matrix, B *Matrix) (*Matrix, error) {
 	}
 	// finalize the last column of C
 	Cp[n] = nz
+
 	// remove extra space from C
 	cs_sprealloc(C, 0)
-	// success; free workspace, return C
-	return cs_done(C, nil, nil, true), nil
+
+	// success
+	return C, nil
 }
 
 // Norm - 1-norm of a sparse matrix = max (sum (abs (A))), largest column sum
