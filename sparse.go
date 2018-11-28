@@ -2058,7 +2058,7 @@ func Gaxpy(A *Matrix, x []float64, y []float64) error {
 		return et
 	}
 
-	// allocate result
+	// initialization
 	n, Ap, Ai, Ax := A.n, A.p, A.i, A.x
 
 	// calculation
