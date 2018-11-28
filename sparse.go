@@ -1977,7 +1977,7 @@ func cs_etree(A *Matrix, ata bool) []int {
 }
 
 // cs_fkeep - drop entries for which fkeep(A(i,j)) is false; return nz if OK, else -1
-func cs_fkeep(A *Cs, fkeep func(i int, j int, x float64, other interface{}) bool, other interface{}) int {
+func cs_fkeep(A *Matrix, fkeep func(i int, j int, x float64, other interface{}) bool, other interface{}) int {
 	if !(A != nil && A.nz == -1) || fkeep == nil {
 		// check inputs
 		return -1
