@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"io/ioutil"
+	"os"
 	"path/filepath"
 	"strings"
 	"testing"
@@ -41,7 +42,7 @@ func TestDemo3(t *testing.T) {
 
 			start := time.Now() // start timer
 
-			tmpfile, err := ioutil.TempFile("", "example")
+			tmpfile, err := ioutil.TempFile("", "demo3")
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -61,6 +62,7 @@ func TestDemo3(t *testing.T) {
 			end := time.Now() // end timer
 
 			filename := tmpfile.Name()
+			defer func() { _ = os.Remove(filename) }()
 			err = tmpfile.Close()
 			if err != nil {
 				t.Fatal(err)
