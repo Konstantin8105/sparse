@@ -59,6 +59,10 @@ func Benchmark(b *testing.B) {
 				if err != nil {
 					b.Fatal(err)
 				}
+				_, err = Transpose(A)
+				if err != nil {
+					b.Fatal(err)
+				}
 				b.ResetTimer()
 				for i := 0; i < b.N; i++ {
 					_, _ = Transpose(A)

@@ -118,17 +118,13 @@ func Add(A *Matrix, B *Matrix, α float64, β float64) (*Matrix, error) {
 	// get workspace
 	values := (A.x != nil && B.x != nil)
 	w := make([]int, m)
+	defer cs_free(w)
+
 	var x []float64
+	defer cs_free(x)
 	if values {
 		x = make([]float64, m)
 	}
-	defer func() {
-		// free slice
-		cs_free(w)
-		if values {
-			cs_free(x)
-		}
-	}()
 
 	// allocate result
 	C, err := cs_spalloc(m, n, anz+bnz, true, cscFormat)
@@ -265,14 +261,16 @@ func cs_amd(order int, A *Matrix) (result []int) {
 		dense = n - 2
 	}
 
-	if order == 1 && n == m {
+	switch {
+	case order == 1 && n == m:
 		// C = A+A'
 		var err error
 		C, err = Add(A, AT, 0, 0)
 		if err != nil {
 			return nil
 		}
-	} else if order == 2 {
+
+	case order == 2:
 		// drop dense columns from AT
 		ATp = AT.p
 		ATi = AT.i
@@ -311,7 +309,8 @@ func cs_amd(order int, A *Matrix) (result []int) {
 			C = nil
 		}
 		cs_free(A2) // TODO (KI) : remove
-	} else {
+
+	default:
 		// C=A'*A
 		C, err = Multiply(AT, A)
 		if err != nil {
@@ -337,13 +336,13 @@ func cs_amd(order int, A *Matrix) (result []int) {
 		return cs_idone(P, C, W, false)
 	}
 	var (
-		len    = W[0:]
-		nv     = W[1*(n+1):]
-		next   = W[2*(n+1):]
-		head   = W[3*(n+1):]
-		elen   = W[4*(n+1):]
-		degree = W[5*(n+1):]
-		w      = W[6*(n+1):]
+		len    = W[0: /*1*(n+1) */]
+		nv     = W[1*(n+1): /*2*(n+1) */]
+		next   = W[2*(n+1): /*3*(n+1) */]
+		head   = W[3*(n+1): /*4*(n+1) */]
+		elen   = W[4*(n+1): /*5*(n+1) */]
+		degree = W[5*(n+1): /*6*(n+1) */]
+		w      = W[6*(n+1): /*7*(n+1) */]
 		hhead  = W[7*(n+1):]
 
 		// use P as workspace for last
