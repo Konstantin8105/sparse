@@ -2905,16 +2905,16 @@ func Multiply(A *Matrix, B *Matrix) (*Matrix, error) {
 //
 // Name function in CSparse : cs_norm.
 func Norm(A *Matrix) float64 {
-	var norm float64
 	if !(A != nil && A.nz == -1) || A.x == nil {
 		// check inputs
 		return -1
 	}
-	n := A.n
-	Ap := A.p
-	Ax := A.x
-	for j := 0; j < n; j++ {
 
+	// initialization
+	n, Ap, Ax := A.n, A.p, A.x
+
+	var norm float64
+	for j := 0; j < n; j++ {
 		s := 0.0
 		for p := Ap[j]; p < Ap[j+1]; p++ {
 			s += math.Abs(Ax[p])
@@ -2932,49 +2932,42 @@ func Norm(A *Matrix) float64 {
 
 // cs_permute - C = A(p,q) where p and q are permutations of 0..m-1 and 0..n-1.
 func cs_permute(A *Matrix, pinv []int, q []int, values bool) *Matrix {
-	nz := 0
 	if !(A != nil && A.nz == -1) {
 		// check inputs
 		return nil
 	}
-	m := A.m
-	n := A.n
-	Ap := A.p
-	Ai := A.i
-	Ax := A.x
+
+	// initialization
+	m, n, Ap, Ai, Ax := A.m, A.n, A.p, A.i, A.x
+
 	// alloc result
 	C, err := cs_spalloc(m, n, Ap[n], values && Ax != nil, cscFormat)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, err.Error()) // TODO (KI) error hanling
 		return nil
 	}
-	// if C == nil {
-	// 	// out of memory
-	// 	return cs_done(C, nil, nil, false)
-	// }
-	Cp := C.p
-	Ci := C.i
-	Cx := C.x
+
+	// initialization
+	Cp, Ci, Cx := C.p, C.i, C.x
+
+	// calculation
+	nz := 0
 	for k := 0; k < n; k++ {
 		// column k of C is column q[k] of A
 		Cp[k] = nz
-		j := func() int {
-			if q != nil {
-				return q[k]
-			}
-			return k
-		}()
+		j := k
+		if q != nil {
+			j = q[k]
+		}
 		for t := Ap[j]; t < Ap[j+1]; t++ {
 			if Cx != nil {
 				// row i of A is row pinv[i] of C
 				Cx[nz] = Ax[t]
 			}
-			Ci[nz] = func() int {
-				if pinv != nil {
-					return pinv[Ai[t]]
-				}
-				return Ai[t]
-			}()
+			Ci[nz] = Ai[t]
+			if pinv != nil {
+				Ci[nz] = pinv[Ai[t]]
+			}
 			nz++
 		}
 	}
@@ -2991,11 +2984,7 @@ func cs_pinv(p []int, n int) []int {
 		return nil
 	}
 	// allocate result
-	pinv := make([]int, n) // cs_malloc(n, uint(0)).([]int)
-	// if pinv == nil {
-	// 	// out of memory
-	// 	return nil
-	// }
+	pinv := make([]int, n)
 
 	// invert the permutation
 	for k := 0; k < n; k++ {
