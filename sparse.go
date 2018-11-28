@@ -2906,16 +2906,16 @@ func Multiply(A *Matrix, B *Matrix) (*Matrix, error) {
 //
 // Name function in CSparse : cs_norm.
 func Norm(A *Matrix) float64 {
-	var norm float64
 	if !(A != nil && A.nz == -1) || A.x == nil {
 		// check inputs
 		return -1
 	}
-	n := A.n
-	Ap := A.p
-	Ax := A.x
-	for j := 0; j < n; j++ {
 
+	// initialization
+	n, Ap, Ax := A.n, A.p, A.x
+
+	var norm float64
+	for j := 0; j < n; j++ {
 		s := 0.0
 		for p := Ap[j]; p < Ap[j+1]; p++ {
 			s += math.Abs(Ax[p])
@@ -2985,11 +2985,7 @@ func cs_pinv(p []int, n int) []int {
 		return nil
 	}
 	// allocate result
-	pinv := make([]int, n) // cs_malloc(n, uint(0)).([]int)
-	// if pinv == nil {
-	// 	// out of memory
-	// 	return nil
-	// }
+	pinv := make([]int, n)
 
 	// invert the permutation
 	for k := 0; k < n; k++ {
