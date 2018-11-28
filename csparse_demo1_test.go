@@ -3,6 +3,7 @@ package sparse
 import (
 	"bytes"
 	"io/ioutil"
+	"os"
 	"path/filepath"
 	"strings"
 	"testing"
@@ -32,7 +33,7 @@ func TestDemo1(t *testing.T) {
 			// data checking
 			b, c, cDur := getCresult(t, matrixes[i])
 
-			tmpfile, err := ioutil.TempFile("", "example")
+			tmpfile, err := ioutil.TempFile("", "demo1")
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -98,6 +99,7 @@ func TestDemo1(t *testing.T) {
 			end := time.Now() // end timer
 
 			filename := tmpfile.Name()
+			defer func() { _ = os.Remove(filename) }()
 			err = tmpfile.Close()
 			if err != nil {
 				t.Fatal(err)

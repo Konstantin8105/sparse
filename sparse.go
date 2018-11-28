@@ -336,13 +336,13 @@ func cs_amd(order int, A *Matrix) (result []int) {
 		return cs_idone(P, C, W, false)
 	}
 	var (
-		len    = W[0: /*1*(n+1) */]
-		nv     = W[1*(n+1): /*2*(n+1) */]
-		next   = W[2*(n+1): /*3*(n+1) */]
-		head   = W[3*(n+1): /*4*(n+1) */]
-		elen   = W[4*(n+1): /*5*(n+1) */]
-		degree = W[5*(n+1): /*6*(n+1) */]
-		w      = W[6*(n+1): /*7*(n+1) */]
+		len    = W[0:]
+		nv     = W[1*(n+1):]
+		next   = W[2*(n+1):]
+		head   = W[3*(n+1):]
+		elen   = W[4*(n+1):]
+		degree = W[5*(n+1):]
+		w      = W[6*(n+1):]
 		hhead  = W[7*(n+1):]
 
 		// use P as workspace for last

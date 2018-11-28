@@ -119,7 +119,7 @@ func Benchmark(b *testing.B) {
 			})
 
 			b.Run("demo2", func(b *testing.B) {
-				tmpfile, err := ioutil.TempFile("", "example")
+				tmpfile, err := ioutil.TempFile("", "bench_demo2")
 				if err != nil {
 					b.Fatal(err)
 				}
@@ -607,6 +607,7 @@ func TestCsCompress(t *testing.T) {
 		}
 
 		filename := tmpfile.Name()
+		defer func() { _ = os.Remove(filename) }()
 		err = tmpfile.Close()
 		if err != nil {
 			panic(err)
@@ -728,6 +729,7 @@ func snapshot(filename string, t *testing.T, f func()) {
 	f()
 
 	file := tmpfile.Name()
+	defer func() { _ = os.Remove(file) }()
 	err = tmpfile.Close()
 	if err != nil {
 		t.Fatal(err)
