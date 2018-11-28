@@ -347,6 +347,35 @@ func TestNilCheck(t *testing.T) {
 				}(),
 			},
 		},
+		{
+			name: "IsSingular",
+			fs: []error{
+				func() error {
+					_, err := IsSingular(nil)
+					return err
+				}(),
+				func() error {
+					var s bytes.Buffer
+					s.WriteString("0 0 1\n0 1 2\n1 0 3\n1 1 4")
+					T := Load(&s)
+					// triplet in input
+					_, err := IsSingular(T)
+					return err
+				}(),
+				func() error {
+					var s bytes.Buffer
+					// rectangle matrix
+					s.WriteString("0 0 1\n0 1 2\n1 0 3\n1 1 4\n2 1 5")
+					T := Load(&s)
+					A, err := Compress(T)
+					if err != nil {
+						panic(err)
+					}
+					_, err = IsSingular(A)
+					return err
+				}(),
+			},
+		},
 	}
 
 	for i := range tcs {
@@ -1162,4 +1191,36 @@ func ExampleMultiply() {
 	//     col 1 : locations 2 to 3
 	//       1 : 1.850000e+02
 	//       0 : 3.400000e+01
+}
+
+func TestIsSingular(t *testing.T) {
+	tcs := []struct {
+		s string
+		r bool
+	}{
+		{"0 0 1\n 1 1 4", false},
+		{"0 0 1", false},
+		{"0 0 1\n 2 2 4", true},
+		{"2 2 4", true},
+		{"0 0 1\n 2 2 4\n 1 1 0", true},
+	}
+
+	for i := range tcs {
+		t.Run(fmt.Sprintf("%d", i), func(t *testing.T) {
+			var stdin bytes.Buffer
+			stdin.WriteString(tcs[i].s)
+			T := Load(&stdin)
+			A, err := Compress(T)
+			if err != nil {
+				t.Fatal(err)
+			}
+			e, err := IsSingular(A)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if e != tcs[i].r {
+				t.Fatalf("Not correct result")
+			}
+		})
+	}
 }
