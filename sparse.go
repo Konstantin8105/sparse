@@ -3050,10 +3050,9 @@ func cs_post(parent []int, n int) []int {
 // Print - print a sparse matrix.
 //
 // Name function in CSparse : cs_print.
-func Print(A *Matrix, brief bool) bool {
+func Print(A *Matrix, brief bool) error {
 	if A == nil {
-		fmt.Fprintf(osStdout, "(null)\n")
-		return false
+		return fmt.Errorf("Matrix is nil")
 	}
 	var (
 		m     = A.m
@@ -3064,7 +3063,7 @@ func Print(A *Matrix, brief bool) bool {
 		nzmax = A.nzmax
 		nz    = A.nz
 	)
-	fmt.Fprintf(osStdout, "CSparse Version %d.%d.%d, %s.  %s\n", 3, 2, 0, "Sept 12, 2017", "Copyright (c) Timothy A. Davis, 2006-2016")
+	fmt.Fprintf(osStdout, "Sparse\n")
 	if nz < 0 {
 		fmt.Fprintf(osStdout, "%d-by-%d, nzmax: %d nnz: %d, 1-norm: %10e\n", m, n, nzmax, Ap[n], Norm(A))
 		for j := 0; j < n; j++ {
@@ -3078,11 +3077,11 @@ func Print(A *Matrix, brief bool) bool {
 				}())
 				if brief && p > 20 {
 					fmt.Fprintf(osStdout, "  ...\n")
-					return true
+					return nil
 				}
 			}
 		}
-		return true
+		return nil
 	}
 
 	fmt.Fprintf(osStdout, "triplet: %d-by-%d, nzmax: %d nnz: %d\n", m, n, nzmax, nz)
@@ -3095,11 +3094,11 @@ func Print(A *Matrix, brief bool) bool {
 		}())
 		if brief && p > 20 {
 			fmt.Fprintf(osStdout, "  ...\n")
-			return true
+			return nil
 		}
 	}
 
-	return true
+	return nil
 }
 
 // cs_pvec - x = b(p), for dense vectors x and b; p=NULL denotes identity

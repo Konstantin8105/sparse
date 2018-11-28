@@ -425,7 +425,7 @@ func TestNilCheck(t *testing.T) {
 	if r := cs_post(nil, -1); r != nil {
 		t.Errorf("cs_post: not nil")
 	}
-	if r := Print(nil, false); r == true {
+	if r := Print(nil, false); r == nil {
 		t.Errorf("cs_print: not nil")
 	}
 	if r := cs_pvec(nil, nil, nil, -1); r == true {
@@ -695,6 +695,7 @@ func snapshot(filename string, t *testing.T, f func()) {
 	}
 
 	if !bytes.Equal(b, b2) {
+		t.Logf("%s", ShowDiff(string(b), string(b2)))
 		t.Fatalf("Results is not same:\n`%s`\n`%s`", string(b), string(b2))
 	}
 	t.Logf("`%s`", string(b))
@@ -786,7 +787,7 @@ func ExampleAdd() {
 	Print(R, false)
 
 	// Output:
-	// CSparse Version 3.2.0, Sept 12, 2017.  Copyright (c) Timothy A. Davis, 2006-2016
+	// Sparse
 	// 2-by-2, nzmax: 4 nnz: 4, 1-norm: 2.000000e+01
 	//     col 0 : locations 0 to 1
 	//       0 : 3.000000e+00
@@ -882,7 +883,7 @@ func ExampleDupl() {
 
 	// Output:
 	// Before:
-	// CSparse Version 3.2.0, Sept 12, 2017.  Copyright (c) Timothy A. Davis, 2006-2016
+	// Sparse
 	// 2-by-2, nzmax: 6 nnz: 6, 1-norm: 1.500000e+01
 	//     col 0 : locations 0 to 3
 	//       1 : 1.000000e+01
@@ -893,7 +894,7 @@ func ExampleDupl() {
 	//       1 : 4.000000e+00
 	//       0 : 2.000000e+00
 	// After:
-	// CSparse Version 3.2.0, Sept 12, 2017.  Copyright (c) Timothy A. Davis, 2006-2016
+	// Sparse
 	// 2-by-2, nzmax: 4 nnz: 4, 1-norm: 1.500000e+01
 	//     col 0 : locations 0 to 1
 	//       1 : 1.300000e+01
@@ -932,7 +933,7 @@ func ExamplePrint() {
 
 	// Output:
 	// Full print of triplets:
-	// CSparse Version 3.2.0, Sept 12, 2017.  Copyright (c) Timothy A. Davis, 2006-2016
+	// Sparse
 	// triplet: 25-by-25, nzmax: 32 nnz: 25
 	//     0 0 : 1.000000e+00
 	//     1 1 : 1.000000e+00
@@ -960,7 +961,7 @@ func ExamplePrint() {
 	//     23 23 : 1.000000e+00
 	//     24 24 : 1.000000e+00
 	// Short print of triplets:
-	// CSparse Version 3.2.0, Sept 12, 2017.  Copyright (c) Timothy A. Davis, 2006-2016
+	// Sparse
 	// triplet: 25-by-25, nzmax: 32 nnz: 25
 	//     0 0 : 1.000000e+00
 	//     1 1 : 1.000000e+00
@@ -986,7 +987,7 @@ func ExamplePrint() {
 	//     21 21 : 1.000000e+00
 	//   ...
 	// Full print of CSC matrix:
-	// CSparse Version 3.2.0, Sept 12, 2017.  Copyright (c) Timothy A. Davis, 2006-2016
+	// Sparse
 	// 25-by-25, nzmax: 25 nnz: 25, 1-norm: -1.000000e+00
 	//     col 0 : locations 0 to 0
 	//       0 : 1.000000e+00
@@ -1039,7 +1040,7 @@ func ExamplePrint() {
 	//     col 24 : locations 24 to 24
 	//       24 : 1.000000e+00
 	// Short print of CSC matrix:
-	// CSparse Version 3.2.0, Sept 12, 2017.  Copyright (c) Timothy A. Davis, 2006-2016
+	// Sparse
 	// 25-by-25, nzmax: 25 nnz: 25, 1-norm: -1.000000e+00
 	//     col 0 : locations 0 to 0
 	//       0 : 1.000000e+00

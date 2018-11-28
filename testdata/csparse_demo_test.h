@@ -17,8 +17,7 @@ csi test_cs_print(const cs* A, csi brief)
     Ax = A->x;
     nzmax = A->nzmax;
     nz = A->nz;
-    printf("CSparse Version %d.%d.%d, %s.  %s\n", CS_VER, CS_SUBVER,
-        CS_SUBSUB, CS_DATE, CS_COPYRIGHT);
+    printf("Sparse\n");
     if (nz < 0) {
         printf("%g-by-%g, nzmax: %g nnz: %g, 1-norm: %10e\n", (double)m,
             (double)n, (double)nzmax, (double)(Ap[n]), cs_norm(A));
