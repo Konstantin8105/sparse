@@ -1197,6 +1197,7 @@ func TestIsSingular(t *testing.T) {
 		r bool
 	}{
 		{"0 0 1\n 1 1 4", false},
+		{"0 0 1", false},
 		{"0 0 1\n 2 2 4", true},
 		{"2 2 4", true},
 		{"0 0 1\n 2 2 4\n 1 1 0", true},
