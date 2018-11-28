@@ -358,12 +358,14 @@ func TestNilCheck(t *testing.T) {
 					var s bytes.Buffer
 					s.WriteString("0 0 1\n0 1 2\n1 0 3\n1 1 4")
 					T := Load(&s)
+					// triplet in input
 					_, err := IsSingular(T)
 					return err
 				}(),
 				func() error {
 					var s bytes.Buffer
-					s.WriteString("0 0 1\n0 1 2\n1 0 3\n1 1 4\n2 2 5")
+					// rectangle matrix
+					s.WriteString("0 0 1\n0 1 2\n1 0 3\n1 1 4\n2 1 5")
 					T := Load(&s)
 					A, err := Compress(T)
 					if err != nil {
