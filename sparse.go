@@ -302,14 +302,22 @@ func cs_amd(order int, A *Matrix) (result []int) {
 		}
 		// C=A'*A with no dense rows
 		if A2 != nil {
-			C = Multiply(AT, A2)
+			C, err = Multiply(AT, A2)
+			if err != nil {
+				fmt.Fprintf(os.Stderr, "%v", err) // TODO(KI) error handling
+				return nil
+			}
 		} else {
 			C = nil
 		}
 		cs_free(A2) // TODO (KI) : remove
 	} else {
 		// C=A'*A
-		C = Multiply(AT, A)
+		C, err = Multiply(AT, A)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "%v", err) // TODO(KI) error handling
+			return nil
+		}
 	}
 	cs_free(AT) // TODO (KI) : remove
 	if C == nil {
@@ -2479,13 +2487,13 @@ func cs_free(p interface{}) {
 
 	switch v := p.(type) {
 	case []float64:
-		if v == nil {
+		if v == nil || (v != nil && cap(v) == 0) {
 			return
 		}
 		// TODO (KI) : fmt.Fprintf(os.Stdout, "Type : %8d %T\n", cap(v), v)
 
 	case []int:
-		if v == nil {
+		if v == nil || (v != nil && cap(v) == 0) {
 			return
 		}
 		// TODO (KI) : fmt.Fprintf(os.Stdout, "Type : %8d %T\n", cap(v), v)
@@ -2809,64 +2817,68 @@ func cs_maxtrans(A *Matrix, seed int) []int {
 // Multiply - C = A*B
 //
 // Name function in CSparse : cs_multiply.
-func Multiply(A *Matrix, B *Matrix) *Matrix {
-	// TODO (KI): add error handling
-	var p int
-	var nz int
-	var anz int
-	var Cp []int
-	var Ci []int
-	var Bp []int
-	var m int
-	var n int
-	var bnz int
-	var w []int
-	var Bi []int
-	var x []float64
-	var Bx []float64
-	var Cx []float64
-	if !(A != nil && A.nz == -1) || !(B != nil && B.nz == -1) {
-		// check inputs
-		return nil
+func Multiply(A *Matrix, B *Matrix) (*Matrix, error) {
+	// check input data
+	et := errors.New("Function Add: check input data")
+	if A == nil {
+		_ = et.Add(fmt.Errorf("matrix A is nil"))
 	}
-	if A.n != B.m {
-		return nil
+	if A != nil && A.nz != -1 {
+		_ = et.Add(fmt.Errorf("matrix A is not CSC(Compressed Sparse Column) format"))
 	}
-	m = A.m
-	anz = A.p[A.n]
-	n = B.n
-	Bp = B.p
-	Bi = B.i
-	Bx = B.x
-	bnz = Bp[n]
+	if B == nil {
+		_ = et.Add(fmt.Errorf("matrix B is nil"))
+	}
+	if B != nil && B.nz != -1 {
+		_ = et.Add(fmt.Errorf("matrix B is not CSC(Compressed Sparse Column) format"))
+	}
+	if A != nil && B != nil {
+		if A.n != B.m {
+			_ = et.Add(fmt.Errorf("amount of columns in matrix A is not same amount of column matrix B: %d != %d", A.n, B.m))
+		}
+	}
+
+	if et.IsError() {
+		return nil, et
+	}
+
+	// initialization
+	m, anz, n := A.m, A.p[A.n], B.n
+	Bp, Bi, Bx := B.p, B.i, B.x
+	bnz := Bp[n]
+
 	// get workspace
-	w = make([]int, m)
+	w := make([]int, m)
+	defer cs_free(w)
+
+	// get workspace
 	values := (A.x != nil && Bx != nil)
-	// get workspace
+	var x []float64
+	defer cs_free(x)
 	if values {
 		x = make([]float64, m)
 	}
+
 	// allocate result
 	C, err := cs_spalloc(m, n, anz+bnz, values, cscFormat)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, err.Error()) // TODO (KI) error hanling
-		return nil
+		return nil, err
 	}
-	if C == nil || w == nil || bool(values) && x == nil {
-		return cs_done(C, w, x, false)
-	}
-	Cp = C.p
+	Cp := C.p
+
+	// calculation
+	var nz int
 	for j := 0; j < n; j++ {
 		if nz+m > C.nzmax && !cs_sprealloc(C, 2*C.nzmax+m) {
 			// out of memory
-			return cs_done(C, w, x, false)
+			return nil, fmt.Errorf("Out of memory") ///TODO(KI) error handling
 		}
 		// C->i and C->x may be reallocated
-		Ci = C.i
-		Cx = C.x
+		Ci, Cx := C.i, C.x
+
 		// column j of C starts here
 		Cp[j] = nz
-		for p = Bp[j]; p < Bp[j+1]; p++ {
+		for p := Bp[j]; p < Bp[j+1]; p++ {
 			nz = cs_scatter(A, Bi[p], func() float64 {
 				if Bx != nil {
 					return Bx[p]
@@ -2882,10 +2894,12 @@ func Multiply(A *Matrix, B *Matrix) *Matrix {
 	}
 	// finalize the last column of C
 	Cp[n] = nz
+
 	// remove extra space from C
 	cs_sprealloc(C, 0)
-	// success; free workspace, return C
-	return cs_done(C, w, x, true)
+
+	// success
+	return C, nil
 }
 
 // Norm - 1-norm of a sparse matrix = max (sum (abs (A))), largest column sum

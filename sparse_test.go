@@ -91,7 +91,7 @@ func Benchmark(b *testing.B) {
 				}
 				b.ResetTimer()
 				for i := 0; i < b.N; i++ {
-					_ = Multiply(A, A)
+					_, _ = Multiply(A, A)
 				}
 			})
 
@@ -304,6 +304,45 @@ func TestNilCheck(t *testing.T) {
 				}(),
 			},
 		},
+		{
+			name: "Multiply",
+			fs: []error{
+				func() error {
+					_, err := Multiply(nil, nil)
+					return err
+				}(),
+				func() error {
+					var s bytes.Buffer
+					s.WriteString("0 0 1\n0 1 2\n1 0 3\n1 1 4")
+					T := Load(&s)
+					_, err := Multiply(T, T)
+					return err
+				}(),
+				func() error {
+					var s bytes.Buffer
+					var A, B *Matrix
+					var err error
+					{
+						s.WriteString("0 0 1\n0 1 2\n1 0 3\n1 1 4")
+						T := Load(&s)
+						A, err = Compress(T)
+						if err != nil {
+							panic(err)
+						}
+					}
+					{
+						s.WriteString("0 0 1\n0 1 2\n1 0 3\n1 1 4\n12 12 1")
+						T := Load(&s)
+						B, err = Compress(T)
+						if err != nil {
+							panic(err)
+						}
+					}
+					_, err = Multiply(A, B)
+					return err
+				}(),
+			},
+		},
 	}
 
 	for i := range tcs {
@@ -410,9 +449,9 @@ func TestNilCheck(t *testing.T) {
 	if r := cs_maxtrans(nil, -1); r != nil {
 		t.Errorf("cs_maxtrans: not nil")
 	}
-	if r := Multiply(nil, nil); r != nil {
-		t.Errorf("cs_multiply: not nil")
-	}
+	// if _, r := Multiply(nil, nil); r == nil {
+	// 	t.Errorf("cs_multiply: not nil")
+	// }
 	if r := Norm(nil); r != -1 {
 		t.Errorf("cs_norm: not nil")
 	}
@@ -1087,5 +1126,34 @@ func ExamplePrint() {
 	//     col 21 : locations 21 to 21
 	//       21 : 1.000000e+00
 	//   ...
+}
 
+func ExampleMultiply() {
+	var stdin bytes.Buffer
+	stdin.WriteString(" 1 0 10\n 0 0 1\n 1 1 4\n 1 0 3\n 0 1 2\n 0 0 1 ")
+	T := Load(&stdin)
+	A, err := Compress(T)
+	if err != nil {
+		panic(err)
+	}
+	osStdout = os.Stdout // for output in standart stdout
+	AT, err := Transpose(A)
+	if err != nil {
+		panic(err)
+	}
+	M, err := Multiply(A, AT)
+	if err != nil {
+		panic(err)
+	}
+	Print(M, false)
+
+	// Output:
+	// Sparse
+	// 2-by-2, nzmax: 4 nnz: 4, 1-norm: 2.190000e+02
+	//     col 0 : locations 0 to 1
+	//       1 : 3.400000e+01
+	//       0 : 8.000000e+00
+	//     col 1 : locations 2 to 3
+	//       1 : 1.850000e+02
+	//       0 : 3.400000e+01
 }
