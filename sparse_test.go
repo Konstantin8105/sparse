@@ -376,6 +376,39 @@ func TestNilCheck(t *testing.T) {
 				}(),
 			},
 		},
+		{
+			name: "Zeroize",
+			fs: []error{
+				func() error {
+					err := Zeroize(nil, -1, math.NaN())
+					return err
+				}(),
+				func() error {
+					err := Zeroize(nil, -1, math.Inf(0))
+					return err
+				}(),
+				func() error {
+					var s bytes.Buffer
+					s.WriteString("0 0 1\n0 1 2\n1 0 3\n1 1 4")
+					T := Load(&s)
+					// triplet in input
+					err := Zeroize((*Matrix)(T), 0, 0)
+					return err
+				}(),
+				func() error {
+					var s bytes.Buffer
+					// rectangle matrix
+					s.WriteString("0 0 1\n0 1 2\n1 0 3\n1 1 4\n2 1 5")
+					T := Load(&s)
+					A, err := Compress(T)
+					if err != nil {
+						panic(err)
+					}
+					err = Zeroize(A, 100, 1)
+					return err
+				}(),
+			},
+		},
 	}
 
 	for i := range tcs {

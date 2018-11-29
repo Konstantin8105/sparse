@@ -1837,6 +1837,8 @@ func Dupl(A *Matrix) error {
 	// Ai =  [0 1  0 1 ]
 	// Ax =  [2 13 2 4 ]
 
+	// TODO (KI) : remove element zeros in function Zeroize
+
 	return nil
 }
 
