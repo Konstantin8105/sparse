@@ -106,6 +106,16 @@ func (lu *LU) Solve(b []float64) (x []float64, _ error) {
 	// get workspace
 	x = make([]float64, n)
 
+	bCopy := make([]float64, n)
+	for i := range b {
+		bCopy[i] = b[i]
+	}
+	defer func() {
+		for i := range b {
+			b[i] = bCopy[i]
+		}
+	}()
+
 	// x = b(p)
 	cs_ipvec(lu.n.pinv, b, x, n)
 	// x = L\x
