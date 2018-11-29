@@ -1236,3 +1236,9 @@ func TestIsSingular(t *testing.T) {
 		})
 	}
 }
+
+func TestAmd(t *testing.T) {
+	for _, a := range []Order{AmdNatural, AmdChol, AmdLU, AmdQR} {
+		t.Logf("%s", a)
+	}
+}
