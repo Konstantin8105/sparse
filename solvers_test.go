@@ -153,4 +153,20 @@ func TestLU(t *testing.T) {
 			}
 		})
 	}
+
+	t.Run("Wrong", func(t *testing.T) {
+		// solving
+		lu := new(sparse.LU)
+
+		// factorization
+		err := lu.Factorize(nil)
+		if err == nil {
+			t.Fatal("nil factorization")
+		}
+
+		_, err = lu.Solve(nil)
+		if err == nil {
+			t.Fatal("nil solve")
+		}
+	})
 }
