@@ -169,4 +169,20 @@ func TestLU(t *testing.T) {
 			t.Fatal("nil solve")
 		}
 	})
+
+	t.Run("Wrong-Triplet", func(t *testing.T) {
+		// solving
+		lu := new(sparse.LU)
+
+		// factorization
+		T, err := sparse.NewTriplet()
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		err = lu.Factorize((*sparse.Matrix)(T))
+		if err == nil {
+			t.Fatal("nil factorization")
+		}
+	})
 }
