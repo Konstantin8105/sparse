@@ -114,10 +114,16 @@ func TestLU(t *testing.T) {
 
 			// solving
 			lu := new(sparse.LU)
+
+			// order
+			lu.Order(sparse.AmdNatural)
+
+			// factorization
 			err = lu.Factorize(A)
 			if err != nil {
 				t.Fatal(err)
 			}
+
 			b := make([]float64, size)
 			for j := 0; j < size; j++ {
 				b[j] = float64(j + 1)
