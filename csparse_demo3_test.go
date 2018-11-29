@@ -242,7 +242,7 @@ func demo3(Prob *problem, output bool) int {
 	// numeric Cholesky
 	N = cs_chol(E, S)
 	if output {
-		Print(E, false)
+		E.Print(false)
 	}
 	if N == nil {
 		return 0 //int((done3(0, S, N, y, W, E, p)))

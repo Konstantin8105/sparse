@@ -23,9 +23,9 @@ type problem struct {
 
 func print_problem(P *problem) {
 	fmt.Fprintf(osStdout, "Matrix A:\n")
-	Print(P.A, false)
+	P.A.Print(false)
 	fmt.Fprintf(osStdout, "Matrix C:\n")
-	Print(P.C, false)
+	P.C.Print(false)
 	fmt.Fprintf(osStdout, "sym = %v\n", P.sym)
 
 	fmt.Fprintf(osStdout, "Vector x\n")
@@ -174,7 +174,7 @@ func get_problem(f io.Reader, tol float64, output bool) *problem {
 		fmt.Fprintf(osStdout, "A->p[%d] = %d\n", n, A.p[n])
 
 		fmt.Fprintf(osStdout, "A before drop\n")
-		Print(A, false)
+		A.Print(false)
 
 		fmt.Fprintf(osStdout, "tol = %.5e\n", tol)
 	}
@@ -188,7 +188,7 @@ func get_problem(f io.Reader, tol float64, output bool) *problem {
 
 	if output {
 		fmt.Fprintf(osStdout, "A before make_sym\n")
-		Print(A, false)
+		A.Print(false)
 	}
 
 	// C = A + triu(A,1)', or C=A */
@@ -220,7 +220,7 @@ func get_problem(f io.Reader, tol float64, output bool) *problem {
 			fmt.Fprintf(osStdout, "zero entries dropped: %g\n", float64(nz1-nz2))
 		}
 
-		Print(A, false)
+		A.Print(false)
 
 		fmt.Fprintf(osStdout, "nz2 = %d\n", nz2)
 		fmt.Fprintf(osStdout, "A->p[%d] = %d\n", n, A.p[n])

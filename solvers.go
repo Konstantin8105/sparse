@@ -34,6 +34,7 @@ func is_sym(A *Matrix) int {
 	return 0
 }
 
+// LU is a type for creating and using the LU factorization of a matrix.
 type LU struct {
 	order Order
 	a     *Matrix
@@ -45,6 +46,8 @@ func (lu *LU) Order(order Order) {
 	lu.order = order
 }
 
+// Factorize computes the LU factorization of the matrix a and stores
+// the result. Input matrix A is not checked on singular error.
 func (lu *LU) Factorize(A *Matrix) error {
 	// check input data
 	et := errors.New("Function LU.Factorize: check input data")
@@ -76,8 +79,11 @@ func (lu *LU) Factorize(A *Matrix) error {
 	return nil
 }
 
-// cs_lusol - x=A\b where A is unsymmetric; b overwritten with solution
-func (lu *LU) Solve(x []float64, b []float64) error {
+// Solve solves a system of linear equations using the LU decomposition of a matrix
+//
+//	A * x = b
+//
+func (lu *LU) Solve(b []float64) (x []float64, _ error) {
 	// check input data
 	et := errors.New("Function LU.Solve: check input data")
 	if b == nil {
@@ -91,16 +97,14 @@ func (lu *LU) Solve(x []float64, b []float64) error {
 	}
 
 	if et.IsError() {
-		return et
+		return nil, et
 	}
 
 	// initialization
 	n := lu.a.n
 
 	// get workspace
-	if x == nil {
-		x = make([]float64, n)
-	}
+	x = make([]float64, n)
 
 	// x = b(p)
 	cs_ipvec(lu.n.pinv, b, x, n)
@@ -111,5 +115,5 @@ func (lu *LU) Solve(x []float64, b []float64) error {
 	// b(q) = x
 	cs_ipvec(lu.s.q, x, b, n)
 
-	return nil
+	return x, nil
 }

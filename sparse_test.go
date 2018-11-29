@@ -201,7 +201,7 @@ func TestNilCheck(t *testing.T) {
 					var stdin bytes.Buffer
 					stdin.WriteString("0 0 1\n 0 1 2\n 1 0 3\n 1 1 4")
 					T := Load(&stdin)
-					_, err := Add(T, T, 0, 0)
+					_, err := Add((*Matrix)(T), (*Matrix)(T), 0, 0)
 					return err
 				}(),
 				func() error {
@@ -236,7 +236,7 @@ func TestNilCheck(t *testing.T) {
 					var s bytes.Buffer
 					s.WriteString("0 0 1\n0 1 2\n1 0 3\n1 1 4")
 					T := Load(&s)
-					return Gaxpy(T, nil, nil)
+					return Gaxpy((*Matrix)(T), nil, nil)
 				}(),
 				func() error {
 					var s bytes.Buffer
@@ -263,7 +263,7 @@ func TestNilCheck(t *testing.T) {
 					var s bytes.Buffer
 					s.WriteString("0 0 1\n0 1 2\n1 0 3\n1 1 4")
 					T := Load(&s)
-					_, err := Transpose(T)
+					_, err := Transpose((*Matrix)(T))
 					return err
 				}(),
 			},
@@ -279,7 +279,7 @@ func TestNilCheck(t *testing.T) {
 					var s bytes.Buffer
 					s.WriteString("0 0 1\n0 1 2\n1 0 3\n1 1 4")
 					T := Load(&s)
-					err := Dupl(T)
+					err := Dupl((*Matrix)(T))
 					return err
 				}(),
 			},
@@ -303,7 +303,7 @@ func TestNilCheck(t *testing.T) {
 					if err != nil {
 						panic(err)
 					}
-					err = Entry(A, 1, 1, 12)
+					err = Entry((*Triplet)(A), 1, 1, 12)
 					return err
 				}(),
 			},
@@ -319,7 +319,7 @@ func TestNilCheck(t *testing.T) {
 					var s bytes.Buffer
 					s.WriteString("0 0 1\n0 1 2\n1 0 3\n1 1 4")
 					T := Load(&s)
-					_, err := Multiply(T, T)
+					_, err := Multiply((*Matrix)(T), (*Matrix)(T))
 					return err
 				}(),
 				func() error {
@@ -359,7 +359,7 @@ func TestNilCheck(t *testing.T) {
 					s.WriteString("0 0 1\n0 1 2\n1 0 3\n1 1 4")
 					T := Load(&s)
 					// triplet in input
-					_, err := IsSingular(T)
+					_, err := IsSingular((*Matrix)(T))
 					return err
 				}(),
 				func() error {
@@ -497,7 +497,12 @@ func TestNilCheck(t *testing.T) {
 	if r := cs_post(nil, -1); r != nil {
 		t.Errorf("cs_post: not nil")
 	}
-	if r := Print(nil, false); r == nil {
+	a := new(Matrix)
+	if err := a.Print(false); err == nil {
+		t.Errorf("cs_print: not nil")
+	}
+	b := new(Matrix)
+	if err := b.Print(false); err == nil {
 		t.Errorf("cs_print: not nil")
 	}
 	if r := cs_pvec(nil, nil, nil, -1); r == true {
@@ -590,8 +595,11 @@ func TestNilCheck(t *testing.T) {
 func TestCsCompress(t *testing.T) {
 
 	t.Run("BigMatrix", func(t *testing.T) {
-		T := new(Matrix)
-		err := Entry(T, 0, 0, 1)
+		T, err := NewTriplet()
+		if err != nil {
+			t.Fatal(err)
+		}
+		err = Entry(T, 0, 0, 1)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -837,7 +845,7 @@ func TestAdd(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		Print(R, false)
+		R.Print(false)
 	})
 }
 
@@ -858,7 +866,7 @@ func ExampleAdd() {
 		panic(err)
 	}
 	osStdout = os.Stdout // for output in standart stdout
-	Print(R, false)
+	R.Print(false)
 
 	// Output:
 	// Sparse
@@ -912,12 +920,12 @@ func TestDupl(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		Print(A, false)
+		A.Print(false)
 		err = Dupl(A)
 		if err != nil {
 			t.Fatal(err)
 		}
-		Print(A, false)
+		A.Print(false)
 	})
 	// invert data
 	snapshot("./testdata/.snapshot.dupl.invert", t, func() {
@@ -928,12 +936,12 @@ func TestDupl(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		Print(A, false)
+		A.Print(false)
 		err = Dupl(A)
 		if err != nil {
 			t.Fatal(err)
 		}
-		Print(A, false)
+		A.Print(false)
 	})
 }
 
@@ -947,13 +955,13 @@ func ExampleDupl() {
 	}
 	osStdout = os.Stdout // for output in standart stdout
 	fmt.Fprintln(os.Stdout, "Before:")
-	Print(A, false)
+	A.Print(false)
 	err = Dupl(A)
 	if err != nil {
 		panic(err)
 	}
 	fmt.Fprintln(os.Stdout, "After:")
-	Print(A, false)
+	A.Print(false)
 
 	// Output:
 	// Before:
@@ -979,9 +987,12 @@ func ExampleDupl() {
 }
 
 func ExamplePrint() {
-	T := new(Matrix)
+	T, err := NewTriplet()
+	if err != nil {
+		panic(err)
+	}
 	for i := 0; i < 25; i++ {
-		err := Entry(T, i, i, 10)
+		err = Entry(T, i, i, 10)
 		if err != nil {
 			panic(err)
 		}
@@ -989,10 +1000,10 @@ func ExamplePrint() {
 	osStdout = os.Stdout // for output in standart stdout
 
 	fmt.Fprintln(os.Stdout, "Full print of triplets:")
-	Print(T, false)
+	T.Print(false)
 
 	fmt.Fprintln(os.Stdout, "Short print of triplets:")
-	Print(T, true)
+	T.Print(true)
 
 	A, err := Compress(T)
 	if err != nil {
@@ -1000,10 +1011,10 @@ func ExamplePrint() {
 	}
 
 	fmt.Fprintln(os.Stdout, "Full print of CSC matrix:")
-	Print(A, false)
+	A.Print(false)
 
 	fmt.Fprintln(os.Stdout, "Short print of CSC matrix:")
-	Print(A, true)
+	A.Print(true)
 
 	// Output:
 	// Full print of triplets:
@@ -1180,7 +1191,7 @@ func ExampleMultiply() {
 	if err != nil {
 		panic(err)
 	}
-	Print(M, false)
+	M.Print(false)
 
 	// Output:
 	// Sparse

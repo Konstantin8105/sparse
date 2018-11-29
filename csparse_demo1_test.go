@@ -70,7 +70,9 @@ func TestDemo1(t *testing.T) {
 			}
 
 			// triplet identify
-			T, err = cs_spalloc(m, m, m, true, tripletFormat)
+			var mt *Matrix
+			mt, err = cs_spalloc(m, m, m, true, tripletFormat)
+			T = (*Triplet)(mt)
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -94,7 +96,7 @@ func TestDemo1(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
-			Print(D, false)
+			D.Print(false)
 
 			end := time.Now() // end timer
 

@@ -28,6 +28,13 @@ type Matrix struct { // struct cs_sparse
 	nz    int       // # of entries in triplet matrix, -1 for compressed-col
 }
 
+type Triplet Matrix
+
+func NewTriplet() (*Triplet, error) {
+	m, err := cs_spalloc(0, 0, 1, true, tripletFormat)
+	return (*Triplet)(m), err
+}
+
 // symbolic Cholesky, LU, or QR analysis
 type css struct { // struct cs_symbolic
 	pinv     []int // inverse row perm. for QR, fill red. perm for Chol
@@ -1050,7 +1057,7 @@ func cs_cholsol(order Order, A *Matrix, b []float64) (result bool) {
 // Compress - compress triplet matrix T to compressed sparse column(CSC) format.
 //
 // Name function in CSparse : cs_compress.
-func Compress(T *Matrix) (_ *Matrix, err error) {
+func Compress(T *Triplet) (_ *Matrix, err error) {
 	// check input data
 	et := errors.New("Function Add: check input data")
 	if T == nil {
@@ -1836,7 +1843,7 @@ func Dupl(A *Matrix) error {
 // Entry - add an entry to a triplet matrix; return 1 if ok, 0 otherwise
 //
 // Name function in CSparse : cs_entry.
-func Entry(T *Matrix, i, j int, x float64) error {
+func Entry(T *Triplet, i, j int, x float64) error {
 	// check input data
 	et := errors.New("Function Entry: check input data")
 	if T == nil {
@@ -1859,7 +1866,7 @@ func Entry(T *Matrix, i, j int, x float64) error {
 	}
 	// memory reallocation
 	if T != nil {
-		if T.nz >= T.nzmax && !cs_sprealloc(T, 2*T.nzmax) { // TODO (KI) : add error handling
+		if T.nz >= T.nzmax && !cs_sprealloc((*Matrix)(T), 2*T.nzmax) { // TODO (KI) : add error handling
 			_ = et.Add(fmt.Errorf("cannot allocate new vector"))
 		}
 	}
@@ -2234,14 +2241,14 @@ func cs_leaf(i int, j int, first []int, maxfirst []int, prevleaf []int, ancestor
 // Load - load a triplet matrix from a file
 //
 // Name function in CSparse : cs_load.
-func Load(f io.Reader) *Matrix {
+func Load(f io.Reader) *Triplet {
 	if f == nil {
 		// use double for integers to avoid csi conflicts
 		// check inputs
 		return nil
 	}
 	// allocate result
-	T, err := cs_spalloc(0, 0, 1, true, tripletFormat)
+	T, err := NewTriplet()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, err.Error()) // TODO (KI) error hanling
 		return nil
@@ -3093,40 +3100,45 @@ func cs_post(parent []int, n int) []int {
 // Print - print a sparse matrix.
 //
 // Name function in CSparse : cs_print.
-func Print(A *Matrix, brief bool) error {
+func (A *Matrix) Print(brief bool) error {
 	if A == nil {
 		return fmt.Errorf("Matrix is nil")
 	}
-	var (
-		m     = A.m
-		n     = A.n
-		Ap    = A.p
-		Ai    = A.i
-		Ax    = A.x
-		nzmax = A.nzmax
-		nz    = A.nz
-	)
-	fmt.Fprintf(osStdout, "Sparse\n")
-	if nz < 0 {
-		fmt.Fprintf(osStdout, "%d-by-%d, nzmax: %d nnz: %d, 1-norm: %10e\n", m, n, nzmax, Ap[n], Norm(A))
-		for j := 0; j < n; j++ {
-			fmt.Fprintf(osStdout, "    col %d : locations %d to %d\n", j, Ap[j], Ap[j+1]-1)
-			for p := Ap[j]; p < Ap[j+1]; p++ {
-				fmt.Fprintf(osStdout, "      %d : %10e\n", Ai[p], func() float64 {
-					if Ax != nil {
-						return Ax[p]
-					}
-					return 1
-				}())
-				if brief && p > 20 {
-					fmt.Fprintf(osStdout, "  ...\n")
-					return nil
-				}
-			}
-		}
-		return nil
+	if A.nz != -1 {
+		return fmt.Errorf("A is not Matrix type")
 	}
 
+	m, n, Ap, Ai, Ax, nzmax := A.m, A.n, A.p, A.i, A.x, A.nzmax
+
+	fmt.Fprintf(osStdout, "Sparse\n")
+
+	fmt.Fprintf(osStdout, "%d-by-%d, nzmax: %d nnz: %d, 1-norm: %10e\n", m, n, nzmax, Ap[n], Norm(A))
+	for j := 0; j < n; j++ {
+		fmt.Fprintf(osStdout, "    col %d : locations %d to %d\n", j, Ap[j], Ap[j+1]-1)
+		for p := Ap[j]; p < Ap[j+1]; p++ {
+			fmt.Fprintf(osStdout, "      %d : %10e\n", Ai[p], func() float64 {
+				if Ax != nil {
+					return Ax[p]
+				}
+				return 1
+			}())
+			if brief && p > 20 {
+				fmt.Fprintf(osStdout, "  ...\n")
+				return nil
+			}
+		}
+	}
+	return nil
+}
+
+func (A *Triplet) Print(brief bool) error {
+	if A == nil {
+		return fmt.Errorf("Matrix is nil")
+	}
+
+	m, n, Ap, Ai, Ax, nzmax, nz := A.m, A.n, A.p, A.i, A.x, A.nzmax, A.nz
+
+	fmt.Fprintf(osStdout, "Sparse\n")
 	fmt.Fprintf(osStdout, "triplet: %d-by-%d, nzmax: %d nnz: %d\n", m, n, nzmax, nz)
 	for p := 0; p < nz; p++ {
 		fmt.Fprintf(osStdout, "    %d %d : %10e\n", Ai[p], Ap[p], func() float64 {
