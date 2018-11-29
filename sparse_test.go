@@ -201,7 +201,7 @@ func TestNilCheck(t *testing.T) {
 					var stdin bytes.Buffer
 					stdin.WriteString("0 0 1\n 0 1 2\n 1 0 3\n 1 1 4")
 					T := Load(&stdin)
-					_, err := Add(T, T, 0, 0)
+					_, err := Add((*Matrix)(T), (*Matrix)(T), 0, 0)
 					return err
 				}(),
 				func() error {
@@ -236,7 +236,7 @@ func TestNilCheck(t *testing.T) {
 					var s bytes.Buffer
 					s.WriteString("0 0 1\n0 1 2\n1 0 3\n1 1 4")
 					T := Load(&s)
-					return Gaxpy(T, nil, nil)
+					return Gaxpy((*Matrix)(T), nil, nil)
 				}(),
 				func() error {
 					var s bytes.Buffer
@@ -263,7 +263,7 @@ func TestNilCheck(t *testing.T) {
 					var s bytes.Buffer
 					s.WriteString("0 0 1\n0 1 2\n1 0 3\n1 1 4")
 					T := Load(&s)
-					_, err := Transpose(T)
+					_, err := Transpose((*Matrix)(T))
 					return err
 				}(),
 			},
@@ -279,7 +279,7 @@ func TestNilCheck(t *testing.T) {
 					var s bytes.Buffer
 					s.WriteString("0 0 1\n0 1 2\n1 0 3\n1 1 4")
 					T := Load(&s)
-					err := Dupl(T)
+					err := Dupl((*Matrix)(T))
 					return err
 				}(),
 			},
@@ -303,7 +303,7 @@ func TestNilCheck(t *testing.T) {
 					if err != nil {
 						panic(err)
 					}
-					err = Entry(A, 1, 1, 12)
+					err = Entry((*Triplet)(A), 1, 1, 12)
 					return err
 				}(),
 			},
@@ -319,7 +319,7 @@ func TestNilCheck(t *testing.T) {
 					var s bytes.Buffer
 					s.WriteString("0 0 1\n0 1 2\n1 0 3\n1 1 4")
 					T := Load(&s)
-					_, err := Multiply(T, T)
+					_, err := Multiply((*Matrix)(T), (*Matrix)(T))
 					return err
 				}(),
 				func() error {
@@ -359,7 +359,7 @@ func TestNilCheck(t *testing.T) {
 					s.WriteString("0 0 1\n0 1 2\n1 0 3\n1 1 4")
 					T := Load(&s)
 					// triplet in input
-					_, err := IsSingular(T)
+					_, err := IsSingular((*Matrix)(T))
 					return err
 				}(),
 				func() error {
@@ -497,7 +497,12 @@ func TestNilCheck(t *testing.T) {
 	if r := cs_post(nil, -1); r != nil {
 		t.Errorf("cs_post: not nil")
 	}
-	if r := Print(nil, false); r == nil {
+	a := new(Matrix)
+	if err := a.Print(false); err == nil {
+		t.Errorf("cs_print: not nil")
+	}
+	b := new(Matrix)
+	if err := b.Print(false); err == nil {
 		t.Errorf("cs_print: not nil")
 	}
 	if r := cs_pvec(nil, nil, nil, -1); r == true {
@@ -590,8 +595,11 @@ func TestNilCheck(t *testing.T) {
 func TestCsCompress(t *testing.T) {
 
 	t.Run("BigMatrix", func(t *testing.T) {
-		T := new(Matrix)
-		err := Entry(T, 0, 0, 1)
+		T, err := NewTriplet()
+		if err != nil {
+			t.Fatal(err)
+		}
+		err = Entry(T, 0, 0, 1)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -837,7 +845,7 @@ func TestAdd(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		Print(R, false)
+		R.Print(false)
 	})
 }
 
@@ -858,7 +866,7 @@ func ExampleAdd() {
 		panic(err)
 	}
 	osStdout = os.Stdout // for output in standart stdout
-	Print(R, false)
+	R.Print(false)
 
 	// Output:
 	// Sparse
@@ -912,12 +920,12 @@ func TestDupl(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		Print(A, false)
+		A.Print(false)
 		err = Dupl(A)
 		if err != nil {
 			t.Fatal(err)
 		}
-		Print(A, false)
+		A.Print(false)
 	})
 	// invert data
 	snapshot("./testdata/.snapshot.dupl.invert", t, func() {
@@ -928,12 +936,12 @@ func TestDupl(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		Print(A, false)
+		A.Print(false)
 		err = Dupl(A)
 		if err != nil {
 			t.Fatal(err)
 		}
-		Print(A, false)
+		A.Print(false)
 	})
 }
 
@@ -947,13 +955,13 @@ func ExampleDupl() {
 	}
 	osStdout = os.Stdout // for output in standart stdout
 	fmt.Fprintln(os.Stdout, "Before:")
-	Print(A, false)
+	A.Print(false)
 	err = Dupl(A)
 	if err != nil {
 		panic(err)
 	}
 	fmt.Fprintln(os.Stdout, "After:")
-	Print(A, false)
+	A.Print(false)
 
 	// Output:
 	// Before:
@@ -979,9 +987,12 @@ func ExampleDupl() {
 }
 
 func ExamplePrint() {
-	T := new(Matrix)
+	T, err := NewTriplet()
+	if err != nil {
+		panic(err)
+	}
 	for i := 0; i < 25; i++ {
-		err := Entry(T, i, i, 10)
+		err = Entry(T, i, i, 10+float64(i))
 		if err != nil {
 			panic(err)
 		}
@@ -989,10 +1000,10 @@ func ExamplePrint() {
 	osStdout = os.Stdout // for output in standart stdout
 
 	fmt.Fprintln(os.Stdout, "Full print of triplets:")
-	Print(T, false)
+	T.Print(false)
 
 	fmt.Fprintln(os.Stdout, "Short print of triplets:")
-	Print(T, true)
+	T.Print(true)
 
 	A, err := Compress(T)
 	if err != nil {
@@ -1000,166 +1011,166 @@ func ExamplePrint() {
 	}
 
 	fmt.Fprintln(os.Stdout, "Full print of CSC matrix:")
-	Print(A, false)
+	A.Print(false)
 
 	fmt.Fprintln(os.Stdout, "Short print of CSC matrix:")
-	Print(A, true)
+	A.Print(true)
 
 	// Output:
 	// Full print of triplets:
 	// Sparse
 	// triplet: 25-by-25, nzmax: 32 nnz: 25
-	//     0 0 : 1.000000e+00
-	//     1 1 : 1.000000e+00
-	//     2 2 : 1.000000e+00
-	//     3 3 : 1.000000e+00
-	//     4 4 : 1.000000e+00
-	//     5 5 : 1.000000e+00
-	//     6 6 : 1.000000e+00
-	//     7 7 : 1.000000e+00
-	//     8 8 : 1.000000e+00
-	//     9 9 : 1.000000e+00
-	//     10 10 : 1.000000e+00
-	//     11 11 : 1.000000e+00
-	//     12 12 : 1.000000e+00
-	//     13 13 : 1.000000e+00
-	//     14 14 : 1.000000e+00
-	//     15 15 : 1.000000e+00
-	//     16 16 : 1.000000e+00
-	//     17 17 : 1.000000e+00
-	//     18 18 : 1.000000e+00
-	//     19 19 : 1.000000e+00
-	//     20 20 : 1.000000e+00
-	//     21 21 : 1.000000e+00
-	//     22 22 : 1.000000e+00
-	//     23 23 : 1.000000e+00
-	//     24 24 : 1.000000e+00
+	//     0 0 : 1.000000e+01
+	//     1 1 : 1.100000e+01
+	//     2 2 : 1.200000e+01
+	//     3 3 : 1.300000e+01
+	//     4 4 : 1.400000e+01
+	//     5 5 : 1.500000e+01
+	//     6 6 : 1.600000e+01
+	//     7 7 : 1.700000e+01
+	//     8 8 : 1.800000e+01
+	//     9 9 : 1.900000e+01
+	//     10 10 : 2.000000e+01
+	//     11 11 : 2.100000e+01
+	//     12 12 : 2.200000e+01
+	//     13 13 : 2.300000e+01
+	//     14 14 : 2.400000e+01
+	//     15 15 : 2.500000e+01
+	//     16 16 : 2.600000e+01
+	//     17 17 : 2.700000e+01
+	//     18 18 : 2.800000e+01
+	//     19 19 : 2.900000e+01
+	//     20 20 : 3.000000e+01
+	//     21 21 : 3.100000e+01
+	//     22 22 : 3.200000e+01
+	//     23 23 : 3.300000e+01
+	//     24 24 : 3.400000e+01
 	// Short print of triplets:
 	// Sparse
 	// triplet: 25-by-25, nzmax: 32 nnz: 25
-	//     0 0 : 1.000000e+00
-	//     1 1 : 1.000000e+00
-	//     2 2 : 1.000000e+00
-	//     3 3 : 1.000000e+00
-	//     4 4 : 1.000000e+00
-	//     5 5 : 1.000000e+00
-	//     6 6 : 1.000000e+00
-	//     7 7 : 1.000000e+00
-	//     8 8 : 1.000000e+00
-	//     9 9 : 1.000000e+00
-	//     10 10 : 1.000000e+00
-	//     11 11 : 1.000000e+00
-	//     12 12 : 1.000000e+00
-	//     13 13 : 1.000000e+00
-	//     14 14 : 1.000000e+00
-	//     15 15 : 1.000000e+00
-	//     16 16 : 1.000000e+00
-	//     17 17 : 1.000000e+00
-	//     18 18 : 1.000000e+00
-	//     19 19 : 1.000000e+00
-	//     20 20 : 1.000000e+00
-	//     21 21 : 1.000000e+00
+	//     0 0 : 1.000000e+01
+	//     1 1 : 1.100000e+01
+	//     2 2 : 1.200000e+01
+	//     3 3 : 1.300000e+01
+	//     4 4 : 1.400000e+01
+	//     5 5 : 1.500000e+01
+	//     6 6 : 1.600000e+01
+	//     7 7 : 1.700000e+01
+	//     8 8 : 1.800000e+01
+	//     9 9 : 1.900000e+01
+	//     10 10 : 2.000000e+01
+	//     11 11 : 2.100000e+01
+	//     12 12 : 2.200000e+01
+	//     13 13 : 2.300000e+01
+	//     14 14 : 2.400000e+01
+	//     15 15 : 2.500000e+01
+	//     16 16 : 2.600000e+01
+	//     17 17 : 2.700000e+01
+	//     18 18 : 2.800000e+01
+	//     19 19 : 2.900000e+01
+	//     20 20 : 3.000000e+01
+	//     21 21 : 3.100000e+01
 	//   ...
 	// Full print of CSC matrix:
 	// Sparse
-	// 25-by-25, nzmax: 25 nnz: 25, 1-norm: -1.000000e+00
+	// 25-by-25, nzmax: 25 nnz: 25, 1-norm: 3.400000e+01
 	//     col 0 : locations 0 to 0
-	//       0 : 1.000000e+00
+	//       0 : 1.000000e+01
 	//     col 1 : locations 1 to 1
-	//       1 : 1.000000e+00
+	//       1 : 1.100000e+01
 	//     col 2 : locations 2 to 2
-	//       2 : 1.000000e+00
+	//       2 : 1.200000e+01
 	//     col 3 : locations 3 to 3
-	//       3 : 1.000000e+00
+	//       3 : 1.300000e+01
 	//     col 4 : locations 4 to 4
-	//       4 : 1.000000e+00
+	//       4 : 1.400000e+01
 	//     col 5 : locations 5 to 5
-	//       5 : 1.000000e+00
+	//       5 : 1.500000e+01
 	//     col 6 : locations 6 to 6
-	//       6 : 1.000000e+00
+	//       6 : 1.600000e+01
 	//     col 7 : locations 7 to 7
-	//       7 : 1.000000e+00
+	//       7 : 1.700000e+01
 	//     col 8 : locations 8 to 8
-	//       8 : 1.000000e+00
+	//       8 : 1.800000e+01
 	//     col 9 : locations 9 to 9
-	//       9 : 1.000000e+00
+	//       9 : 1.900000e+01
 	//     col 10 : locations 10 to 10
-	//       10 : 1.000000e+00
+	//       10 : 2.000000e+01
 	//     col 11 : locations 11 to 11
-	//       11 : 1.000000e+00
+	//       11 : 2.100000e+01
 	//     col 12 : locations 12 to 12
-	//       12 : 1.000000e+00
+	//       12 : 2.200000e+01
 	//     col 13 : locations 13 to 13
-	//       13 : 1.000000e+00
+	//       13 : 2.300000e+01
 	//     col 14 : locations 14 to 14
-	//       14 : 1.000000e+00
+	//       14 : 2.400000e+01
 	//     col 15 : locations 15 to 15
-	//       15 : 1.000000e+00
+	//       15 : 2.500000e+01
 	//     col 16 : locations 16 to 16
-	//       16 : 1.000000e+00
+	//       16 : 2.600000e+01
 	//     col 17 : locations 17 to 17
-	//       17 : 1.000000e+00
+	//       17 : 2.700000e+01
 	//     col 18 : locations 18 to 18
-	//       18 : 1.000000e+00
+	//       18 : 2.800000e+01
 	//     col 19 : locations 19 to 19
-	//       19 : 1.000000e+00
+	//       19 : 2.900000e+01
 	//     col 20 : locations 20 to 20
-	//       20 : 1.000000e+00
+	//       20 : 3.000000e+01
 	//     col 21 : locations 21 to 21
-	//       21 : 1.000000e+00
+	//       21 : 3.100000e+01
 	//     col 22 : locations 22 to 22
-	//       22 : 1.000000e+00
+	//       22 : 3.200000e+01
 	//     col 23 : locations 23 to 23
-	//       23 : 1.000000e+00
+	//       23 : 3.300000e+01
 	//     col 24 : locations 24 to 24
-	//       24 : 1.000000e+00
+	//       24 : 3.400000e+01
 	// Short print of CSC matrix:
 	// Sparse
-	// 25-by-25, nzmax: 25 nnz: 25, 1-norm: -1.000000e+00
+	// 25-by-25, nzmax: 25 nnz: 25, 1-norm: 3.400000e+01
 	//     col 0 : locations 0 to 0
-	//       0 : 1.000000e+00
+	//       0 : 1.000000e+01
 	//     col 1 : locations 1 to 1
-	//       1 : 1.000000e+00
+	//       1 : 1.100000e+01
 	//     col 2 : locations 2 to 2
-	//       2 : 1.000000e+00
+	//       2 : 1.200000e+01
 	//     col 3 : locations 3 to 3
-	//       3 : 1.000000e+00
+	//       3 : 1.300000e+01
 	//     col 4 : locations 4 to 4
-	//       4 : 1.000000e+00
+	//       4 : 1.400000e+01
 	//     col 5 : locations 5 to 5
-	//       5 : 1.000000e+00
+	//       5 : 1.500000e+01
 	//     col 6 : locations 6 to 6
-	//       6 : 1.000000e+00
+	//       6 : 1.600000e+01
 	//     col 7 : locations 7 to 7
-	//       7 : 1.000000e+00
+	//       7 : 1.700000e+01
 	//     col 8 : locations 8 to 8
-	//       8 : 1.000000e+00
+	//       8 : 1.800000e+01
 	//     col 9 : locations 9 to 9
-	//       9 : 1.000000e+00
+	//       9 : 1.900000e+01
 	//     col 10 : locations 10 to 10
-	//       10 : 1.000000e+00
+	//       10 : 2.000000e+01
 	//     col 11 : locations 11 to 11
-	//       11 : 1.000000e+00
+	//       11 : 2.100000e+01
 	//     col 12 : locations 12 to 12
-	//       12 : 1.000000e+00
+	//       12 : 2.200000e+01
 	//     col 13 : locations 13 to 13
-	//       13 : 1.000000e+00
+	//       13 : 2.300000e+01
 	//     col 14 : locations 14 to 14
-	//       14 : 1.000000e+00
+	//       14 : 2.400000e+01
 	//     col 15 : locations 15 to 15
-	//       15 : 1.000000e+00
+	//       15 : 2.500000e+01
 	//     col 16 : locations 16 to 16
-	//       16 : 1.000000e+00
+	//       16 : 2.600000e+01
 	//     col 17 : locations 17 to 17
-	//       17 : 1.000000e+00
+	//       17 : 2.700000e+01
 	//     col 18 : locations 18 to 18
-	//       18 : 1.000000e+00
+	//       18 : 2.800000e+01
 	//     col 19 : locations 19 to 19
-	//       19 : 1.000000e+00
+	//       19 : 2.900000e+01
 	//     col 20 : locations 20 to 20
-	//       20 : 1.000000e+00
+	//       20 : 3.000000e+01
 	//     col 21 : locations 21 to 21
-	//       21 : 1.000000e+00
+	//       21 : 3.100000e+01
 	//   ...
 }
 
@@ -1180,7 +1191,7 @@ func ExampleMultiply() {
 	if err != nil {
 		panic(err)
 	}
-	Print(M, false)
+	M.Print(false)
 
 	// Output:
 	// Sparse
@@ -1223,5 +1234,11 @@ func TestIsSingular(t *testing.T) {
 				t.Fatalf("Not correct result")
 			}
 		})
+	}
+}
+
+func TestAmd(t *testing.T) {
+	for _, a := range []Order{AmdNatural, AmdChol, AmdLU, AmdQR} {
+		t.Logf("%s", a)
 	}
 }
