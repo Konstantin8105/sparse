@@ -610,10 +610,11 @@ func cs_amd(order Order, A *Matrix) []int {
 			// scan Ei
 			for p = Cp[i]; p <= Cp[i]+eln-1; p++ {
 				e = Ci[p]
-				if w[e] >= mark {
+				switch {
+				case w[e] >= mark:
 					// decrement |Le\Lk|
 					w[e] -= nvi
-				} else if w[e] != 0 {
+				case w[e] != 0:
 					// ensure e is a live element
 					// 1st time e seen in scan 1
 					w[e] = degree[e] + wnvi
@@ -759,13 +760,13 @@ func cs_amd(order Order, A *Matrix) []int {
 				// compare i with all j
 				for j = next[i]; j != -1; {
 					ok = (len[j] == ln && elen[j] == eln)
-					for p = Cp[j] + 1; bool(ok) && p <= Cp[j]+ln-1; p++ {
+					for p = Cp[j] + 1; ok && p <= Cp[j]+ln-1; p++ {
 						if w[Ci[p]] != mark {
 							// compare i and j
 							ok = false
 						}
 					}
-					if bool(ok) {
+					if ok {
 						// i and j are identical
 						// absorb j into i
 						Cp[j] = -i - 2
