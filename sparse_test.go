@@ -393,13 +393,13 @@ func TestNilCheck(t *testing.T) {
 	if _, err := Add(nil, nil, 0, 0); err == nil {
 		t.Errorf("cs_add: not nil")
 	}
-	if r := cs_amd(-1, nil); r != nil {
+	if r := cs_amd(100, nil); r != nil {
 		t.Errorf("cs_amd: not nil")
 	}
 	if r := cs_chol(nil, nil); r != nil {
 		t.Errorf("cs_chol: not nil")
 	}
-	if r := cs_cholsol(-1, nil, nil); r == true {
+	if r := cs_cholsol(100, nil, nil); r == true {
 		t.Errorf("cs_cholsol: not nil")
 	}
 	if _, err := Compress(nil); err == nil {
@@ -469,7 +469,7 @@ func TestNilCheck(t *testing.T) {
 	if r := cs_lu(nil, nil, -1); r != nil {
 		t.Errorf("cs_lu: not nil")
 	}
-	if r := cs_lusol(-1, nil, nil, -1); r == true {
+	if r := cs_lusol(100, nil, nil, -1); r == true {
 		t.Errorf("cs_lusol: not nil")
 	}
 	// TODO (KI) : no need
@@ -506,7 +506,7 @@ func TestNilCheck(t *testing.T) {
 	if r := cs_qr(nil, nil); r != nil {
 		t.Errorf("cs_qr: not nil")
 	}
-	if r := cs_qrsol(-1, nil, nil); r == true {
+	if r := cs_qrsol(100, nil, nil); r == true {
 		t.Errorf("cs_qrsol: not nil")
 	}
 	// TODO(KI)
@@ -522,7 +522,7 @@ func TestNilCheck(t *testing.T) {
 	if r := cs_scc(nil); r != nil {
 		t.Errorf("cs_scc: not nil")
 	}
-	if r := cs_schol(-1, nil); r != nil {
+	if r := cs_schol(100, nil); r != nil {
 		t.Errorf("cs_schol: not nil")
 	}
 	if r := cs_spsolve(nil, nil, -1, nil, nil, nil, false); r != -1 {
@@ -532,7 +532,7 @@ func TestNilCheck(t *testing.T) {
 	// if r := cs_vcount(nil, nil); r == true {
 	// 	t.Errorf("cs_vcount: not nil")
 	// }
-	if r := cs_sqr(-1, nil, false); r != nil {
+	if r := cs_sqr(100, nil, false); r != nil {
 		t.Errorf("cs_sqr: not nil")
 	}
 	if r := cs_symperm(nil, nil, false); r != nil {
@@ -1203,6 +1203,7 @@ func TestIsSingular(t *testing.T) {
 		{"0 0 1\n 2 2 4", true},
 		{"2 2 4", true},
 		{"0 0 1\n 2 2 4\n 1 1 0", true},
+		{"0 0 1\n 0 1 1\n 0 2 1\n1 2 1\n2 2 1", true},
 	}
 
 	for i := range tcs {

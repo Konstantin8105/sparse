@@ -175,11 +175,53 @@ func cs_diag(i, j int, aij float64, other interface{}) bool {
 	return (i != j)
 }
 
+type Order uint8
+
+const (
+	// natural ordering.
+	Natural Order = iota
+
+	// matrix is square. Used for Cholesky or LU factorization of a matrix with
+	// entries preliminary on the diagonal and a preliminary symmetric
+	// nonzero pattern.
+	//
+	// amd(A+A')
+	Chol
+
+	// usually used for LU factorization of unsymmetric matrices.
+	//
+	// amd(S'*S)
+	LU
+
+	// usually used for LU or QR factorization.
+	//
+	// amd(A'*A)
+	QR
+)
+
+func (o Order) String() (out string) {
+	switch o {
+	case Natural:
+		return "natural"
+	case Chol:
+		return "amd(A+A')"
+	case LU:
+		return "amd(S'*S)"
+	case QR:
+		return "amd(A'*A)"
+	}
+	return
+}
+
 // cs_amd - p = amd(A+A') if symmetric is true, or amd(A'A) otherwise
 // order 0:natural, 1:Chol, 2:LU, 3:QR
-func cs_amd(order int, A *Matrix) (result []int) {
+func cs_amd(order Order, A *Matrix) []int {
+	if !(A != nil && A.nz == -1) || order <= 0 || order > 3 {
+		// check
+		return nil
+	}
 	var C *Matrix
-	var A2 *Matrix
+	// var A2 *Matrix
 	// var AT []cs
 	// var Cp []int
 	// var Ci []int
@@ -194,8 +236,8 @@ func cs_amd(order int, A *Matrix) (result []int) {
 	// var degree []int
 	// var w []int
 	// var hhead []int
-	var ATp []int
-	var ATi []int
+	// var ATp []int
+	// var ATi []int
 	var d int     // int
 	var dk int    // int
 	var dext int  // int
@@ -237,11 +279,7 @@ func cs_amd(order int, A *Matrix) (result []int) {
 	// var m int
 	// var t int
 	var h int // int
-	if !(A != nil && A.nz == -1) || order <= 0 || order > 3 {
-		// --- Construct matrix C -----------------------------------------------
-		// check
-		return nil
-	}
+	// --- Construct matrix C -----------------------------------------------
 	// compute A'
 	AT, err := cs_transpose(A, false)
 	if err != nil {
@@ -272,8 +310,7 @@ func cs_amd(order int, A *Matrix) (result []int) {
 
 	case order == 2:
 		// drop dense columns from AT
-		ATp = AT.p
-		ATi = AT.i
+		ATp, ATi := AT.p, AT.i
 
 		for p2, j = 0, 0; j < m; j++ {
 			// column j of AT starts here
@@ -293,7 +330,7 @@ func cs_amd(order int, A *Matrix) (result []int) {
 		// finalize AT
 		ATp[m] = p2
 		// A2 = AT'
-		A2, err = cs_transpose(AT, false)
+		A2, err := cs_transpose(AT, false)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, err.Error()) // TODO (KI) error hanling
 			return nil
@@ -456,9 +493,7 @@ func cs_amd(order int, A *Matrix) (result []int) {
 			}
 
 			// scan all of memory
-			var (
-				q, p int
-			)
+			var q, p int
 			for p = 0; p < cnz; {
 				if (func() int {
 					j = -(Ci[func() int {
@@ -575,10 +610,11 @@ func cs_amd(order int, A *Matrix) (result []int) {
 			// scan Ei
 			for p = Cp[i]; p <= Cp[i]+eln-1; p++ {
 				e = Ci[p]
-				if w[e] >= mark {
+				switch {
+				case w[e] >= mark:
 					// decrement |Le\Lk|
 					w[e] -= nvi
-				} else if w[e] != 0 {
+				case w[e] != 0:
 					// ensure e is a live element
 					// 1st time e seen in scan 1
 					w[e] = degree[e] + wnvi
@@ -724,13 +760,13 @@ func cs_amd(order int, A *Matrix) (result []int) {
 				// compare i with all j
 				for j = next[i]; j != -1; {
 					ok = (len[j] == ln && elen[j] == eln)
-					for p = Cp[j] + 1; bool(ok) && p <= Cp[j]+ln-1; p++ {
+					for p = Cp[j] + 1; ok && p <= Cp[j]+ln-1; p++ {
 						if w[Ci[p]] != mark {
 							// compare i and j
 							ok = false
 						}
 					}
-					if bool(ok) {
+					if ok {
 						// i and j are identical
 						// absorb j into i
 						Cp[j] = -i - 2
@@ -982,7 +1018,7 @@ func cs_chol(A *Matrix, S *css) *csn {
 }
 
 // cs_cholsol - x=A\b where A is symmetric positive definite; b overwritten with solution
-func cs_cholsol(order int, A *Matrix, b []float64) (result bool) {
+func cs_cholsol(order Order, A *Matrix, b []float64) (result bool) {
 	if !(A != nil && A.nz == -1) || b == nil {
 		// check inputs
 		return false
@@ -2444,7 +2480,7 @@ func cs_lu(A *Matrix, S *css, tol float64) *csn {
 }
 
 // cs_lusol - x=A\b where A is unsymmetric; b overwritten with solution
-func cs_lusol(order int, A *Matrix, b []float64, tol float64) bool {
+func cs_lusol(order Order, A *Matrix, b []float64, tol float64) bool {
 	if !(A != nil && A.nz == -1) || b == nil {
 		// check inputs
 		return false
@@ -3330,7 +3366,7 @@ func cs_qr(A *Matrix, S *css) *csn {
 }
 
 // cs_qrsol - x=A\b where A can be rectangular; b overwritten with solution
-func cs_qrsol(order int, A *Matrix, b []float64) bool {
+func cs_qrsol(order Order, A *Matrix, b []float64) bool {
 	var x []float64
 	var S *css
 	var N *csn
@@ -3378,7 +3414,7 @@ func cs_qrsol(order int, A *Matrix, b []float64) bool {
 			return false
 		}
 		// ordering and symbolic analysis
-		S = cs_sqr(int(order), AT, true)
+		S = cs_sqr(order, AT, true)
 		// numeric QR factorization of A'
 		N = cs_qr(AT, S)
 		// get workspace
@@ -3598,7 +3634,7 @@ func cs_scc(A *Matrix) *csd {
 }
 
 // cs_schol - ordering and symbolic analysis for a Cholesky factorization
-func cs_schol(order int, A *Matrix) (result *css) {
+func cs_schol(order Order, A *Matrix) (result *css) {
 	var n int
 	var c []int
 	var post []int
@@ -3880,7 +3916,7 @@ func cs_vcount(A *Matrix, S *css) bool {
 }
 
 // cs_sqr - symbolic ordering and analysis for QR or LU
-func cs_sqr(order int, A *Matrix, qr bool) *css {
+func cs_sqr(order Order, A *Matrix, qr bool) *css {
 	var ok bool = true
 	if !(A != nil && A.nz == -1) {
 		// check inputs
@@ -4098,7 +4134,8 @@ func Transpose(A *Matrix) (*Matrix, error) {
 	return cs_transpose(A, true)
 }
 
-// cs_transpose - C = A'
+// cs_transpose - C = A'.
+// if values == true, then initialize vector x in Matrix
 func cs_transpose(A *Matrix, values bool) (*Matrix, error) {
 	// check input data
 	et := errors.New("Function Transpose: check input data")

@@ -157,7 +157,7 @@ func demo2(Prob *problem, output bool) bool {
 		rhs(x, b, m)
 		t = tic()
 		// min norm(Ax-b) with QR
-		ok = cs_qrsol(order, C, x)
+		ok = cs_qrsol(Order(order), C, x)
 		if output {
 			fmt.Fprintf(osStdout, "time: %8.2f ", toc(t))
 			// print residual
@@ -197,7 +197,7 @@ func demo2(Prob *problem, output bool) bool {
 		rhs(x, b, m)
 		t = tic()
 		// solve Ax=b with LU
-		ok = cs_lusol(order, C, x, tol)
+		ok = cs_lusol(Order(order), C, x, tol)
 		if output {
 			fmt.Fprintf(osStdout, "time: %8.2f ", toc(t))
 			// print residual
@@ -236,7 +236,7 @@ func demo2(Prob *problem, output bool) bool {
 		rhs(x, b, m)
 		t = tic()
 		// solve Ax=b with Cholesky
-		ok = cs_cholsol(order, C, x)
+		ok = cs_cholsol(Order(order), C, x)
 		if output {
 			fmt.Fprintf(osStdout, "time: %8.2f ", toc(t))
 			// print residual
