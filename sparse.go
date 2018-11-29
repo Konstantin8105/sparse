@@ -179,35 +179,35 @@ type Order uint8
 
 const (
 	// natural ordering.
-	Natural Order = iota
+	AmdNatural Order = iota
 
 	// matrix is square. Used for Cholesky or LU factorization of a matrix with
 	// entries preliminary on the diagonal and a preliminary symmetric
 	// nonzero pattern.
 	//
 	// amd(A+A')
-	Chol
+	AmdChol
 
 	// usually used for LU factorization of unsymmetric matrices.
 	//
 	// amd(S'*S)
-	LU
+	AmdLU
 
 	// usually used for LU or QR factorization.
 	//
 	// amd(A'*A)
-	QR
+	AmdQR
 )
 
 func (o Order) String() (out string) {
 	switch o {
-	case Natural:
+	case AmdNatural:
 		return "natural"
-	case Chol:
+	case AmdChol:
 		return "amd(A+A')"
-	case LU:
+	case AmdLU:
 		return "amd(S'*S)"
-	case QR:
+	case AmdQR:
 		return "amd(A'*A)"
 	}
 	return
@@ -2533,11 +2533,16 @@ func cs_free(p interface{}) {
 		}
 		// TODO (KI) : fmt.Fprintf(os.Stdout, "Type : %8d %T\n", cap(v), v)
 
+	case LU:
+		cs_free(v.a)
+		cs_free(v.s)
+		cs_free(v.n)
+
 	case *Matrix:
 		if v != nil {
+			cs_free(v.p)
 			cs_free(v.i)
-			cs_free(v.p)
-			cs_free(v.p)
+			cs_free(v.x)
 		}
 
 	case *csn:

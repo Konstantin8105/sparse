@@ -64,38 +64,6 @@ func rhs(x []float64, b []float64, m int) {
 	}
 }
 
-// is_sym - 1 if A is square & upper tri., -1 if square & lower tri., 0 otherwise
-func is_sym(A *Matrix) int {
-	var is_upper bool
-	var is_lower bool
-	n := A.n
-	m := A.m
-	var Ap []int = A.p
-	var Ai []int = A.i
-	if m != n {
-		return 0
-	}
-	is_upper = true
-	is_lower = true
-	for j := 0; j < n; j++ {
-		for p := Ap[j]; p < Ap[j+1]; p++ {
-			if Ai[p] > j {
-				is_upper = false
-			}
-			if Ai[p] < j {
-				is_lower = false
-			}
-		}
-	}
-	if is_upper {
-		return 1
-	}
-	if is_lower {
-		return -1
-	}
-	return 0
-}
-
 // dropdiag - true for off-diagonal entries
 func dropdiag(i int, j int, aij float64, other interface{}) bool {
 	return (i != j)
