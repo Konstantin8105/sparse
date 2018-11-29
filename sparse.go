@@ -215,13 +215,13 @@ func (o Order) String() (out string) {
 
 // cs_amd - p = amd(A+A') if symmetric is true, or amd(A'A) otherwise
 // order 0:natural, 1:Chol, 2:LU, 3:QR
-func cs_amd(order Order, A *Matrix) (result []int) {
+func cs_amd(order Order, A *Matrix) []int {
 	if !(A != nil && A.nz == -1) || order <= 0 || order > 3 {
 		// check
 		return nil
 	}
 	var C *Matrix
-	var A2 *Matrix
+	// var A2 *Matrix
 	// var AT []cs
 	// var Cp []int
 	// var Ci []int
@@ -236,8 +236,8 @@ func cs_amd(order Order, A *Matrix) (result []int) {
 	// var degree []int
 	// var w []int
 	// var hhead []int
-	var ATp []int
-	var ATi []int
+	// var ATp []int
+	// var ATi []int
 	var d int     // int
 	var dk int    // int
 	var dext int  // int
@@ -310,8 +310,7 @@ func cs_amd(order Order, A *Matrix) (result []int) {
 
 	case order == 2:
 		// drop dense columns from AT
-		ATp = AT.p
-		ATi = AT.i
+		ATp, ATi := AT.p, AT.i
 
 		for p2, j = 0, 0; j < m; j++ {
 			// column j of AT starts here
@@ -331,7 +330,7 @@ func cs_amd(order Order, A *Matrix) (result []int) {
 		// finalize AT
 		ATp[m] = p2
 		// A2 = AT'
-		A2, err = cs_transpose(AT, false)
+		A2, err := cs_transpose(AT, false)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, err.Error()) // TODO (KI) error hanling
 			return nil
@@ -4134,7 +4133,8 @@ func Transpose(A *Matrix) (*Matrix, error) {
 	return cs_transpose(A, true)
 }
 
-// cs_transpose - C = A'
+// cs_transpose - C = A'.
+// if values == true, then initialize vector x in Matrix
 func cs_transpose(A *Matrix, values bool) (*Matrix, error) {
 	// check input data
 	et := errors.New("Function Transpose: check input data")
