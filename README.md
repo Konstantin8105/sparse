@@ -8,7 +8,15 @@
 
 **This package based on program CSparse from [SuiteSparse 5.3.0](http://faculty.cse.tamu.edu/davis/SuiteSparse/)**
 
+### Example of comparing CSparse and CXSparse
 
+```cmd
+rm -rf /tmp/CXSparse
+cp -R ./CXSparse/ /tmp/
+sed -i 's/CS_ENTRY/csi/g' /tmp/CXSparse/Source/*.c
+sed -i 's/CS_INT/csi/g'   /tmp/CXSparse/Source/*.c
+meld  /tmp/CXSparse/ ./CSparse/
+```
 
 ### How updating package
 
