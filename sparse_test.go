@@ -1374,6 +1374,6 @@ func ExampleLimits() {
 	fmt.Fprintf(os.Stdout, "min = %5e\nmax = %5e\n", min, max)
 
 	// Output:
-	// min = 1.000000e+00
+	// min = -2.000000e+00
 	// max = 6.000000e+00
 }
