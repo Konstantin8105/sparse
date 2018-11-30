@@ -138,7 +138,7 @@ func Limits(A *Matrix) (min, max float64, _ error) {
 		_ = et.Add(fmt.Errorf("matrix A is not CSC(Compressed Sparse Column) format"))
 	}
 	if A != nil {
-		if len(A.x) == 0 {
+		if A.n == 0 && A.m == 0 {
 			_ = et.Add(fmt.Errorf("matrix A is empty"))
 		}
 	}
