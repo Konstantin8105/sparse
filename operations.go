@@ -126,3 +126,44 @@ func Zeroize(A *Matrix, pos int, center float64) error {
 
 	return fmt.Errorf("cannot found center entry")
 }
+
+// Limits return min and max value of matrix
+func Limits(A *Matrix) (min, max float64, _ error) {
+	// check input data
+	et := errors.New("Function Limits: check input data")
+	if A == nil {
+		_ = et.Add(fmt.Errorf("matrix A is nil"))
+	}
+	if A != nil && A.nz != -1 {
+		_ = et.Add(fmt.Errorf("matrix A is not CSC(Compressed Sparse Column) format"))
+	}
+	if A != nil {
+		if A.n == 0 && A.m == 0 {
+			_ = et.Add(fmt.Errorf("matrix A is empty"))
+		}
+	}
+
+	if et.IsError() {
+		return 0, 0, et
+	}
+
+	// initialization
+	n, Ap, Ax := A.n, A.p, A.x
+
+	// calculation
+	min = Ax[0]
+	max = Ax[0]
+	for j := 0; j < n; j++ {
+		for p := Ap[j]; p < Ap[j+1]; p++ {
+			x := Ax[p] // value
+			if min > x {
+				min = x
+			}
+			if max < x {
+				max = x
+			}
+		}
+	}
+
+	return min, max, nil
+}
