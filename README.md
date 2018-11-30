@@ -13,7 +13,7 @@
 ```cmd
 rm -rf /tmp/CXSparse
 cp -R ./CXSparse/ /tmp/
-sed -i 's/CS_ENTRY/csi/g' /tmp/CXSparse/Source/*.c
+sed -i 's/CS_ENTRY/double/g' /tmp/CXSparse/Source/*.c
 sed -i 's/CS_INT/csi/g'   /tmp/CXSparse/Source/*.c
 meld  /tmp/CXSparse/ ./CSparse/
 ```
