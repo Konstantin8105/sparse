@@ -67,15 +67,15 @@ func Zeroize(A *Matrix, pos int, center float64) error {
 		_ = et.Add(fmt.Errorf("matrix A is not CSC(Compressed Sparse Column) format"))
 	}
 	if A != nil {
-		if pos < 0 {
-			_ = et.Add(fmt.Errorf("position is less zero"))
-		}
 		if pos >= A.n {
 			_ = et.Add(fmt.Errorf("position is more columns"))
 		}
 		if pos >= A.m {
 			_ = et.Add(fmt.Errorf("position is more rows"))
 		}
+	}
+	if pos < 0 {
+		_ = et.Add(fmt.Errorf("position is less zero"))
 	}
 	if math.IsNaN(center) {
 		_ = et.Add(fmt.Errorf("center value is Nan value"))
