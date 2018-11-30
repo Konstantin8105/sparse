@@ -1359,7 +1359,7 @@ func ExampleZeroize() {
 
 func ExampleLimits() {
 	var stdin bytes.Buffer
-	stdin.WriteString("0 0 1\n1 0 2\n2 0 3\n2 1 4\n2 2 5\n 1 1 6")
+	stdin.WriteString("0 0 1\n1 0 -2\n2 0 3\n2 1 4\n2 2 5\n 1 1 6")
 	T := Load(&stdin)
 	A, err := Compress(T)
 	if err != nil {
