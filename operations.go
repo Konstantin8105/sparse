@@ -93,26 +93,36 @@ func Zeroize(A *Matrix, pos int, center float64) error {
 
 	// calculation
 	var found bool
+	var nz int = 0
 	for j := 0; j < n; j++ {
-		for p := Ap[j]; p < Ap[j+1]; p++ {
+		// get current location of col j
+		p := Ap[j]
+		// record new location of col j
+		Ap[j] = nz
+		for ; p < Ap[j+1]; p++ {
 			i := Ai[p] // row
 			j := j     // column
-			if i == pos || j == pos {
-				Ax[p] = 0.0
-			}
-			if i == pos && j == pos {
-				found = true
-				Ax[p] = center
+			if (i != pos && j != pos) || (i == pos && j == pos) {
+				if Ax != nil {
+					// keep A(i,j)
+					Ax[nz] = Ax[p]
+					if i == pos && j == pos {
+						found = true
+						Ax[nz] = center
+					}
+				}
+				Ai[nz] = Ai[p]
+				nz++
 			}
 		}
 	}
+	// finalize A
+	Ap[n] = nz
+	// remove extra space from A
+	cs_sprealloc(A, 0)
 	if found {
-		return Dupl(A)
+		return nil
 	}
 
-	panic("Not found")
-
-	// TODO: not found
-
-	return nil
+	return fmt.Errorf("cannot found center entry")
 }
