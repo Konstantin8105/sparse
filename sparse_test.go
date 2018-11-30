@@ -421,6 +421,35 @@ func TestNilCheck(t *testing.T) {
 				}(),
 			},
 		},
+		{
+			name: "Limits",
+			fs: []error{
+				func() error {
+					_, _, err := Limits(nil)
+					return err
+				}(),
+				func() error {
+					var s bytes.Buffer
+					s.WriteString("0 0 1\n0 1 2\n1 0 3\n1 1 4")
+					T := Load(&s)
+					// triplet in input
+					_, _, err := Limits((*Matrix)(T))
+					return err
+				}(),
+				func() error {
+					var s bytes.Buffer
+					// rectangle matrix
+					s.WriteString("")
+					T := Load(&s)
+					A, err := Compress(T)
+					if err != nil {
+						panic(err)
+					}
+					_, _, err = Limits(A)
+					return err
+				}(),
+			},
+		},
 	}
 
 	for i := range tcs {
@@ -1326,4 +1355,25 @@ func ExampleZeroize() {
 	//       1 : 5.000000e+00
 	//     col 2 : locations 3 to 3
 	//       2 : 1.000000e+00
+}
+
+func ExampleLimits() {
+	var stdin bytes.Buffer
+	stdin.WriteString("0 0 1\n1 0 2\n2 0 3\n2 1 4\n2 2 5\n 1 1 6")
+	T := Load(&stdin)
+	A, err := Compress(T)
+	if err != nil {
+		panic(err)
+	}
+	osStdout = os.Stdout // for output in standart stdout
+
+	min, max, err := Limits(A)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Fprintf(os.Stdout, "min = %5e\nmax = %5e\n", min, max)
+
+	// Output:
+	// min = 1.000000e+00
+	// max = 6.000000e+00
 }
