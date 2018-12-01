@@ -1401,6 +1401,14 @@ func TestCombinations3x3(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
+			if A.m != 3 {
+				// ignore
+				return
+			}
+			if A.n != 3 {
+				// ignore
+				return
+			}
 
 			y := make([]float64, 3)
 			err = Gaxpy(A, x, y)
@@ -1408,8 +1416,34 @@ func TestCombinations3x3(t *testing.T) {
 				t.Fatal(err)
 			}
 
-			// TODO
-			_ = y
+			// solving
+			lu := new(LU)
+
+			// order
+			lu.Order(AmdNatural)
+
+			// factorization
+			err = lu.Factorize(A)
+			if err != nil {
+				t.Fatalf("Error factorization :\n%v", err)
+			}
+
+			x2, err := lu.Solve(y)
+			if err != nil {
+				t.Logf("%s", s)
+				t.Fatalf("Error solver :\n%v", err)
+			}
+
+			ok := true
+			for i := range x {
+				if x[i] != x2[i] {
+					ok = false
+					t.Logf("%2f %2f", x[i], x2[i])
+				}
+			}
+			if !ok {
+				t.Fatalf("not correct")
+			}
 		})
 	}
 }
