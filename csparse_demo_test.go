@@ -140,7 +140,10 @@ func get_problem(f io.Reader, tol float64, output bool) *problem {
 		return nil
 	}
 	// load triplet matrix T from a file */
-	T := Load(f)
+	T, err := Load(f)
+	if err != nil {
+		panic(err)
+	}
 	A, err := Compress(T)
 	if err != nil {
 		panic(err)

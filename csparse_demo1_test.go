@@ -49,7 +49,10 @@ func TestDemo1(t *testing.T) {
 			stdin.Write(b)
 
 			// load data
-			T := Load(&stdin)
+			T, err := Load(&stdin)
+			if err != nil {
+				t.Fatal(err)
+			}
 
 			// A compressed-column form of T
 			A, err := Compress(T)
