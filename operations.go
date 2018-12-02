@@ -167,3 +167,26 @@ func Limits(A *Matrix) (min, max float64, _ error) {
 
 	return min, max, nil
 }
+
+// IsSym return true if matrix A is symmetrical
+func IsSym(A *Matrix) (ok bool, err error) {
+	// check input data
+	// TODO(KI):
+
+	// amount workspace : copy of matrix
+
+	// ignore diagonal elements
+
+	// separate in L and U triagonal matrix
+
+	// transpose U to L*
+
+	// compare size of columns
+
+	// sort index in each column
+
+	// compare L and L*
+	// check index
+	// check value
+
+}
