@@ -1811,6 +1811,10 @@ func Dupl(A *Matrix) error {
 		for p := Ap[j]; p < Ap[j+1]; p++ {
 			// A(i,j) is nonzero
 			i := Ai[p]
+			if Ax[p] == 0.0 {
+				// A(i,j) is a zero
+				continue
+			}
 			if w[i] >= q {
 				// A(i,j) is a duplicate
 				Ax[w[i]] += Ax[p]
