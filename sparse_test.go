@@ -1062,7 +1062,7 @@ func TestDupl(t *testing.T) {
 
 func ExampleDupl() {
 	var stdin bytes.Buffer
-	stdin.WriteString(" 1 0 10\n 0 0 1\n 1 1 4\n 1 0 3\n 0 1 2\n 0 0 1 ")
+	stdin.WriteString(" 1 0 10\n 0 0 1\n 1 1 4\n 1 0 3\n 0 1 2\n 0 0 1 \n 0 0 0\n 1 0 0")
 	T := Load(&stdin)
 	A, err := Compress(T)
 	if err != nil {
@@ -1087,6 +1087,8 @@ func ExampleDupl() {
 	//       0 : 1.000000e+00
 	//       1 : 3.000000e+00
 	//       0 : 1.000000e+00
+	//       0 : 0.000000e+00
+	//       1 : 0.000000e+00
 	//     col 1 : locations 4 to 5
 	//       1 : 4.000000e+00
 	//       0 : 2.000000e+00
