@@ -171,22 +171,94 @@ func Limits(A *Matrix) (min, max float64, _ error) {
 // IsSym return true if matrix A is symmetrical
 func IsSym(A *Matrix) (ok bool, err error) {
 	// check input data
-	// TODO(KI):
+	et := errors.New("Function Limits: check input data")
+	if A == nil {
+		_ = et.Add(fmt.Errorf("matrix A is nil"))
+	}
+	if A != nil && A.nz != -1 {
+		_ = et.Add(fmt.Errorf("matrix A is not CSC(Compressed Sparse Column) format"))
+	}
+	if A != nil {
+		if A.n == 0 && A.m == 0 {
+			_ = et.Add(fmt.Errorf("matrix A is empty"))
+		}
+		if A.n != A.m {
+			_ = et.Add(fmt.Errorf("matrix A is not square"))
+		}
+	}
 
-	// amount workspace : copy of matrix
+	if et.IsError() {
+		return false, et
+	}
 
-	// ignore diagonal elements
+	// initialization
+	n, Ap, Ai, Ax := A.n, A.p, A.i, A.x
 
-	// separate in L and U triagonal matrix
+	// check amount upper and lower entries
+	{
+		nzUpper := 0
+		nzLower := 0
+		for j := 0; j < n; j++ {
+			for p := Ap[j]; p < Ap[j+1]; p++ {
+				i := Ai[p] // row
+				j := j     // column
+				if i == j {
+					// ignore diagonal
+					continue
+				}
+				if i > j { // lower
+					nzLower++
+					continue
+				}
+				// upper
+				nzUpper++
+			}
+		}
+		if nzUpper != nzLower {
+			return false, fmt.Errorf(
+				"amount entries on up and low diagonal is not same: %d != %d",
+				nzUpper, nzLower)
+		}
+	}
 
-	// transpose U to L*
+	// check values
+	for j := 0; j < n; j++ {
+		for p := Ap[j]; p < Ap[j+1]; p++ {
+			i := Ai[p] // row
+			j := j     // column
+			x := Ax[p] // value
 
-	// compare size of columns
+			if i == j {
+				continue
+			}
 
-	// sort index in each column
+			// finding
+			var found bool
+			for p2 := Ap[i]; p2 < Ap[i+1]; p2++ {
+				i2 := Ai[p2] // row
+				j2 := i      // column
+				x2 := Ax[p2] // value
+				if i == j2 && i == j {
+					continue
+				}
+				found = true
+				if x != x2 {
+					return false, fmt.Errorf(
+						"matrix is not symmetric. Value[%d,%d] = %.5e. Value[%d,%d] = %5e.",
+						i, j, x,
+						i2, j2, x2)
+				}
+				if found {
+					break
+				}
+			}
+			if !found {
+				return false, fmt.Errorf(
+					"matrix is not symmetric. Cannot find entry [%d,%d]",
+					i, j)
+			}
+		}
+	}
 
-	// compare L and L*
-	// check index
-	// check value
-
+	return true, nil
 }

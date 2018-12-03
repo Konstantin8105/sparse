@@ -438,7 +438,7 @@ func TestNilCheck(t *testing.T) {
 				}(),
 				func() error {
 					var s bytes.Buffer
-					// rectangle matrix
+					// empty matrix
 					s.WriteString("")
 					T := Load(&s)
 					A, err := Compress(T)
@@ -446,6 +446,47 @@ func TestNilCheck(t *testing.T) {
 						panic(err)
 					}
 					_, _, err = Limits(A)
+					return err
+				}(),
+			},
+		},
+		{
+			name: "IsSym",
+			fs: []error{
+				func() error {
+					_, err := IsSym(nil)
+					return err
+				}(),
+				func() error {
+					var s bytes.Buffer
+					s.WriteString("0 0 1\n0 1 2\n1 0 3\n1 1 4")
+					T := Load(&s)
+					// triplet in input
+					_, err := IsSym((*Matrix)(T))
+					return err
+				}(),
+				func() error {
+					var s bytes.Buffer
+					// empty matrix
+					s.WriteString("")
+					T := Load(&s)
+					A, err := Compress(T)
+					if err != nil {
+						panic(err)
+					}
+					_, err = IsSym(A)
+					return err
+				}(),
+				func() error {
+					var s bytes.Buffer
+					// rectangle matrix
+					s.WriteString("0 0 1\n0 1 2\n1 0 3\n1 1 4\n3 7 2")
+					T := Load(&s)
+					A, err := Compress(T)
+					if err != nil {
+						panic(err)
+					}
+					_, err = IsSym(A)
 					return err
 				}(),
 			},
@@ -1355,6 +1396,63 @@ func ExampleZeroize() {
 	//       1 : 5.000000e+00
 	//     col 2 : locations 3 to 3
 	//       2 : 1.000000e+00
+}
+
+func TestIsSym(t *testing.T) {
+	tcs := []struct {
+		mat     string
+		isSym   bool
+		isError bool
+	}{
+		{
+			mat:     "0 0 1\n1 0 1\n2 0 1\n2 1 1\n2 2 1\n 1 1 1",
+			isSym:   false,
+			isError: true,
+		},
+		{
+			mat:     "0 0 1\n1 0 1\n2 0 1\n0 2 1\n 1 2 1\n 2 2 1",
+			isSym:   false,
+			isError: true,
+		},
+		{
+			mat:     "0 0 1\n1 0 1\n0 1 2",
+			isSym:   false,
+			isError: true,
+		},
+		{
+			mat:     "0 0 1\n1 0 1\n0 1 1",
+			isSym:   true,
+			isError: false,
+		},
+	}
+
+	for i := range tcs {
+		t.Run(fmt.Sprintf("%d", i), func(t *testing.T) {
+			var stdin bytes.Buffer
+			stdin.WriteString(tcs[i].mat)
+			T := Load(&stdin)
+			A, err := Compress(T)
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			ok, err := IsSym(A)
+
+			isSame := true
+
+			if ok != tcs[i].isSym {
+				isSame = false
+			}
+			if (err == nil) == tcs[i].isError {
+				isSame = false
+			}
+			if !isSame {
+				t.Logf("Is not identical sym:\n%v\n%v", ok, tcs[i].isSym)
+				t.Logf("Is not identical error:\n%v\n%v", err, tcs[i].isError)
+				t.Fail()
+			}
+		})
+	}
 }
 
 func ExampleLimits() {
