@@ -238,7 +238,7 @@ func IsSym(A *Matrix) (ok bool, err error) {
 				i2 := Ai[p2] // row
 				j2 := i      // column
 				x2 := Ax[p2] // value
-				if i == j2 && i == j {
+				if i2 == j2 {
 					continue
 				}
 				found = true
