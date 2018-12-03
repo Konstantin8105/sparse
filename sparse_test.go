@@ -1543,26 +1543,48 @@ func TestCombinations3x3(t *testing.T) {
 				return
 			}
 
-			// ---------------------------------------
-			// not acceptable matrix for solving
-			acceptable := true
-
-			for j := 0; j < A.n; j++ {
-				if A.p[j+1]-A.p[j] == 0 {
-					acceptable = false
-				}
-			}
-			if A.nz < 3 {
-				acceptable = false
-				A.Print(false)
-			}
-
-			// ---------------------------------------
 			y := make([]float64, 3)
 			err = Gaxpy(A, x, y)
 			if err != nil {
 				t.Fatal(err)
 			}
+
+			// ---------------------------------------
+			// not acceptable matrix for solving
+			acceptable := true
+
+			// empty column
+			for j := 0; j < A.n; j++ {
+				if A.p[j+1]-A.p[j] == 0 {
+					acceptable = false
+				}
+			}
+			// not enougth values
+			if len(A.x) < 3 {
+				acceptable = false
+			}
+			// same b values
+			if y[0] == y[1] || y[1] == y[2] || y[0] == y[2] {
+				acceptable = false
+			}
+			// value b is zero
+			if y[0] == 0 || y[1] == 0 || y[2] == 0 {
+				acceptable = false
+			}
+			{
+				AT, err := Transpose(A)
+				if err != nil {
+					t.Fatal(err)
+				}
+				// empty row
+				for j := 0; j < AT.n; j++ {
+					if AT.p[j+1]-AT.p[j] == 0 {
+						acceptable = false
+					}
+				}
+			}
+
+			// ---------------------------------------
 
 			// solving
 			lu := new(LU)
@@ -1576,6 +1598,8 @@ func TestCombinations3x3(t *testing.T) {
 				// acceptable ignoring of solution
 				return
 			}
+			// A.Print(false) // TODO(KI): remove
+			// fmt.Println(y)
 			if err != nil {
 				t.Fatalf("Error factorization :\n%v", err)
 			}
