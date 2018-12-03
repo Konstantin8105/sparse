@@ -1529,7 +1529,25 @@ func TestCombinations3x3(t *testing.T) {
 					t.Fatal(err)
 				}
 			}
+			// check sorting triplets
+			{
+				for p := 1; p < T.nz; p++ {
+					if T.i[p-1] > T.i[p] {
+						t.Fatalf("T.i is not sorted")
+					}
+				}
+				for p := 1; p < T.nz; p++ {
+					if T.i[p-1] != T.i[p] {
+						continue
+					}
+					if T.p[p-1] > T.p[p] {
+						t.Fatalf("T.p is not sorted")
+					}
+				}
+			}
+			//
 
+			// compress to CSC matrix
 			A, err := Compress(T)
 			if err != nil {
 				t.Fatal(err)
@@ -1582,6 +1600,86 @@ func TestCombinations3x3(t *testing.T) {
 						acceptable = false
 					}
 				}
+				isSameInd := func(i1, i2 []int) bool {
+					if len(i1) != len(i2) {
+						return false
+					}
+					for i := range i1 {
+						if i1[i] != i2[i] {
+							return false
+						}
+					}
+					return true
+				}
+				isSameX := func(i1, i2 []float64) bool {
+					if len(i1) != len(i2) {
+						return false
+					}
+					for i := range i1 {
+						if i1[i] != i2[i] {
+							return false
+						}
+					}
+					return true
+				}
+				if func() bool {
+					// is same row 0 and 1
+					return isSameInd(AT.i[AT.p[0]:AT.p[1]], AT.i[AT.p[1]:AT.p[2]]) &&
+						isSameX(AT.x[AT.p[0]:AT.p[1]], AT.x[AT.p[1]:AT.p[2]])
+				}() {
+					acceptable = false
+				}
+				if func() bool {
+					// is same row 0 and 2
+					return isSameInd(AT.i[AT.p[0]:AT.p[1]], AT.i[AT.p[2]:AT.p[3]]) &&
+						isSameX(AT.x[AT.p[0]:AT.p[1]], AT.x[AT.p[2]:AT.p[3]])
+				}() {
+					acceptable = false
+				}
+				if func() bool {
+					// is same row 1 and 2
+					return isSameInd(AT.i[AT.p[1]:AT.p[2]], AT.i[AT.p[2]:AT.p[3]]) &&
+						isSameX(AT.x[AT.p[1]:AT.p[2]], AT.x[AT.p[2]:AT.p[3]])
+				}() {
+					acceptable = false
+				}
+
+				// 2 or 3 rows with only one entry
+				// [ 1  1  1 ]
+				// [ 1  0  0 ]
+				// [ 1  0  0 ]
+				cm := []struct {
+					r1, r2 int
+				}{{0, 1}, {1, 2}, {0, 2}}
+
+				for i := range cm {
+					var a [3]int
+					for p := AT.p[cm[i].r1]; p < AT.p[cm[i].r1+1]; p++ {
+						a[AT.i[p]]++
+					}
+					for p := AT.p[cm[i].r2]; p < AT.p[cm[i].r2+1]; p++ {
+						a[AT.i[p]]++
+					}
+					if a[0] == 2 && a[1] == 0 && a[2] == 0 {
+						acceptable = false
+					}
+					if a[0] == 0 && a[1] == 2 && a[2] == 0 {
+						acceptable = false
+					}
+					if a[0] == 0 && a[1] == 0 && a[2] == 2 {
+						acceptable = false
+					}
+					if a[0] == 3 && a[1] == 0 && a[2] == 0 {
+						acceptable = false
+					}
+					if a[0] == 0 && a[1] == 3 && a[2] == 0 {
+						acceptable = false
+					}
+					if a[0] == 0 && a[1] == 0 && a[2] == 3 {
+						acceptable = false
+					}
+				}
+
 			}
 
 			// ---------------------------------------
@@ -1599,7 +1697,7 @@ func TestCombinations3x3(t *testing.T) {
 				return
 			}
 			// A.Print(false) // TODO(KI): remove
-			// fmt.Println(y)
+			// fmt.Println(y) // TODO(KI): remove
 			if err != nil {
 				t.Fatalf("Error factorization :\n%v", err)
 			}
