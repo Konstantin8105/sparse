@@ -1816,6 +1816,10 @@ func Dupl(A *Matrix) error {
 				Ax[w[i]] += Ax[p]
 				continue
 			}
+			if Ax[p] == 0.0 {
+				// A(i,j) is a zero value
+				continue
+			}
 
 			// record where row i occurs
 			w[i] = nz

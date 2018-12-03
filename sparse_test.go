@@ -460,7 +460,7 @@ func TestNilCheck(t *testing.T) {
 				func() error {
 					var s bytes.Buffer
 					s.WriteString("0 0 1\n0 1 2\n1 0 3\n1 1 4")
-					T := Load(&s)
+					T, _ := Load(&s)
 					// triplet in input
 					_, err := IsSym((*Matrix)(T))
 					return err
@@ -469,7 +469,7 @@ func TestNilCheck(t *testing.T) {
 					var s bytes.Buffer
 					// empty matrix
 					s.WriteString("")
-					T := Load(&s)
+					T, _ := Load(&s)
 					A, err := Compress(T)
 					if err != nil {
 						panic(err)
@@ -481,7 +481,7 @@ func TestNilCheck(t *testing.T) {
 					var s bytes.Buffer
 					// rectangle matrix
 					s.WriteString("0 0 1\n0 1 2\n1 0 3\n1 1 4\n3 7 2")
-					T := Load(&s)
+					T, _ := Load(&s)
 					A, err := Compress(T)
 					if err != nil {
 						panic(err)
@@ -1435,7 +1435,10 @@ func TestIsSym(t *testing.T) {
 		t.Run(fmt.Sprintf("%d", i), func(t *testing.T) {
 			var stdin bytes.Buffer
 			stdin.WriteString(tcs[i].mat)
-			T := Load(&stdin)
+			T, err := Load(&stdin)
+			if err != nil {
+				t.Fatal(err)
+			}
 			A, err := Compress(T)
 			if err != nil {
 				t.Fatal(err)
@@ -1482,37 +1485,79 @@ func ExampleLimits() {
 }
 
 func TestCombinations3x3(t *testing.T) {
-	b, err := ioutil.ReadFile("./testdata/combinations3x3.txt")
-	if err != nil {
-		t.Fatal(err)
+
+	// generate combinations
+	var node func(last []int, vals int, deep int) (result [][]int)
+
+	node = func(last []int, vals int, deep int) (result [][]int) {
+		if deep == 0 {
+			result = append(result, last)
+			return
+		}
+
+		deep--
+
+		for i := 0; i < vals; i++ {
+			cp := make([]int, len(last)+1)
+			copy(cp, last)
+			cp[len(last)] = i
+			result = append(result, node(cp, vals, deep)...)
+		}
+
+		return
 	}
 
-	lines := bytes.Split(b, []byte("\n"))
+	// generate test matrixes
+	var (
+		ind  = node([]int{}, 3, 2)
+		vals = node([]int{}, 3, 3*3)
+		str  = []float64{-1, 0, 1}
+	)
 
+	// init X values
 	x := []float64{1, 2, 3}
 
-	for i := range lines {
+	for i := range vals {
 		t.Run(fmt.Sprintf("%d", i), func(t *testing.T) {
-			s := bytes.Replace(lines[i], []byte("\\n"), []byte("\n"), -1)
-			var stdin bytes.Buffer
-			stdin.Write(s)
-			T, err := Load(&stdin)
+			T, err := NewTriplet()
 			if err != nil {
 				t.Fatal(err)
 			}
+			for j := 0; j < len(ind); j++ {
+				err := Entry(T, ind[j][0], ind[j][1], str[vals[i][j]])
+				if err != nil {
+					t.Fatal(err)
+				}
+			}
+
 			A, err := Compress(T)
 			if err != nil {
 				t.Fatal(err)
 			}
-			if A.m != 3 {
-				// ignore
-				return
+			err = Dupl(A)
+			if err != nil {
+				t.Fatal(err)
 			}
-			if A.n != 3 {
+			if A.m != 3 || A.n != 3 {
 				// ignore
 				return
 			}
 
+			// ---------------------------------------
+			// not acceptable matrix for solving
+			acceptable := true
+
+			for j := 0; j < A.n; j++ {
+				if A.p[j+1]-A.p[j] == 0 {
+					acceptable = false
+				}
+			}
+			if A.nz < 3 {
+				acceptable = false
+				A.Print(false)
+			}
+
+			// ---------------------------------------
 			y := make([]float64, 3)
 			err = Gaxpy(A, x, y)
 			if err != nil {
@@ -1527,13 +1572,16 @@ func TestCombinations3x3(t *testing.T) {
 
 			// factorization
 			err = lu.Factorize(A)
+			if err != nil && !acceptable {
+				// acceptable ignoring of solution
+				return
+			}
 			if err != nil {
 				t.Fatalf("Error factorization :\n%v", err)
 			}
 
 			x2, err := lu.Solve(y)
 			if err != nil {
-				t.Logf("%s", s)
 				t.Fatalf("Error solver :\n%v", err)
 			}
 
