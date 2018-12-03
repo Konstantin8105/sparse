@@ -1429,6 +1429,11 @@ func TestIsSym(t *testing.T) {
 			isSym:   true,
 			isError: false,
 		},
+		{
+			mat:     "0 0 1\n1 1 1\n2 2 1\n0 0 1\n1 0 2\n0 1 2\n2 0 3\n0 2 3\n3 0 4\n0 3 4",
+			isSym:   true,
+			isError: false,
+		},
 	}
 
 	for i := range tcs {
