@@ -2709,15 +2709,15 @@ func cs_maxtrans(A *Matrix, seed int) []int {
 	// var Ap []int
 	// var jimatch []int
 	// var w []int
-	var cheap []int
-	var js []int
-	var is []int
-	var ps []int
+	// var cheap []int
+	// var js []int
+	// var is []int
+	// var ps []int
 	// var Ai []int
 	var Cp []int
 	var jmatch []int
 	var imatch []int
-	var q []int
+	// var q []int
 	// var C []cs
 	if !(A != nil && A.nz == -1) {
 		// check inputs
@@ -2810,10 +2810,12 @@ func cs_maxtrans(A *Matrix, seed int) []int {
 	}()
 	// get workspace
 	w = make([]int, 5*n)
-	cheap = w[n:]
-	js = w[2*n:]
-	is = w[3*n:]
-	ps = w[4*n:]
+	var (
+		cheap = w[n:]
+		js    = w[2*n:]
+		is    = w[3*n:]
+		ps    = w[4*n:]
+	)
 
 	// for cheap assignment
 	for j = 0; j < n; j++ {
@@ -2831,7 +2833,7 @@ func cs_maxtrans(A *Matrix, seed int) []int {
 	}
 
 	// q = random permutation
-	q = cs_randperm(n, seed)
+	q := cs_randperm(n, seed)
 
 	// augment, starting at column q[k]
 	for k = 0; k < n; k++ {
