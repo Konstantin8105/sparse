@@ -1812,7 +1812,7 @@ func Dupl(A *Matrix) error {
 			// A(i,j) is nonzero
 			i := Ai[p]
 			if Ax[p] == 0.0 {
-				// A(i,j) is a zero
+				// (KI): A(i,j) is a zero
 				continue
 			}
 			if w[i] >= q {
