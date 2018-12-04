@@ -1364,58 +1364,53 @@ func cs_cumsum(p []int, c []int) (int, error) {
 
 // cs_dfs - depth-first-search of the graph of a matrix, starting at node j
 func cs_dfs(j int, G *Matrix, top int, xi []int, pstack []int, pinv []int) int {
-	var i int
-	var p int
-	var p2 int
-	var done bool
-	var jnew int
-	var head int
 	if !(G != nil && G.nz == -1) || xi == nil || pstack == nil {
 		// check inputs
 		return -1
 	}
-	Gp := G.p
-	Gi := G.i
+	// initialization
+	Gp, Gi := G.p, G.i
+
 	// initialize the recursion stack
 	xi[0] = j
+	var head int
 	for head >= 0 {
 		// get j from the top of the recursion stack
 		j = xi[head]
-		jnew = j
+		jnew := j
 		if pinv != nil {
 			jnew = pinv[j]
 		}
 		if !(Gp[j] < 0) {
-
 			// mark node j as visited
 			Gp[j] = -Gp[j] - 2
 
-			pstack[head] = func() int {
-				if jnew < 0 {
-					return 0
-				}
-				if Gp[jnew] < 0 {
-					return -Gp[jnew] - 2
-				}
-				return Gp[jnew]
-			}()
+			switch {
+			case jnew < 0:
+				pstack[head] = 0
+			case Gp[jnew] < 0:
+				pstack[head] = -Gp[jnew] - 2
+			default:
+				pstack[head] = Gp[jnew]
+			}
 		}
 		// node j done if no unvisited neighbors
-		done = true
-		p2 = func() int {
-			if jnew < 0 {
-				return 0
-			}
-			if Gp[jnew+1] < 0 {
-				return -Gp[jnew+1] - 2
-			}
-			return Gp[jnew+1]
-		}()
+		done := true
+
+		var p2 int
+		switch {
+		case jnew < 0:
+			p2 = 0
+		case Gp[jnew+1] < 0:
+			p2 = -Gp[jnew+1] - 2
+		default:
+			p2 = Gp[jnew+1]
+		}
 
 		// examine all neighbors of j
-		for p = pstack[head]; p < p2; p++ {
+		for p := pstack[head]; p < p2; p++ {
 			// consider neighbor node i
-			i = Gi[p]
+			i := Gi[p]
 			if Gp[i] < 0 {
 				// skip visited node i
 				continue
@@ -1888,34 +1883,27 @@ func Entry(T *Triplet, i, j int, x float64) error {
 
 // cs_ereach - find nonzero pattern of Cholesky L(k,1:k-1) using etree and triu(A(:,k))
 func cs_ereach(A *Matrix, k int, parent []int, s []int, w []int) int {
-	var i int
-	var p int
-	var n int
-	var len int
-	var top int
-	var Ap []int
-	var Ai []int
 	if !(A != nil && A.nz == -1) || parent == nil || s == nil || w == nil {
 		// check inputs
 		return -1
 	}
-	n = A.n
-	top = n
-	Ap = A.p
-	Ai = A.i
+	// initialization
+	n, Ap, Ai := A.n, A.p, A.i
+	top := n
 
 	// mark node k as visited
 	w[k] = -w[k] - 2
 
-	for p = Ap[k]; p < Ap[k+1]; p++ {
+	for p := Ap[k]; p < Ap[k+1]; p++ {
 		// A(i,k) is nonzero
-		i = Ai[p]
+		i := Ai[p]
 		if i > k {
 			// only use upper triangular part of A
 			continue
 		}
 
 		// traverse up etree
+		var len int
 		for len = 0; !(w[i] < 0); i = parent[i] {
 			// L(k,i) is nonzero
 			s[len] = i
@@ -1934,7 +1922,7 @@ func cs_ereach(A *Matrix, k int, parent []int, s []int, w []int) int {
 	}
 
 	// unmark all nodes
-	for p = top; p < n; p++ {
+	for p := top; p < n; p++ {
 		w[s[p]] = -w[s[p]] - 2
 	}
 
@@ -3506,12 +3494,6 @@ func cs_randperm(n int, seed int) []int {
 // * xi [top...n-1] = nodes reachable from graph of G*P' via nodes in B(:,k).
 // * xi [n...2n-1] used as workspace
 func cs_reach(G *Matrix, B *Matrix, k int, xi []int, pinv []int) int {
-	// var p int
-	// var n int
-	// var top int
-	// var Bp []int
-	// var Bi []int
-	// var Gp []int
 	if !(G != nil && int(G.nz) == -1) || !(B != nil && int(B.nz) == -1) || xi == nil {
 		// check inputs
 		return -1
