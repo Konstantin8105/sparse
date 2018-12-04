@@ -2294,20 +2294,20 @@ func cs_ltsolve(L *Matrix, x []float64) bool {
 
 // cs_lu - [L,U,pinv]=lu(A, [q lnz unz]). lnz and unz can be guess
 func cs_lu(A *Matrix, S *css, tol float64) *csn {
-	var pivot float64
+	// var pivot float64
 	// var Lx []float64
 	// var Ux []float64
-	var a float64
-	var t float64
+	// var a float64
+	// var t float64
 	// var Lp []int
 	// var Li []int
 	// var Up []int
 	// var Ui []int
-	var pinv []int
+	// var pinv []int
 	// var xi []int
-	var ipiv int
+	// var ipiv int
 	// var k int
-	var top int
+	// var top int
 	// var p int
 	// var i int
 	var col int
@@ -2342,7 +2342,7 @@ func cs_lu(A *Matrix, S *css, tol float64) *csn {
 	}
 	N.U = U
 	// allocate result U
-	pinv = make([]int, n)
+	pinv := make([]int, n)
 	N.pinv = pinv
 	// allocate result pinv
 	if L == nil || U == nil || pinv == nil {
@@ -2387,15 +2387,15 @@ func cs_lu(A *Matrix, S *css, tol float64) *csn {
 		}
 
 		// x = L\A(:,col)
-		top = cs_spsolve(L, A, col, xi, x, pinv, true)
+		top := cs_spsolve(L, A, col, xi, x, pinv, true)
 		// --- Find pivot ---------------------------------------------------
-		ipiv = -1
-		a = -1
+		ipiv := -1
+		a := -1.0
 		for p := top; p < n; p++ {
 			// x(i) is nonzero
 			i := xi[p]
 			if pinv[i] < 0 {
-				t = math.Abs(x[i])
+				t := math.Abs(x[i])
 				if t > a {
 					// row i is not yet pivotal
 					// largest pivot candidate so far
@@ -2418,7 +2418,7 @@ func cs_lu(A *Matrix, S *css, tol float64) *csn {
 		}
 		// --- Divide by pivot ----------------------------------------------
 		// the chosen pivot
-		pivot = x[ipiv]
+		pivot := x[ipiv]
 		// last entry in U(:,k) is U(k,k)
 		Ui[unz] = k
 		Ux[unz] = pivot
