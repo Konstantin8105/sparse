@@ -4487,3 +4487,22 @@ func cs_utsolve(U *Matrix, x []float64) bool {
 	}
 	return true
 }
+
+// func CS_FLIP(i int) int {
+// 	return -i - 2
+// }
+//
+// func CS_UNFLIP(i int) int {
+// 	if i < 0 {
+// 		return CS_FLIP(i)
+// 	}
+// 	return i
+// }
+//
+// func CS_MARK(w []int, j int) {
+// 	w[j] = CS_FLIP(w[j])
+// }
+//
+// func CS_MARKED(w []int, j int) bool {
+// 	return w[j] < 0
+// }
