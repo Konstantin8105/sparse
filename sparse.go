@@ -2243,17 +2243,16 @@ func cs_leaf(i int, j int, first []int, maxfirst []int, prevleaf []int, ancestor
 // Load - load a triplet matrix from a file
 //
 // Name function in CSparse : cs_load.
-func Load(f io.Reader) *Triplet {
+func Load(f io.Reader) (T *Triplet, err error) {
 	if f == nil {
 		// use double for integers to avoid csi conflicts
 		// check inputs
-		return nil
+		return nil, fmt.Errorf("Input reader is nil")
 	}
 	// allocate result
-	T, err := NewTriplet()
+	T, err = NewTriplet()
 	if err != nil {
-		fmt.Fprintf(os.Stderr, err.Error()) // TODO (KI) error hanling
-		return nil
+		return nil, err
 	}
 	for {
 		var i, j int
@@ -2264,14 +2263,13 @@ func Load(f io.Reader) *Triplet {
 			break
 		}
 		if err != nil || n != 3 {
-			return nil
+			return nil, fmt.Errorf("not correct data: %d\n err = %v", n, err)
 		}
 		if err := Entry(T, i, j, x); err != nil { // TODO (KI) error handling
-			_ = err
-			return nil
+			return nil, err
 		}
 	}
-	return T
+	return T, nil
 }
 
 // cs_lsolve - solve Lx=b where x and b are dense.  x=b on input, solution on output.
@@ -2706,15 +2704,15 @@ func cs_maxtrans(A *Matrix, seed int) []int {
 	// var Ap []int
 	// var jimatch []int
 	// var w []int
-	var cheap []int
-	var js []int
-	var is []int
-	var ps []int
+	// var cheap []int
+	// var js []int
+	// var is []int
+	// var ps []int
 	// var Ai []int
 	var Cp []int
 	var jmatch []int
 	var imatch []int
-	var q []int
+	// var q []int
 	// var C []cs
 	if !(A != nil && A.nz == -1) {
 		// check inputs
@@ -2807,10 +2805,12 @@ func cs_maxtrans(A *Matrix, seed int) []int {
 	}()
 	// get workspace
 	w = make([]int, 5*n)
-	cheap = w[n:]
-	js = w[2*n:]
-	is = w[3*n:]
-	ps = w[4*n:]
+	var (
+		cheap = w[n:]
+		js    = w[2*n:]
+		is    = w[3*n:]
+		ps    = w[4*n:]
+	)
 
 	// for cheap assignment
 	for j = 0; j < n; j++ {
@@ -2828,7 +2828,7 @@ func cs_maxtrans(A *Matrix, seed int) []int {
 	}
 
 	// q = random permutation
-	q = cs_randperm(n, seed)
+	q := cs_randperm(n, seed)
 
 	// augment, starting at column q[k]
 	for k = 0; k < n; k++ {

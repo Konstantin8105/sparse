@@ -73,8 +73,14 @@ func (lu *LU) Factorize(A *Matrix) error {
 	}()
 	// ordering and symbolic analysis
 	lu.s = cs_sqr(lu.order, lu.a, false)
+	if lu.s == nil {
+		return fmt.Errorf("matrix S in LU decomposition is nil")
+	}
 	// numeric LU factorization
 	lu.n = cs_lu(lu.a, lu.s, tol)
+	if lu.n == nil {
+		return fmt.Errorf("matrix N in LU decomposition is nil")
+	}
 
 	return nil
 }
