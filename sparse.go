@@ -177,11 +177,6 @@ func cs_wclear(mark, lemax int, w []int, n int) int {
 	return mark
 }
 
-// cs_diag - keep off-diagonal entries; drop diagonal entries
-func cs_diag(i, j int, aij float64) bool {
-	return (i != j)
-}
-
 type Order uint8
 
 const (
@@ -362,12 +357,16 @@ func cs_amd(order Order, A *Matrix) []int {
 			return nil
 		}
 	}
-	cs_free(AT) // TODO (KI) : remove
+	cs_free(AT)
 	if C == nil {
 		return nil
 	}
 	// drop diagonal entries
-	Fkeep(C, cs_diag)
+	Fkeep(C, func(i, j int, aij float64) bool {
+		// cs_diag - keep off-diagonal entries; drop diagonal entries
+		return (i != j)
+	})
+
 	Cp := C.p
 	cnz := Cp[n]
 	// allocate result
@@ -430,7 +429,8 @@ func cs_amd(order Order, A *Matrix) []int {
 	// --- Initialize degree lists ------------------------------------------
 	for i := 0; i < n; i++ {
 		d := degree[i]
-		if d == 0 {
+		switch {
+		case d == 0:
 			// node i is empty
 			// element i is dead
 			elen[i] = -2
@@ -438,7 +438,8 @@ func cs_amd(order Order, A *Matrix) []int {
 			// i is a root of assembly tree
 			Cp[i] = -1
 			w[i] = 0
-		} else if d > dense {
+
+		case d > dense:
 			// node i is dense
 			// absorb i into element n
 			nv[i] = 0
@@ -447,7 +448,8 @@ func cs_amd(order Order, A *Matrix) []int {
 			nel++
 			Cp[i] = -n - 2
 			nv[n]++
-		} else {
+
+		default:
 			if head[d] != -1 {
 				last[head[d]] = i
 			}
@@ -503,12 +505,8 @@ func cs_amd(order Order, A *Matrix) []int {
 			var q, p int
 			for p = 0; p < cnz; {
 				if (func() int {
-					j = -(Ci[func() int {
-						defer func() {
-							p++
-						}()
-						return p
-					}()]) - 2
+					j = -Ci[p] - 2
+					p++
 					return j
 				}()) >= 0 {
 					// found object j
@@ -723,7 +721,7 @@ func cs_amd(order Order, A *Matrix) []int {
 						return -h
 					}
 					return h
-				}() % int(n)
+				}() % n
 				// place i in hash bucket
 				next[i] = hhead[h]
 				hhead[h] = i
@@ -1262,17 +1260,17 @@ func cs_counts(A *Matrix, parent []int, post []int, ata bool) []int {
 		}
 
 		// J=j for LL'=A case
-		for J = int(func() int {
+		for J = func() int {
 			if ata {
-				return (head[k])
+				return head[k]
 			}
-			return (j)
-		}()); J != -1; J = int(func() int {
+			return j
+		}(); J != -1; J = func() int {
 			if ata {
-				return (next[J])
+				return next[J]
 			}
-			return int(-1)
-		}()) {
+			return -1
+		}() {
 			for p := ATp[J]; p < ATp[J+1]; p++ {
 				i := ATi[p]
 				q = cs_leaf(i, j, first, maxfirst, prevleaf, ancestor, &jleaf)
@@ -1466,12 +1464,8 @@ func cs_bfs(A *Matrix, n int,
 		// j in set C0 (R0 if transpose)
 		wj[j] = 0
 		// place unmatched col j in queue
-		queue[func() int {
-			defer func() {
-				tail++
-			}()
-			return tail
-		}()] = j
+		queue[tail] = j
+		tail++
 	}
 
 	if tail == 0 {
@@ -1496,12 +1490,8 @@ func cs_bfs(A *Matrix, n int,
 	for head < tail {
 		// while queue is not empty
 		// get the head of the queue
-		j := queue[func() int {
-			defer func() {
-				head++
-			}()
-			return head
-		}()]
+		j := queue[head]
+		head++
 		for p := Ap[j]; p < Ap[j+1]; p++ {
 			i := Ai[p]
 			if wi[i] >= 0 {
@@ -1519,17 +1509,13 @@ func cs_bfs(A *Matrix, n int,
 			// j2 in set C1 (R3 if transpose)
 			wj[j2] = mark
 			// add j2 to queue
-			queue[func() int {
-				defer func() {
-					tail++
-				}()
-				return tail
-			}()] = j2
+			queue[tail] = j2
+			tail++
 		}
 	}
 	if mark != 1 {
 		// free A' if it was created
-		cs_free(C) // TODO (KI) : remove
+		cs_free(C)
 	}
 	return true
 }
@@ -2189,10 +2175,6 @@ func cs_ipvec(p []int, b []float64, x []float64, n int) bool {
 
 // cs_leaf - consider A(i,j), node j in ith row subtree and return lca(jprev,j)
 func cs_leaf(i int, j int, first []int, maxfirst []int, prevleaf []int, ancestor []int, jleaf *int) int {
-	var q int
-	var s int
-	var sparent int
-	var jprev int
 	if first == nil || maxfirst == nil || prevleaf == nil || ancestor == nil || jleaf == nil {
 		return -1
 	}
@@ -2204,28 +2186,28 @@ func cs_leaf(i int, j int, first []int, maxfirst []int, prevleaf []int, ancestor
 	// update max first[j] seen so far
 	maxfirst[i] = first[j]
 	// jprev = previous leaf of ith subtree
-	jprev = prevleaf[i]
+	jprev := prevleaf[i]
 	prevleaf[i] = j
 	// j is first or subsequent leaf
-	*jleaf = int(func() int {
-		if jprev == -1 {
-			return 1
-		}
-		return 2
-	}())
+	*jleaf = 2
+	if jprev == -1 {
+		*jleaf = 1
+	}
 	if *jleaf == 1 {
 		// if 1st leaf, q = root of ith subtree
 		return int((i))
 	}
+	var q int
 	for q = jprev; q != ancestor[q]; q = ancestor[q] {
 	}
-	for s = jprev; s != q; s = sparent {
+	var sparent int
+	for s := jprev; s != q; s = sparent {
 		// path compression
 		sparent = ancestor[s]
 		ancestor[s] = q
 	}
 	// q = least common ancester (jprev,j)
-	return int((q))
+	return q
 }
 
 // Load - load a triplet matrix from a file.
@@ -2312,20 +2294,20 @@ func cs_ltsolve(L *Matrix, x []float64) bool {
 
 // cs_lu - [L,U,pinv]=lu(A, [q lnz unz]). lnz and unz can be guess
 func cs_lu(A *Matrix, S *css, tol float64) *csn {
-	var pivot float64
+	// var pivot float64
 	// var Lx []float64
 	// var Ux []float64
-	var a float64
-	var t float64
+	// var a float64
+	// var t float64
 	// var Lp []int
 	// var Li []int
 	// var Up []int
 	// var Ui []int
-	var pinv []int
+	// var pinv []int
 	// var xi []int
-	var ipiv int
+	// var ipiv int
 	// var k int
-	var top int
+	// var top int
 	// var p int
 	// var i int
 	var col int
@@ -2360,7 +2342,7 @@ func cs_lu(A *Matrix, S *css, tol float64) *csn {
 	}
 	N.U = U
 	// allocate result U
-	pinv = make([]int, n)
+	pinv := make([]int, n)
 	N.pinv = pinv
 	// allocate result pinv
 	if L == nil || U == nil || pinv == nil {
@@ -2405,15 +2387,15 @@ func cs_lu(A *Matrix, S *css, tol float64) *csn {
 		}
 
 		// x = L\A(:,col)
-		top = cs_spsolve(L, A, col, xi, x, pinv, true)
+		top := cs_spsolve(L, A, col, xi, x, pinv, true)
 		// --- Find pivot ---------------------------------------------------
-		ipiv = -1
-		a = -1
+		ipiv := -1
+		a := -1.0
 		for p := top; p < n; p++ {
 			// x(i) is nonzero
 			i := xi[p]
 			if pinv[i] < 0 {
-				t = math.Abs(x[i])
+				t := math.Abs(x[i])
 				if t > a {
 					// row i is not yet pivotal
 					// largest pivot candidate so far
@@ -2436,7 +2418,7 @@ func cs_lu(A *Matrix, S *css, tol float64) *csn {
 		}
 		// --- Divide by pivot ----------------------------------------------
 		// the chosen pivot
-		pivot = x[ipiv]
+		pivot := x[ipiv]
 		// last entry in U(:,k) is U(k,k)
 		Ui[unz] = k
 		Ux[unz] = pivot
@@ -2667,10 +2649,8 @@ func cs_augment(k int,
 			// i will be matched with j if found
 			is[head] = i
 			// start dfs at column jmatch [i]
-			js[func() int {
-				head++
-				return head
-			}()] = jmatch[i]
+			head++
+			js[head] = jmatch[i]
 			break
 		}
 
@@ -2701,12 +2681,12 @@ func cs_maxtrans(A *Matrix, seed int) []int {
 	// var Ap []int
 	// var jimatch []int
 	// var w []int
-	var cheap []int
-	var js []int
-	var is []int
-	var ps []int
+	// var cheap []int
+	// var js []int
+	// var is []int
+	// var ps []int
 	// var Ai []int
-	var Cp []int
+	// var Cp []int
 	var jmatch []int
 	var imatch []int
 	var q []int
@@ -2787,7 +2767,7 @@ func cs_maxtrans(A *Matrix, seed int) []int {
 	}
 	n = C.n
 	m = C.m
-	Cp = C.p
+	Cp := C.p
 	jmatch = func() []int {
 		if m2 < n2 {
 			return jimatch[n:]
@@ -2802,10 +2782,12 @@ func cs_maxtrans(A *Matrix, seed int) []int {
 	}()
 	// get workspace
 	w = make([]int, 5*n)
-	cheap = w[n:]
-	js = w[2*n:]
-	is = w[3*n:]
-	ps = w[4*n:]
+	var (
+		cheap = w[n:]
+		js    = w[2*n:]
+		is    = w[3*n:]
+		ps    = w[4*n:]
+	)
 
 	// for cheap assignment
 	for j = 0; j < n; j++ {
@@ -4505,3 +4487,22 @@ func cs_utsolve(U *Matrix, x []float64) bool {
 	}
 	return true
 }
+
+// func CS_FLIP(i int) int {
+// 	return -i - 2
+// }
+//
+// func CS_UNFLIP(i int) int {
+// 	if i < 0 {
+// 		return CS_FLIP(i)
+// 	}
+// 	return i
+// }
+//
+// func CS_MARK(w []int, j int) {
+// 	w[j] = CS_FLIP(w[j])
+// }
+//
+// func CS_MARKED(w []int, j int) bool {
+// 	return w[j] < 0
+// }
