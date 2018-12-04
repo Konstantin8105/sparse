@@ -1692,17 +1692,16 @@ func TestCombinations3x3(t *testing.T) {
 					if a[0] == 0 && a[1] == 0 && a[2] == 2 {
 						acceptable = false
 					}
-					if a[0] == 3 && a[1] == 0 && a[2] == 0 {
-						acceptable = false
-					}
-					if a[0] == 0 && a[1] == 3 && a[2] == 0 {
-						acceptable = false
-					}
-					if a[0] == 0 && a[1] == 0 && a[2] == 3 {
-						acceptable = false
-					}
+					// if a[0] == 3 && a[1] == 0 && a[2] == 0 {
+					// 	acceptable = false
+					// }
+					// if a[0] == 0 && a[1] == 3 && a[2] == 0 {
+					// 	acceptable = false
+					// }
+					// if a[0] == 0 && a[1] == 0 && a[2] == 3 {
+					// 	acceptable = false
+					// }
 				}
-
 			}
 
 			// ---------------------------------------
