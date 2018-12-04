@@ -2295,6 +2295,8 @@ func cs_lsolve(L *Matrix, x []float64) bool {
 }
 
 // cs_ltsolve - solve L'x=b where x and b are dense.  x=b on input, solution on output.
+//	[ L11 L21T ] [x1]   [ b1 ]
+//	[  0  L22T ] [x2] = [ b2 ]
 func cs_ltsolve(L *Matrix, x []float64) bool {
 	if !(L != nil && int(L.nz) == -1) || x == nil {
 		// check inputs
@@ -4301,6 +4303,8 @@ func cs_updown(L *Matrix, sigma int, C *Matrix, parent []int) int {
 }
 
 // cs_usolve - solve Ux=b where x and b are dense.  x=b on input, solution on output.
+//	[ U11 U12 ] [x1]   [ b1 ]
+//	[  0  U22 ] [x2] = [ b2 ]
 func cs_usolve(U *Matrix, x []float64) bool {
 	if !(U != nil && U.nz == -1) || x == nil {
 		// check inputs
