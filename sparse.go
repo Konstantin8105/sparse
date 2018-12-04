@@ -1382,7 +1382,6 @@ func cs_dfs(j int, G *Matrix, top int, xi []int, pstack []int, pinv []int) int {
 			jnew = pinv[j]
 		}
 		if !(Gp[j] < 0) {
-
 			// mark node j as visited
 			Gp[j] = -Gp[j] - 2
 
@@ -1884,34 +1883,27 @@ func Entry(T *Triplet, i, j int, x float64) error {
 
 // cs_ereach - find nonzero pattern of Cholesky L(k,1:k-1) using etree and triu(A(:,k))
 func cs_ereach(A *Matrix, k int, parent []int, s []int, w []int) int {
-	var i int
-	var p int
-	var n int
-	var len int
-	var top int
-	var Ap []int
-	var Ai []int
 	if !(A != nil && A.nz == -1) || parent == nil || s == nil || w == nil {
 		// check inputs
 		return -1
 	}
-	n = A.n
-	top = n
-	Ap = A.p
-	Ai = A.i
+	// initialization
+	n, Ap, Ai := A.n, A.p, A.i
+	top := n
 
 	// mark node k as visited
 	w[k] = -w[k] - 2
 
-	for p = Ap[k]; p < Ap[k+1]; p++ {
+	for p := Ap[k]; p < Ap[k+1]; p++ {
 		// A(i,k) is nonzero
-		i = Ai[p]
+		i := Ai[p]
 		if i > k {
 			// only use upper triangular part of A
 			continue
 		}
 
 		// traverse up etree
+		var len int
 		for len = 0; !(w[i] < 0); i = parent[i] {
 			// L(k,i) is nonzero
 			s[len] = i
@@ -1930,7 +1922,7 @@ func cs_ereach(A *Matrix, k int, parent []int, s []int, w []int) int {
 	}
 
 	// unmark all nodes
-	for p = top; p < n; p++ {
+	for p := top; p < n; p++ {
 		w[s[p]] = -w[s[p]] - 2
 	}
 
