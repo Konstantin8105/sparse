@@ -39,12 +39,27 @@ func ExampleLU() {
 	A.Print(false)
 
 	// singinal check
-	is, err := sparse.IsSingular(A)
+	min, max := math.MaxFloat64, 0.0
+	_, err = sparse.Fkeep(A, func(i, j int, x float64) bool {
+		if i == j { // diagonal
+			if math.Abs(x) > max {
+				max = math.Abs(x)
+			}
+			if math.Abs(x) < min {
+				min = math.Abs(x)
+			}
+		}
+		// keep entry
+		return true
+	})
 	if err != nil {
 		panic(err)
 	}
-	if is {
-		panic("singular matrix")
+	if min == 0 {
+		panic("singular: zero entry on diagonal")
+	}
+	if max/min > 1e18 {
+		panic(fmt.Sprintf("singular: max/min diagonal entry: %v", max/min))
 	}
 
 	// solving
@@ -104,12 +119,27 @@ func TestLU(t *testing.T) {
 			}
 
 			// singinal check
-			is, err := sparse.IsSingular(A)
+			min, max := math.MaxFloat64, 0.0
+			_, err = sparse.Fkeep(A, func(i, j int, x float64) bool {
+				if i == j { // diagonal
+					if math.Abs(x) > max {
+						max = math.Abs(x)
+					}
+					if math.Abs(x) < min {
+						min = math.Abs(x)
+					}
+				}
+				// keep entry
+				return true
+			})
 			if err != nil {
-				t.Fatal(err)
+				panic(err)
 			}
-			if is {
-				t.Fatalf("singular matrix")
+			if min == 0 {
+				panic("singular: zero entry on diagonal")
+			}
+			if max/min > 1e18 {
+				panic(fmt.Sprintf("singular: max/min diagonal entry: %v", max/min))
 			}
 
 			// solving
@@ -142,7 +172,7 @@ func TestLU(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
-			max := 0.0
+			max = 0.0
 			for j := range b {
 				if math.Abs(b[j]) > max {
 					max = math.Abs(b[j])
