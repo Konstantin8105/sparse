@@ -501,7 +501,7 @@ func TestNilCheck(t *testing.T) {
 				func() error {
 					var s bytes.Buffer
 					s.WriteString("0 0 1\n0 1 2\n1 0 3\n1 1 4")
-					T := Load(&s)
+					T, _ := Load(&s)
 					// triplet in input
 					_, err := Fkeep((*Matrix)(T), nil)
 					return err
