@@ -2649,10 +2649,8 @@ func cs_augment(k int,
 			// i will be matched with j if found
 			is[head] = i
 			// start dfs at column jmatch [i]
-			js[func() int {
-				head++
-				return head
-			}()] = jmatch[i]
+			head++
+			js[head] = jmatch[i]
 			break
 		}
 
