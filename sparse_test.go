@@ -1721,8 +1721,6 @@ func TestCombinations3x3(t *testing.T) {
 			// 	return
 			// }
 
-			// A.Print(false) // TODO(KI): remove
-			// fmt.Println(y) // TODO(KI): remove
 			if err != nil {
 				t.Logf("Error factorization :\n%v", err)
 				return
