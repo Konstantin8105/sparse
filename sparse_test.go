@@ -1592,6 +1592,7 @@ func TestCombinations3x3(t *testing.T) {
 			// ---------------------------------------
 			// not acceptable matrix for solving
 			acceptable := true
+			_ = acceptable
 
 			// empty column
 			for j := 0; j < A.n; j++ {
