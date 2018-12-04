@@ -177,11 +177,6 @@ func cs_wclear(mark, lemax int, w []int, n int) int {
 	return mark
 }
 
-// cs_diag - keep off-diagonal entries; drop diagonal entries
-func cs_diag(i, j int, aij float64) bool {
-	return (i != j)
-}
-
 type Order uint8
 
 const (
@@ -362,12 +357,16 @@ func cs_amd(order Order, A *Matrix) []int {
 			return nil
 		}
 	}
-	cs_free(AT) // TODO (KI) : remove
+	cs_free(AT)
 	if C == nil {
 		return nil
 	}
 	// drop diagonal entries
-	Fkeep(C, cs_diag)
+	Fkeep(C, func(i, j int, aij float64) bool {
+		// cs_diag - keep off-diagonal entries; drop diagonal entries
+		return (i != j)
+	})
+
 	Cp := C.p
 	cnz := Cp[n]
 	// allocate result
@@ -430,7 +429,8 @@ func cs_amd(order Order, A *Matrix) []int {
 	// --- Initialize degree lists ------------------------------------------
 	for i := 0; i < n; i++ {
 		d := degree[i]
-		if d == 0 {
+		switch {
+		case d == 0:
 			// node i is empty
 			// element i is dead
 			elen[i] = -2
@@ -438,7 +438,8 @@ func cs_amd(order Order, A *Matrix) []int {
 			// i is a root of assembly tree
 			Cp[i] = -1
 			w[i] = 0
-		} else if d > dense {
+
+		case d > dense:
 			// node i is dense
 			// absorb i into element n
 			nv[i] = 0
@@ -447,7 +448,8 @@ func cs_amd(order Order, A *Matrix) []int {
 			nel++
 			Cp[i] = -n - 2
 			nv[n]++
-		} else {
+
+		default:
 			if head[d] != -1 {
 				last[head[d]] = i
 			}
@@ -503,12 +505,8 @@ func cs_amd(order Order, A *Matrix) []int {
 			var q, p int
 			for p = 0; p < cnz; {
 				if (func() int {
-					j = -(Ci[func() int {
-						defer func() {
-							p++
-						}()
-						return p
-					}()]) - 2
+					j = -Ci[p] - 2
+					p++
 					return j
 				}()) >= 0 {
 					// found object j
@@ -723,7 +721,7 @@ func cs_amd(order Order, A *Matrix) []int {
 						return -h
 					}
 					return h
-				}() % int(n)
+				}() % n
 				// place i in hash bucket
 				next[i] = hhead[h]
 				hhead[h] = i
