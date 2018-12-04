@@ -2175,10 +2175,6 @@ func cs_ipvec(p []int, b []float64, x []float64, n int) bool {
 
 // cs_leaf - consider A(i,j), node j in ith row subtree and return lca(jprev,j)
 func cs_leaf(i int, j int, first []int, maxfirst []int, prevleaf []int, ancestor []int, jleaf *int) int {
-	var q int
-	var s int
-	var sparent int
-	var jprev int
 	if first == nil || maxfirst == nil || prevleaf == nil || ancestor == nil || jleaf == nil {
 		return -1
 	}
@@ -2190,28 +2186,28 @@ func cs_leaf(i int, j int, first []int, maxfirst []int, prevleaf []int, ancestor
 	// update max first[j] seen so far
 	maxfirst[i] = first[j]
 	// jprev = previous leaf of ith subtree
-	jprev = prevleaf[i]
+	jprev := prevleaf[i]
 	prevleaf[i] = j
 	// j is first or subsequent leaf
-	*jleaf = int(func() int {
-		if jprev == -1 {
-			return 1
-		}
-		return 2
-	}())
+	*jleaf = 2
+	if jprev == -1 {
+		*jleaf = 1
+	}
 	if *jleaf == 1 {
 		// if 1st leaf, q = root of ith subtree
 		return int((i))
 	}
+	var q int
 	for q = jprev; q != ancestor[q]; q = ancestor[q] {
 	}
-	for s = jprev; s != q; s = sparent {
+	var sparent int
+	for s := jprev; s != q; s = sparent {
 		// path compression
 		sparent = ancestor[s]
 		ancestor[s] = q
 	}
 	// q = least common ancester (jprev,j)
-	return int((q))
+	return q
 }
 
 // Load - load a triplet matrix from a file.
