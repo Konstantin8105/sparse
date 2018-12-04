@@ -239,6 +239,11 @@ func IsSym(A *Matrix) (ok bool, err error) {
 				j2 := i      // column
 				x2 := Ax[p2] // value
 				if i2 == j2 {
+					// ignore diagonal entries
+					continue
+				}
+				if i != j2 || j != i2 {
+					// coordinates of entries is not same
 					continue
 				}
 				found = true

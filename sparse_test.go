@@ -491,6 +491,23 @@ func TestNilCheck(t *testing.T) {
 				}(),
 			},
 		},
+		{
+			name: "Fkeep",
+			fs: []error{
+				func() error {
+					_, err := Fkeep(nil, nil)
+					return err
+				}(),
+				func() error {
+					var s bytes.Buffer
+					s.WriteString("0 0 1\n0 1 2\n1 0 3\n1 1 4")
+					T := Load(&s)
+					// triplet in input
+					_, err := Fkeep((*Matrix)(T), nil)
+					return err
+				}(),
+			},
+		},
 	}
 
 	for i := range tcs {
@@ -536,10 +553,10 @@ func TestNilCheck(t *testing.T) {
 	if r := cs_dmperm(nil, -1); r != nil {
 		t.Errorf("cs_dmperm: not nil")
 	}
-	if r := cs_droptol(nil, -1); r != -1 {
+	if _, err := cs_droptol(nil, -1); err == nil {
 		t.Errorf("cs_droptol: not nil")
 	}
-	if r := cs_dropzeros(nil); r != -1 {
+	if _, err := cs_dropzeros(nil); err == nil {
 		t.Errorf("cs_dropzeros: not nil")
 	}
 	// if err := Dupl(nil); err == nil {
@@ -554,13 +571,13 @@ func TestNilCheck(t *testing.T) {
 	if r := cs_etree(nil, false); r != nil {
 		t.Errorf("cs_etree: not nil")
 	}
-	if r := cs_fkeep(nil, nil, nil); r == 1 {
+	if _, err := Fkeep(nil, nil); err == nil {
 		t.Errorf("cs_fkeep: not nil")
 	}
 	// if r := Gaxpy(nil, nil, nil); r == true {
 	// 	t.Errorf("cs_gaxpy: not nil")
 	// }
-	if r := cs_happly(nil, -1, -1, nil); r == 1 {
+	if r := cs_happly(nil, -1, -1, nil); r == nil {
 		t.Errorf("cs_happly: not nil")
 	}
 	if r := cs_house(nil, nil, -1); r != -1 {
@@ -1426,6 +1443,11 @@ func TestIsSym(t *testing.T) {
 		},
 		{
 			mat:     "0 0 1\n1 1 1\n2 2 1\n0 0 1\n1 0 1\n0 1 1\n2 0 1\n0 2 1\n3 0 1\n0 3 1",
+			isSym:   true,
+			isError: false,
+		},
+		{
+			mat:     "0 0 1\n1 1 1\n2 2 1\n0 0 1\n1 0 2\n0 1 2\n2 0 3\n0 2 3\n3 0 4\n0 3 4",
 			isSym:   true,
 			isError: false,
 		},

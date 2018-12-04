@@ -178,7 +178,7 @@ func cs_wclear(mark, lemax int, w []int, n int) int {
 }
 
 // cs_diag - keep off-diagonal entries; drop diagonal entries
-func cs_diag(i, j int, aij float64, other interface{}) bool {
+func cs_diag(i, j int, aij float64) bool {
 	return (i != j)
 }
 
@@ -367,7 +367,7 @@ func cs_amd(order Order, A *Matrix) []int {
 		return nil
 	}
 	// drop diagonal entries
-	cs_fkeep(C, cs_diag, nil)
+	Fkeep(C, cs_diag)
 	Cp := C.p
 	cnz := Cp[n]
 	// allocate result
@@ -1580,12 +1580,6 @@ func cs_unmatched(m int, wi []int, p []int, rr *[5]int, set int) {
 	rr[set+1] = kr
 }
 
-// cs_rprune - return 1 if row i is in R2
-func cs_rprune(i, j int, aij float64, other interface{}) bool {
-	rr := other.(*[5]int)
-	return (i >= rr[1] && i < rr[2])
-}
-
 // cs_dmperm - Given A, compute coarse and then fine dmperm
 func cs_dmperm(A *Matrix, seed int) *csd {
 	var cnz int
@@ -1680,7 +1674,11 @@ func cs_dmperm(A *Matrix, seed int) *csd {
 	C.n = nc
 	if rr[2]-rr[1] < m {
 		// delete rows R0, R1, and R3 from C
-		cs_fkeep(C, cs_rprune, rr)
+		Fkeep(C, func(i, j int, aij float64) bool {
+			// cs_rprune - return 1 if row i is in R2
+			return (i >= rr[1] && i < rr[2])
+		})
+
 		cnz = Cp[nc]
 		Ci := C.i
 		if rr[1] > 0 {
@@ -1744,26 +1742,21 @@ func cs_dmperm(A *Matrix, seed int) *csd {
 	return (cs_ddone(D, C, nil, true))
 }
 
-// cs_tol -
-func cs_tol(i, j int, aij float64, other interface{}) bool {
-	return (math.Abs(aij) > *(other.(*float64)))
-}
-
 // cs_droptol -
-func cs_droptol(A *Matrix, tol float64) int {
+func cs_droptol(A *Matrix, tol float64) (int, error) {
 	// keep all large entries
-	return cs_fkeep(A, cs_tol, &tol)
-}
-
-// cs_nonzero
-func cs_nonzero(i, j int, aij float64, other interface{}) bool {
-	return aij != 0
+	return Fkeep(A, func(i, j int, aij float64) bool {
+		return (math.Abs(aij) > tol)
+	})
 }
 
 // cs_dropzeros
-func cs_dropzeros(A *Matrix) int {
+func cs_dropzeros(A *Matrix) (int, error) {
 	// keep all nonzero entries
-	return cs_fkeep(A, cs_nonzero, nil)
+	return Fkeep(A, func(i, j int, aij float64) bool {
+		// cs_nonzero
+		return aij != 0
+	})
 }
 
 // Dupl - remove duplicate entries from A
@@ -2026,11 +2019,23 @@ func cs_etree(A *Matrix, ata bool) []int {
 	return (cs_idone(parent, nil, w, true))
 }
 
-// cs_fkeep - drop entries for which fkeep(A(i,j)) is false; return nz if OK, else -1
-func cs_fkeep(A *Matrix, fkeep func(i int, j int, x float64, other interface{}) bool, other interface{}) int {
-	if !(A != nil && A.nz == -1) || fkeep == nil {
-		// check inputs
-		return -1
+// Fkeep - drop entries for which fkeep(A(i,j)) is false; return nz if OK, else -1 and error
+// Name function of CSparse: cs_fkeep
+func Fkeep(A *Matrix, fkeep func(i int, j int, x float64) bool) (_ int, err error) {
+	// check input data
+	et := errors.New("Function Add: check input data")
+	if A == nil {
+		_ = et.Add(fmt.Errorf("matrix A is nil"))
+	}
+	if A != nil && A.nz != -1 {
+		_ = et.Add(fmt.Errorf("matrix A is not CSC(Compressed Sparse Column) format"))
+	}
+	if fkeep == nil {
+		_ = et.Add(fmt.Errorf("function fkeep is nil"))
+	}
+
+	if et.IsError() {
+		return -1, et
 	}
 
 	// initialization
@@ -2044,12 +2049,13 @@ func cs_fkeep(A *Matrix, fkeep func(i int, j int, x float64, other interface{}) 
 		// record new location of col j
 		Ap[j] = nz
 		for ; p < Ap[j+1]; p++ {
-			if fkeep(Ai[p], j, func() float64 {
-				if Ax != nil {
-					return Ax[p]
-				}
-				return 1
-			}(), other) {
+			row := Ai[p] // row
+			col := j     // column
+			val := 1.0   // value, default
+			if Ax != nil {
+				val = Ax[p] // value
+			}
+			if fkeep(row, col, val) {
 				if Ax != nil {
 					// keep A(i,j)
 					Ax[nz] = Ax[p]
@@ -2063,7 +2069,7 @@ func cs_fkeep(A *Matrix, fkeep func(i int, j int, x float64, other interface{}) 
 	Ap[n] = nz
 	// remove extra space from A
 	cs_sprealloc(A, 0)
-	return nz
+	return nz, nil
 }
 
 // Gaxpy - calculate by next formula.
@@ -2114,22 +2120,18 @@ func Gaxpy(A *Matrix, x []float64, y []float64) error {
 }
 
 // cs_happly - apply the ith Householder vector to x
-func cs_happly(V *Matrix, i int, beta float64, x []float64) int {
-	var p int
-	var Vp []int
-	var Vi []int
-	var Vx []float64
-	var tau float64
+func cs_happly(V *Matrix, i int, beta float64, x []float64) error {
 	if !(V != nil && int(V.nz) == -1) || x == nil {
 		// check inputs
-		return 0
+		return fmt.Errorf("Not correct input data")
 	}
-	Vp = V.p
-	Vi = V.i
-	Vx = V.x
+
+	// initialization
+	Vp, Vi, Vx := V.p, V.i, V.x
+	tau := 0.0
 
 	// tau = v'*x
-	for p = Vp[i]; p < Vp[i+1]; p++ {
+	for p := Vp[i]; p < Vp[i+1]; p++ {
 		tau += Vx[p] * x[Vi[p]]
 	}
 
@@ -2137,11 +2139,11 @@ func cs_happly(V *Matrix, i int, beta float64, x []float64) int {
 	tau *= beta
 
 	// x = x - v*tau
-	for p = Vp[i]; p < Vp[i+1]; p++ {
+	for p := Vp[i]; p < Vp[i+1]; p++ {
 		x[Vi[p]] -= Vx[p] * tau
 	}
 
-	return 1
+	return nil
 }
 
 // cs_house - create a Householder reflection [v,beta,s]=house(x), overwrite x with v,
@@ -2272,7 +2274,7 @@ func Load(f io.Reader) (T *Triplet, err error) {
 
 // cs_lsolve - solve Lx=b where x and b are dense.  x=b on input, solution on output.
 func cs_lsolve(L *Matrix, x []float64) bool {
-	if !(L != nil && int(L.nz) == -1) || x == nil {
+	if !(L != nil && L.nz == -1) || x == nil {
 		// check inputs
 		return false
 	}
@@ -2281,6 +2283,7 @@ func cs_lsolve(L *Matrix, x []float64) bool {
 
 	// calculation
 	for j := 0; j < n; j++ {
+		// (KI) : first entry in CSC matrix column is diagonal
 		x[j] /= Lx[Lp[j]]
 		for p := Lp[j] + 1; p < Lp[j+1]; p++ {
 			x[Li[p]] -= Lx[p] * x[j]
@@ -2291,22 +2294,16 @@ func cs_lsolve(L *Matrix, x []float64) bool {
 
 // cs_ltsolve - solve L'x=b where x and b are dense.  x=b on input, solution on output.
 func cs_ltsolve(L *Matrix, x []float64) bool {
-	var p int
-	var j int
-	var n int
-	var Lp []int
-	var Li []int
-	var Lx []float64
 	if !(L != nil && int(L.nz) == -1) || x == nil {
 		// check inputs
 		return false
 	}
-	n = L.n
-	Lp = L.p
-	Li = L.i
-	Lx = L.x
-	for j = n - 1; j >= 0; j-- {
-		for p = Lp[j] + 1; p < Lp[j+1]; p++ {
+	// initialization
+	n, Lp, Li, Lx := L.n, L.p, L.i, L.x
+
+	// calculation
+	for j := n - 1; j >= 0; j-- {
+		for p := Lp[j] + 1; p < Lp[j+1]; p++ {
 			x[j] -= Lx[p] * x[Li[p]]
 		}
 		x[j] /= Lx[Lp[j]]
@@ -3108,6 +3105,7 @@ func (A *Matrix) Print(brief bool) error {
 		return fmt.Errorf("A is not Matrix type")
 	}
 
+	// initialization
 	m, n, Ap, Ai, Ax, nzmax := A.m, A.n, A.p, A.i, A.x, A.nzmax
 
 	fmt.Fprintf(osStdout, "Sparse\n")
@@ -3499,22 +3497,22 @@ func cs_randperm(n int, seed int) []int {
 // * xi [top...n-1] = nodes reachable from graph of G*P' via nodes in B(:,k).
 // * xi [n...2n-1] used as workspace
 func cs_reach(G *Matrix, B *Matrix, k int, xi []int, pinv []int) int {
-	var p int
-	var n int
-	var top int
-	var Bp []int
-	var Bi []int
-	var Gp []int
+	// var p int
+	// var n int
+	// var top int
+	// var Bp []int
+	// var Bi []int
+	// var Gp []int
 	if !(G != nil && int(G.nz) == -1) || !(B != nil && int(B.nz) == -1) || xi == nil {
 		// check inputs
 		return -1
 	}
-	n = int(G.n)
-	Bp = B.p
-	Bi = B.i
-	Gp = G.p
-	top = n
-	for p = Bp[k]; p < Bp[k+1]; p++ {
+
+	// initialization
+	n, Bp, Bi, Gp := G.n, B.p, B.i, G.p
+	top := n
+
+	for p := Bp[k]; p < Bp[k+1]; p++ {
 		if !(Gp[Bi[p]] < 0) {
 			// start a dfs at unmarked node i
 			top = cs_dfs(Bi[p], G, top, xi, xi[n:], pinv)
@@ -3522,7 +3520,7 @@ func cs_reach(G *Matrix, B *Matrix, k int, xi []int, pinv []int) int {
 	}
 
 	// restore G
-	for p = top; p < n; p++ {
+	for p := top; p < n; p++ {
 		Gp[xi[p]] = -Gp[xi[p]] - 2
 	}
 
@@ -3652,25 +3650,15 @@ func cs_scc(A *Matrix) *csd {
 
 // cs_schol - ordering and symbolic analysis for a Cholesky factorization
 func cs_schol(order Order, A *Matrix) (result *css) {
-	var n int
-	var c []int
-	var post []int
-	var P []int
-	var C *Matrix
-	var S *css
 	if !(A != nil && A.nz == -1) {
 		// check inputs
 		return nil
 	}
-	n = A.n
+	n := A.n
 	// allocate result S
-	S = new(css)
-	if S == nil {
-		// out of memory
-		return nil
-	}
+	S := new(css)
 	// P = amd(A+A'), or natural
-	P = cs_amd(order, A)
+	P := cs_amd(order, A)
 	// find inverse permutation
 	S.pinv = cs_pinv(P, n)
 	cs_free(P)
@@ -3679,15 +3667,15 @@ func cs_schol(order Order, A *Matrix) (result *css) {
 		return nil
 	}
 	// C = spones(triu(A(P,P)))
-	C = cs_symperm(A, S.pinv, false)
+	C := cs_symperm(A, S.pinv, false)
 	// find etree of C
 	S.parent = cs_etree(C, false)
 	// postorder the etree
-	post = cs_post(S.parent, n)
+	post := cs_post(S.parent, n)
 	// find column counts of chol(C)
-	c = cs_counts(C, S.parent, post, false)
+	c := cs_counts(C, S.parent, post, false)
 	cs_free(post)
-	cs_free(C) // TODO (KI) : remove
+	cs_free(C)
 	// allocate result S->cp
 	S.cp = make([]int, n+1)
 	var err error
@@ -4112,34 +4100,33 @@ func cs_symperm(A *Matrix, pinv []int, values bool) *Matrix {
 
 // cs_tdfs - depth-first search and postorder of a tree rooted at node j
 func cs_tdfs(j, k int, head []int, next []int, post []int, stack []int) int {
-	var i int
-	var p int
-	var top int
 	if head == nil || next == nil || post == nil || stack == nil {
 		// check inputs
 		return -1
 	}
 	// place j on the stack
 	stack[0] = j
+	top := 0
 	for top >= 0 {
 		// while (stack is not empty)
 		// p = top of stack
-		p = stack[top]
+		p := stack[top]
 		// i = youngest child of p
-		i = head[p]
+		i := head[p]
 		if i == -1 {
 			// p has no unordered children left
 			top--
 			// node p is the kth postordered node
 			post[k] = p
 			k++
-		} else {
-			// remove i from children of p
-			head[p] = next[i]
-			// start dfs on child node i
-			top++
-			stack[top] = i
+			continue
 		}
+
+		// remove i from children of p
+		head[p] = next[i]
+		// start dfs on child node i
+		top++
+		stack[top] = i
 	}
 	return k
 }
@@ -4167,6 +4154,7 @@ func cs_transpose(A *Matrix, values bool) (*Matrix, error) {
 		return nil, et
 	}
 
+	// initialization
 	m, n, Ap, Ai, Ax := A.m, A.n, A.p, A.i, A.x
 
 	// allocate result
@@ -4459,7 +4447,6 @@ func cs_dalloc(m, n int) *csd {
 
 // cs_done - free workspace and return a sparse matrix result
 func cs_done(C *Matrix, w []int, x []float64, ok bool) *Matrix {
-	// TODO (KI) : reused memory
 	cs_free(w)
 	cs_free(x)
 	// return result if OK, else free it
@@ -4473,7 +4460,6 @@ func cs_done(C *Matrix, w []int, x []float64, ok bool) *Matrix {
 func cs_idone(p []int, C *Matrix, w interface{}, ok bool) []int {
 	cs_free(C)
 	cs_free(w)
-	// TODO (KI) : reused memory
 	// return result, or free it
 	if ok {
 		return p
@@ -4484,7 +4470,6 @@ func cs_idone(p []int, C *Matrix, w interface{}, ok bool) []int {
 
 // cs_ndone - free workspace and return a numeric factorization (Cholesky, LU, or QR)
 func cs_ndone(N *csn, C *Matrix, w interface{}, x interface{}, ok bool) *csn {
-	// TODO (KI) : reused memory
 	cs_free(C)
 	cs_free(w)
 	cs_free(x)
@@ -4498,7 +4483,6 @@ func cs_ndone(N *csn, C *Matrix, w interface{}, x interface{}, ok bool) *csn {
 
 // cs_ddone - free workspace and return a csd result
 func cs_ddone(D *csd, C *Matrix, w interface{}, ok bool) *csd {
-	// TODO (KI) : reused memory
 	cs_free(C)
 	cs_free(w)
 	// return result if OK, else free it
@@ -4515,12 +4499,11 @@ func cs_utsolve(U *Matrix, x []float64) bool {
 		// check inputs
 		return false
 	}
-	var (
-		n  = U.n
-		Up = U.p
-		Ui = U.i
-		Ux = U.x
-	)
+
+	// initialization
+	n, Up, Ui, Ux := U.n, U.p, U.i, U.x
+
+	// calculation
 	for j := 0; j < n; j++ {
 		for p := Up[j]; p < Up[j+1]-1; p++ {
 			x[j] -= Ux[p] * x[Ui[p]]
