@@ -64,11 +64,6 @@ func rhs(x []float64, b []float64, m int) {
 	}
 }
 
-// dropdiag - true for off-diagonal entries
-func dropdiag(i int, j int, aij float64, other interface{}) bool {
-	return (i != j)
-}
-
 // make_sym - C = A + triu(A,1)'
 func make_sym(A *Matrix) *Matrix {
 	// AT = A'
@@ -77,7 +72,10 @@ func make_sym(A *Matrix) *Matrix {
 		return nil
 	}
 	// drop diagonal entries from AT
-	cs_fkeep(AT, dropdiag, nil)
+	Fkeep(AT, func(i int, j int, aij float64) bool {
+		// dropdiag - true for off-diagonal entries
+		return (i != j)
+	})
 	// C = A+AT
 	C, err := Add(A, AT, 1, 1)
 	if err != nil {
@@ -180,7 +178,10 @@ func get_problem(f io.Reader, tol float64, output bool) *problem {
 	}
 	if tol > 0 {
 		// drop tiny entries (just to test) */
-		ok := cs_droptol(A, tol)
+		ok, err := cs_droptol(A, tol)
+		if err != nil {
+			panic(err)
+		}
 		if output {
 			fmt.Fprintf(osStdout, "droptol = %d\n", ok)
 		}
