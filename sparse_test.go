@@ -39,13 +39,16 @@ func Benchmark(b *testing.B) {
 				b.ResetTimer()
 				for i := 0; i < b.N; i++ {
 					stdin.Write(o)
-					_ = Load(&stdin)
+					_, _ = Load(&stdin)
 				}
 			})
 
 			b.Run("cs_compress", func(b *testing.B) {
 				stdin.Write(o)
-				T := Load(&stdin)
+				T, err := Load(&stdin)
+				if err != nil {
+					b.Fatal(err)
+				}
 				b.ResetTimer()
 				for i := 0; i < b.N; i++ {
 					_, _ = Compress(T)
@@ -54,7 +57,10 @@ func Benchmark(b *testing.B) {
 
 			b.Run("cs_transpose", func(b *testing.B) {
 				stdin.Write(o)
-				T := Load(&stdin)
+				T, err := Load(&stdin)
+				if err != nil {
+					b.Fatal(err)
+				}
 				A, err := Compress(T)
 				if err != nil {
 					b.Fatal(err)
@@ -71,7 +77,10 @@ func Benchmark(b *testing.B) {
 
 			b.Run("cs_add", func(b *testing.B) {
 				stdin.Write(o)
-				T := Load(&stdin)
+				T, err := Load(&stdin)
+				if err != nil {
+					b.Fatal(err)
+				}
 				A, err := Compress(T)
 				if err != nil {
 					b.Fatal(err)
@@ -88,7 +97,10 @@ func Benchmark(b *testing.B) {
 
 			b.Run("cs_multiply", func(b *testing.B) {
 				stdin.Write(o)
-				T := Load(&stdin)
+				T, err := Load(&stdin)
+				if err != nil {
+					b.Fatal(err)
+				}
 				A, err := Compress(T)
 				if err != nil {
 					b.Fatal(err)
@@ -101,7 +113,10 @@ func Benchmark(b *testing.B) {
 
 			b.Run("cs_gaxpy", func(b *testing.B) {
 				stdin.Write(o)
-				T := Load(&stdin)
+				T, err := Load(&stdin)
+				if err != nil {
+					b.Fatal(err)
+				}
 				A, err := Compress(T)
 				if err != nil {
 					b.Fatal(err)
@@ -200,14 +215,20 @@ func TestNilCheck(t *testing.T) {
 				func() error {
 					var stdin bytes.Buffer
 					stdin.WriteString("0 0 1\n 0 1 2\n 1 0 3\n 1 1 4")
-					T := Load(&stdin)
-					_, err := Add((*Matrix)(T), (*Matrix)(T), 0, 0)
+					T, err := Load(&stdin)
+					if err != nil {
+						panic(err)
+					}
+					_, err = Add((*Matrix)(T), (*Matrix)(T), 0, 0)
 					return err
 				}(),
 				func() error {
 					var s bytes.Buffer
 					s.WriteString("0 0 1\n0 1 2\n1 0 3\n1 1 4")
-					T := Load(&s)
+					T, err := Load(&s)
+					if err != nil {
+						panic(err)
+					}
 					A, err := Compress(T)
 					if err != nil {
 						panic(err)
@@ -215,7 +236,10 @@ func TestNilCheck(t *testing.T) {
 
 					var s2 bytes.Buffer
 					s2.WriteString("0 0 1")
-					T2 := Load(&s2)
+					T2, err := Load(&s2)
+					if err != nil {
+						panic(err)
+					}
 					A2, err := Compress(T2)
 					if err != nil {
 						panic(err)
@@ -235,13 +259,19 @@ func TestNilCheck(t *testing.T) {
 				func() error {
 					var s bytes.Buffer
 					s.WriteString("0 0 1\n0 1 2\n1 0 3\n1 1 4")
-					T := Load(&s)
+					T, err := Load(&s)
+					if err != nil {
+						panic(err)
+					}
 					return Gaxpy((*Matrix)(T), nil, nil)
 				}(),
 				func() error {
 					var s bytes.Buffer
 					s.WriteString("0 0 1\n0 1 2\n1 0 3\n1 1 4")
-					T := Load(&s)
+					T, err := Load(&s)
+					if err != nil {
+						panic(err)
+					}
 					A, err := Compress(T)
 					if err != nil {
 						panic(err)
@@ -262,8 +292,11 @@ func TestNilCheck(t *testing.T) {
 				func() error {
 					var s bytes.Buffer
 					s.WriteString("0 0 1\n0 1 2\n1 0 3\n1 1 4")
-					T := Load(&s)
-					_, err := Transpose((*Matrix)(T))
+					T, err := Load(&s)
+					if err != nil {
+						panic(err)
+					}
+					_, err = Transpose((*Matrix)(T))
 					return err
 				}(),
 			},
@@ -278,8 +311,11 @@ func TestNilCheck(t *testing.T) {
 				func() error {
 					var s bytes.Buffer
 					s.WriteString("0 0 1\n0 1 2\n1 0 3\n1 1 4")
-					T := Load(&s)
-					err := Dupl((*Matrix)(T))
+					T, err := Load(&s)
+					if err != nil {
+						panic(err)
+					}
+					err = Dupl((*Matrix)(T))
 					return err
 				}(),
 			},
@@ -298,7 +334,10 @@ func TestNilCheck(t *testing.T) {
 				func() error {
 					var s bytes.Buffer
 					s.WriteString("0 0 1\n0 1 2\n1 0 3\n1 1 4")
-					T := Load(&s)
+					T, err := Load(&s)
+					if err != nil {
+						panic(err)
+					}
 					A, err := Compress(T)
 					if err != nil {
 						panic(err)
@@ -318,8 +357,11 @@ func TestNilCheck(t *testing.T) {
 				func() error {
 					var s bytes.Buffer
 					s.WriteString("0 0 1\n0 1 2\n1 0 3\n1 1 4")
-					T := Load(&s)
-					_, err := Multiply((*Matrix)(T), (*Matrix)(T))
+					T, err := Load(&s)
+					if err != nil {
+						panic(err)
+					}
+					_, err = Multiply((*Matrix)(T), (*Matrix)(T))
 					return err
 				}(),
 				func() error {
@@ -328,7 +370,10 @@ func TestNilCheck(t *testing.T) {
 					var err error
 					{
 						s.WriteString("0 0 1\n0 1 2\n1 0 3\n1 1 4")
-						T := Load(&s)
+						T, err := Load(&s)
+						if err != nil {
+							panic(err)
+						}
 						A, err = Compress(T)
 						if err != nil {
 							panic(err)
@@ -336,7 +381,10 @@ func TestNilCheck(t *testing.T) {
 					}
 					{
 						s.WriteString("0 0 1\n0 1 2\n1 0 3\n1 1 4\n12 12 1")
-						T := Load(&s)
+						T, err := Load(&s)
+						if err != nil {
+							panic(err)
+						}
 						B, err = Compress(T)
 						if err != nil {
 							panic(err)
@@ -357,16 +405,22 @@ func TestNilCheck(t *testing.T) {
 				func() error {
 					var s bytes.Buffer
 					s.WriteString("0 0 1\n0 1 2\n1 0 3\n1 1 4")
-					T := Load(&s)
+					T, err := Load(&s)
+					if err != nil {
+						panic(err)
+					}
 					// triplet in input
-					_, err := IsSingular((*Matrix)(T))
+					_, err = IsSingular((*Matrix)(T))
 					return err
 				}(),
 				func() error {
 					var s bytes.Buffer
 					// rectangle matrix
 					s.WriteString("0 0 1\n0 1 2\n1 0 3\n1 1 4\n2 1 5")
-					T := Load(&s)
+					T, err := Load(&s)
+					if err != nil {
+						panic(err)
+					}
 					A, err := Compress(T)
 					if err != nil {
 						panic(err)
@@ -390,16 +444,22 @@ func TestNilCheck(t *testing.T) {
 				func() error {
 					var s bytes.Buffer
 					s.WriteString("0 0 1\n0 1 2\n1 0 3\n1 1 4")
-					T := Load(&s)
+					T, err := Load(&s)
+					if err != nil {
+						panic(err)
+					}
 					// triplet in input
-					err := Zeroize((*Matrix)(T), 0, 0)
+					err = Zeroize((*Matrix)(T), 0, 0)
 					return err
 				}(),
 				func() error {
 					var s bytes.Buffer
 					// rectangle matrix
 					s.WriteString("0 0 1\n0 1 2\n1 0 3\n1 1 4\n2 1 5")
-					T := Load(&s)
+					T, err := Load(&s)
+					if err != nil {
+						panic(err)
+					}
 					A, err := Compress(T)
 					if err != nil {
 						panic(err)
@@ -411,7 +471,10 @@ func TestNilCheck(t *testing.T) {
 					var s bytes.Buffer
 					// rectangle matrix
 					s.WriteString("0 0 1\n2 2 1")
-					T := Load(&s)
+					T, err := Load(&s)
+					if err != nil {
+						panic(err)
+					}
 					A, err := Compress(T)
 					if err != nil {
 						panic(err)
@@ -431,16 +494,22 @@ func TestNilCheck(t *testing.T) {
 				func() error {
 					var s bytes.Buffer
 					s.WriteString("0 0 1\n0 1 2\n1 0 3\n1 1 4")
-					T := Load(&s)
+					T, err := Load(&s)
+					if err != nil {
+						panic(err)
+					}
 					// triplet in input
-					_, _, err := Limits((*Matrix)(T))
+					_, _, err = Limits((*Matrix)(T))
 					return err
 				}(),
 				func() error {
 					var s bytes.Buffer
 					// empty matrix
 					s.WriteString("")
-					T := Load(&s)
+					T, err := Load(&s)
+					if err != nil {
+						panic(err)
+					}
 					A, err := Compress(T)
 					if err != nil {
 						panic(err)
@@ -460,16 +529,22 @@ func TestNilCheck(t *testing.T) {
 				func() error {
 					var s bytes.Buffer
 					s.WriteString("0 0 1\n0 1 2\n1 0 3\n1 1 4")
-					T := Load(&s)
+					T, err := Load(&s)
+					if err != nil {
+						panic(err)
+					}
 					// triplet in input
-					_, err := IsSym((*Matrix)(T))
+					_, err = IsSym((*Matrix)(T))
 					return err
 				}(),
 				func() error {
 					var s bytes.Buffer
 					// empty matrix
 					s.WriteString("")
-					T := Load(&s)
+					T, err := Load(&s)
+					if err != nil {
+						panic(err)
+					}
 					A, err := Compress(T)
 					if err != nil {
 						panic(err)
@@ -481,7 +556,10 @@ func TestNilCheck(t *testing.T) {
 					var s bytes.Buffer
 					// rectangle matrix
 					s.WriteString("0 0 1\n0 1 2\n1 0 3\n1 1 4\n3 7 2")
-					T := Load(&s)
+					T, err := Load(&s)
+					if err != nil {
+						panic(err)
+					}
 					A, err := Compress(T)
 					if err != nil {
 						panic(err)
@@ -501,9 +579,45 @@ func TestNilCheck(t *testing.T) {
 				func() error {
 					var s bytes.Buffer
 					s.WriteString("0 0 1\n0 1 2\n1 0 3\n1 1 4")
-					T := Load(&s)
+					T, err := Load(&s)
+					if err != nil {
+						panic(err)
+					}
 					// triplet in input
-					_, err := Fkeep((*Matrix)(T), nil)
+					_, err = Fkeep((*Matrix)(T), nil)
+					return err
+				}(),
+			},
+		},
+		{
+			name: "Load",
+			fs: []error{
+				func() error {
+					_, err := Load(nil)
+					return err
+				}(),
+				func() error {
+					var s bytes.Buffer
+					s.WriteString("0 0 1\n1 1 1 1\n1 1 4")
+					_, err := Load(&s)
+					return err
+				}(),
+				func() error {
+					var s bytes.Buffer
+					s.WriteString("0 0 1\n1  1\n1 1 4")
+					_, err := Load(&s)
+					return err
+				}(),
+				func() error {
+					var s bytes.Buffer
+					s.WriteString("0 0 1\n1 a 1\n1 1 4")
+					_, err := Load(&s)
+					return err
+				}(),
+				func() error {
+					var s bytes.Buffer
+					s.WriteString("0 0 1\n-1 -1 1\n1 1 4")
+					_, err := Load(&s)
 					return err
 				}(),
 			},
@@ -589,9 +703,9 @@ func TestNilCheck(t *testing.T) {
 	if r := cs_leaf(-1, -1, nil, nil, nil, nil, nil); r != -1 {
 		t.Errorf("cs_leaf: not nil")
 	}
-	if r := Load(nil); r != nil {
-		t.Errorf("cs_load: not nil")
-	}
+	// if err := Load(nil); r != nil {
+	// 	t.Errorf("cs_load: not nil")
+	// }
 	if r := cs_lsolve(nil, nil); r != false {
 		t.Errorf("cs_lsolve: not nil")
 	}
@@ -803,7 +917,10 @@ func TestCsCompress(t *testing.T) {
 
 			var stdin bytes.Buffer
 			stdin.Write(b)
-			T := Load(&stdin)
+			T, err := Load(&stdin)
+			if err != nil {
+				t.Fatal(err)
+			}
 			A, err := Compress(T)
 			if err != nil {
 				t.Fatal(err)
@@ -824,9 +941,9 @@ func TestCsCompress(t *testing.T) {
 					}
 					buf.Write([]byte("\n"))
 				}
-				T2 := Load(&buf)
-				if T2 == nil {
-					t.Fatalf("T2 is nil")
+				T2, err := Load(&buf)
+				if err != nil {
+					t.Fatalf("T2 is nil: %v", err)
 				}
 				A2, err := Compress(T2)
 				if err != nil {
@@ -857,9 +974,9 @@ func TestCsCompress(t *testing.T) {
 					}
 					buf.Write([]byte("\n"))
 				}
-				T2 := Load(&buf)
-				if T2 == nil {
-					t.Fatalf("T2 is nil")
+				T2, err := Load(&buf)
+				if err != nil {
+					t.Fatalf("T2 is nil: %v", err)
 				}
 				A2, err := Compress(T2)
 				if err != nil {
@@ -919,7 +1036,10 @@ func TestGaxpy(t *testing.T) {
 	snapshot("./testdata/.snapshot.gaxpy", t, func() {
 		var s bytes.Buffer
 		s.WriteString("0 0 1\n1 0 3\n2 0 5\n0 1 2\n1 1 4\n2 1 6")
-		T := Load(&s)
+		T, err := Load(&s)
+		if err != nil {
+			t.Fatal(err)
+		}
 		A, err := Compress(T)
 		if err != nil {
 			t.Fatal(err)
@@ -937,7 +1057,10 @@ func TestGaxpy(t *testing.T) {
 func ExampleGaxpy() {
 	var s bytes.Buffer
 	s.WriteString("0 0 1\n1 0 3\n2 0 5\n0 1 2\n1 1 4\n2 1 6")
-	T := Load(&s)
+	T, err := Load(&s)
+	if err != nil {
+		panic(err)
+	}
 	A, err := Compress(T)
 	if err != nil {
 		panic(err)
@@ -964,7 +1087,10 @@ func TestAdd(t *testing.T) {
 	snapshot("./testdata/.snapshot.add", t, func() {
 		var stdin bytes.Buffer
 		stdin.WriteString("0 0 1\n0 1 2\n1 0 3\n1 1 4")
-		T := Load(&stdin)
+		T, err := Load(&stdin)
+		if err != nil {
+			t.Fatal(err)
+		}
 		A, err := Compress(T)
 		if err != nil {
 			t.Fatal(err)
@@ -984,7 +1110,10 @@ func TestAdd(t *testing.T) {
 func ExampleAdd() {
 	var stdin bytes.Buffer
 	stdin.WriteString("0 0 1\n0 1 2\n1 0 3\n1 1 4")
-	T := Load(&stdin)
+	T, err := Load(&stdin)
+	if err != nil {
+		panic(err)
+	}
 	A, err := Compress(T)
 	if err != nil {
 		panic(err)
@@ -1047,7 +1176,10 @@ func TestDupl(t *testing.T) {
 	snapshot("./testdata/.snapshot.dupl", t, func() {
 		var stdin bytes.Buffer
 		stdin.WriteString("0 0 1\n0 1 2\n1 0 3\n1 1 4\n 0 0 1\n 1 0 10")
-		T := Load(&stdin)
+		T, err := Load(&stdin)
+		if err != nil {
+			t.Fatal(err)
+		}
 		A, err := Compress(T)
 		if err != nil {
 			t.Fatal(err)
@@ -1063,7 +1195,10 @@ func TestDupl(t *testing.T) {
 	snapshot("./testdata/.snapshot.dupl.invert", t, func() {
 		var stdin bytes.Buffer
 		stdin.WriteString(" 1 0 10\n 0 0 1\n 1 1 4\n 1 0 3\n 0 1 2\n 0 0 1 ")
-		T := Load(&stdin)
+		T, err := Load(&stdin)
+		if err != nil {
+			t.Fatal(err)
+		}
 		A, err := Compress(T)
 		if err != nil {
 			t.Fatal(err)
@@ -1080,7 +1215,10 @@ func TestDupl(t *testing.T) {
 func ExampleDupl() {
 	var stdin bytes.Buffer
 	stdin.WriteString(" 1 0 10\n 0 0 1\n 1 1 4\n 1 0 3\n 0 1 2\n 0 0 1 ")
-	T := Load(&stdin)
+	T, err := Load(&stdin)
+	if err != nil {
+		panic(err)
+	}
 	A, err := Compress(T)
 	if err != nil {
 		panic(err)
@@ -1309,7 +1447,10 @@ func ExamplePrint() {
 func ExampleMultiply() {
 	var stdin bytes.Buffer
 	stdin.WriteString(" 1 0 10\n 0 0 1\n 1 1 4\n 1 0 3\n 0 1 2\n 0 0 1 ")
-	T := Load(&stdin)
+	T, err := Load(&stdin)
+	if err != nil {
+		panic(err)
+	}
 	A, err := Compress(T)
 	if err != nil {
 		panic(err)
@@ -1353,7 +1494,10 @@ func TestIsSingular(t *testing.T) {
 		t.Run(fmt.Sprintf("%d", i), func(t *testing.T) {
 			var stdin bytes.Buffer
 			stdin.WriteString(tcs[i].s)
-			T := Load(&stdin)
+			T, err := Load(&stdin)
+			if err != nil {
+				t.Fatal(err)
+			}
 			A, err := Compress(T)
 			if err != nil {
 				t.Fatal(err)
@@ -1378,7 +1522,10 @@ func TestAmd(t *testing.T) {
 func ExampleZeroize() {
 	var stdin bytes.Buffer
 	stdin.WriteString("0 0 1\n1 0 1\n2 0 1\n2 1 1\n2 2 1\n 1 1 1")
-	T := Load(&stdin)
+	T, err := Load(&stdin)
+	if err != nil {
+		panic(err)
+	}
 	A, err := Compress(T)
 	if err != nil {
 		panic(err)
@@ -1457,7 +1604,10 @@ func TestIsSym(t *testing.T) {
 		t.Run(fmt.Sprintf("%d", i), func(t *testing.T) {
 			var stdin bytes.Buffer
 			stdin.WriteString(tcs[i].mat)
-			T := Load(&stdin)
+			T, err := Load(&stdin)
+			if err != nil {
+				t.Fatal(err)
+			}
 			A, err := Compress(T)
 			if err != nil {
 				t.Fatal(err)
@@ -1485,7 +1635,10 @@ func TestIsSym(t *testing.T) {
 func ExampleLimits() {
 	var stdin bytes.Buffer
 	stdin.WriteString("0 0 1\n1 0 -2\n2 0 3\n2 1 4\n2 2 5\n 1 1 6")
-	T := Load(&stdin)
+	T, err := Load(&stdin)
+	if err != nil {
+		panic(err)
+	}
 	A, err := Compress(T)
 	if err != nil {
 		panic(err)
