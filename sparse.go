@@ -1260,17 +1260,17 @@ func cs_counts(A *Matrix, parent []int, post []int, ata bool) []int {
 		}
 
 		// J=j for LL'=A case
-		for J = int(func() int {
+		for J = func() int {
 			if ata {
-				return (head[k])
+				return head[k]
 			}
-			return (j)
-		}()); J != -1; J = int(func() int {
+			return j
+		}(); J != -1; J = func() int {
 			if ata {
-				return (next[J])
+				return next[J]
 			}
-			return int(-1)
-		}()) {
+			return -1
+		}() {
 			for p := ATp[J]; p < ATp[J+1]; p++ {
 				i := ATi[p]
 				q = cs_leaf(i, j, first, maxfirst, prevleaf, ancestor, &jleaf)
@@ -1464,12 +1464,8 @@ func cs_bfs(A *Matrix, n int,
 		// j in set C0 (R0 if transpose)
 		wj[j] = 0
 		// place unmatched col j in queue
-		queue[func() int {
-			defer func() {
-				tail++
-			}()
-			return tail
-		}()] = j
+		queue[tail] = j
+		tail++
 	}
 
 	if tail == 0 {
@@ -1494,12 +1490,8 @@ func cs_bfs(A *Matrix, n int,
 	for head < tail {
 		// while queue is not empty
 		// get the head of the queue
-		j := queue[func() int {
-			defer func() {
-				head++
-			}()
-			return head
-		}()]
+		j := queue[head]
+		head++
 		for p := Ap[j]; p < Ap[j+1]; p++ {
 			i := Ai[p]
 			if wi[i] >= 0 {
@@ -1517,17 +1509,13 @@ func cs_bfs(A *Matrix, n int,
 			// j2 in set C1 (R3 if transpose)
 			wj[j2] = mark
 			// add j2 to queue
-			queue[func() int {
-				defer func() {
-					tail++
-				}()
-				return tail
-			}()] = j2
+			queue[tail] = j2
+			tail++
 		}
 	}
 	if mark != 1 {
 		// free A' if it was created
-		cs_free(C) // TODO (KI) : remove
+		cs_free(C)
 	}
 	return true
 }
