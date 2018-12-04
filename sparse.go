@@ -2240,20 +2240,25 @@ func cs_leaf(i int, j int, first []int, maxfirst []int, prevleaf []int, ancestor
 	return int((q))
 }
 
-// Load - load a triplet matrix from a file
+// Load - load a triplet matrix from a file.
 //
 // Name function in CSparse : cs_load.
-func Load(f io.Reader) *Triplet {
+func Load(f io.Reader) (T *Triplet, err error) {
+	defer func() {
+		if err != nil {
+			et := errors.New("Function Load")
+			_ = et.Add(err)
+			err = et
+		}
+	}()
 	if f == nil {
-		// use double for integers to avoid csi conflicts
 		// check inputs
-		return nil
+		err = fmt.Errorf("reader is nil")
+		return
 	}
 	// allocate result
-	T, err := NewTriplet()
-	if err != nil {
-		fmt.Fprintf(os.Stderr, err.Error()) // TODO (KI) error hanling
-		return nil
+	if T, err = NewTriplet(); err != nil {
+		return nil, err
 	}
 	for {
 		var i, j int
@@ -2263,15 +2268,17 @@ func Load(f io.Reader) *Triplet {
 		if err == io.EOF {
 			break
 		}
-		if err != nil || n != 3 {
-			return nil
+		if n != 3 {
+			return nil, fmt.Errorf("scan more then 3 variables")
 		}
-		if err := Entry(T, i, j, x); err != nil { // TODO (KI) error handling
-			_ = err
-			return nil
+		if err != nil {
+			return nil, fmt.Errorf("cannot scan: %v", err)
+		}
+		if err := Entry(T, i, j, x); err != nil {
+			return nil, err
 		}
 	}
-	return T
+	return T, nil
 }
 
 // cs_lsolve - solve Lx=b where x and b are dense.  x=b on input, solution on output.
