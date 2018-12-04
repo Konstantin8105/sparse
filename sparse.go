@@ -1364,24 +1364,20 @@ func cs_cumsum(p []int, c []int) (int, error) {
 
 // cs_dfs - depth-first-search of the graph of a matrix, starting at node j
 func cs_dfs(j int, G *Matrix, top int, xi []int, pstack []int, pinv []int) int {
-	var i int
-	var p int
-	var p2 int
-	var done bool
-	var jnew int
-	var head int
 	if !(G != nil && G.nz == -1) || xi == nil || pstack == nil {
 		// check inputs
 		return -1
 	}
-	Gp := G.p
-	Gi := G.i
+	// initialization
+	Gp, Gi := G.p, G.i
+
 	// initialize the recursion stack
 	xi[0] = j
+	var head int
 	for head >= 0 {
 		// get j from the top of the recursion stack
 		j = xi[head]
-		jnew = j
+		jnew := j
 		if pinv != nil {
 			jnew = pinv[j]
 		}
@@ -1390,32 +1386,32 @@ func cs_dfs(j int, G *Matrix, top int, xi []int, pstack []int, pinv []int) int {
 			// mark node j as visited
 			Gp[j] = -Gp[j] - 2
 
-			pstack[head] = func() int {
-				if jnew < 0 {
-					return 0
-				}
-				if Gp[jnew] < 0 {
-					return -Gp[jnew] - 2
-				}
-				return Gp[jnew]
-			}()
+			switch {
+			case jnew < 0:
+				pstack[head] = 0
+			case Gp[jnew] < 0:
+				pstack[head] = -Gp[jnew] - 2
+			default:
+				pstack[head] = Gp[jnew]
+			}
 		}
 		// node j done if no unvisited neighbors
-		done = true
-		p2 = func() int {
-			if jnew < 0 {
-				return 0
-			}
-			if Gp[jnew+1] < 0 {
-				return -Gp[jnew+1] - 2
-			}
-			return Gp[jnew+1]
-		}()
+		done := true
+
+		var p2 int
+		switch {
+		case jnew < 0:
+			p2 = 0
+		case Gp[jnew+1] < 0:
+			p2 = -Gp[jnew+1] - 2
+		default:
+			p2 = Gp[jnew+1]
+		}
 
 		// examine all neighbors of j
-		for p = pstack[head]; p < p2; p++ {
+		for p := pstack[head]; p < p2; p++ {
 			// consider neighbor node i
-			i = Gi[p]
+			i := Gi[p]
 			if Gp[i] < 0 {
 				// skip visited node i
 				continue
