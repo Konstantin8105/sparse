@@ -3502,12 +3502,6 @@ func cs_randperm(n int, seed int) []int {
 // * xi [top...n-1] = nodes reachable from graph of G*P' via nodes in B(:,k).
 // * xi [n...2n-1] used as workspace
 func cs_reach(G *Matrix, B *Matrix, k int, xi []int, pinv []int) int {
-	// var p int
-	// var n int
-	// var top int
-	// var Bp []int
-	// var Bi []int
-	// var Gp []int
 	if !(G != nil && int(G.nz) == -1) || !(B != nil && int(B.nz) == -1) || xi == nil {
 		// check inputs
 		return -1
