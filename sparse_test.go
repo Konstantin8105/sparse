@@ -1725,12 +1725,14 @@ func TestCombinations3x3(t *testing.T) {
 			// fmt.Println(y) // TODO(KI): remove
 			if err != nil {
 				t.Logf("Error factorization :\n%v", err)
+				return
 				// t.Fatalf("Error factorization :\n%v", err)
 			}
 
 			x2, err := lu.Solve(y)
 			if err != nil {
 				t.Logf("Error solver :\n%v", err)
+				return
 				// t.Fatalf("Error solver :\n%v", err)
 			}
 
