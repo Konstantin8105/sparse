@@ -2681,12 +2681,12 @@ func cs_maxtrans(A *Matrix, seed int) []int {
 	// var Ap []int
 	// var jimatch []int
 	// var w []int
-	var cheap []int
-	var js []int
-	var is []int
-	var ps []int
+	// var cheap []int
+	// var js []int
+	// var is []int
+	// var ps []int
 	// var Ai []int
-	var Cp []int
+	// var Cp []int
 	var jmatch []int
 	var imatch []int
 	var q []int
@@ -2767,7 +2767,7 @@ func cs_maxtrans(A *Matrix, seed int) []int {
 	}
 	n = C.n
 	m = C.m
-	Cp = C.p
+	Cp := C.p
 	jmatch = func() []int {
 		if m2 < n2 {
 			return jimatch[n:]
@@ -2782,10 +2782,12 @@ func cs_maxtrans(A *Matrix, seed int) []int {
 	}()
 	// get workspace
 	w = make([]int, 5*n)
-	cheap = w[n:]
-	js = w[2*n:]
-	is = w[3*n:]
-	ps = w[4*n:]
+	var (
+		cheap = w[n:]
+		js    = w[2*n:]
+		is    = w[3*n:]
+		ps    = w[4*n:]
+	)
 
 	// for cheap assignment
 	for j = 0; j < n; j++ {
