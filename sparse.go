@@ -3894,9 +3894,12 @@ func cs_sqr(order Order, A *Matrix, qr bool) *css {
 			cs_free(C)
 		}
 	} else {
-		// for LU factorization only,
+		// for LU factorization only, guess nnz(L) and nnz(U)
+		// (KI) : Amount of memory allocated for matrix L and U
+		// (KI) : by default is can be changed.
+		// (KI) : Before use formula:  4*A.p[n] + n
+		// (KI) : Acceptable any more 1.
 		S.unz = 4*A.p[n] + n
-		// guess nnz(L) and nnz(U)
 		S.lnz = S.unz
 	}
 	// return result S
