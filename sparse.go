@@ -2545,35 +2545,35 @@ func cs_free(p interface{}) {
 
 // cs_realloc - wrapper for realloc
 func cs_realloc(p interface{}, n int, ok *bool) interface{} {
-	//
-	// TODO (KI): redesign
-	//
-
 	switch v := p.(type) {
 	case []int:
-		if len(v) <= n {
+		// TODO (KI) : only for memory analyzing
+		// if 2*n < len(v) {
+		// 	fmt.Fprintf(os.Stdout, "realloc: %6d %6d\n", n, len(v))
+		// }
+		// reallocate memory
+		if 2*n < len(v) || len(v) < n {
 			arr := make([]int, n)
 			copy(arr, v)
 			v, arr = arr, v
 			cs_free(arr)
-			// v = append(v, make([]int, n-len(v))...)
 		}
 		*ok = true
 		return v
 
 	case []float64:
-		if len(v) <= n {
+		// reallocate memory
+		if 2*n < len(v) || len(v) < n {
 			arr := make([]float64, n)
 			copy(arr, v)
 			v, arr = arr, v
 			cs_free(arr)
-			// v = append(v, make([]float64, n-len(v))...)
 		}
 		*ok = true
 		return v
 	}
-	return nil
 
+	return nil
 }
 
 // cs_augment - find an augmenting path starting at column k and extend the match if found
