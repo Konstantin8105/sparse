@@ -28,6 +28,11 @@ type Matrix struct { // struct cs_sparse
 	nz    int       // # of entries in triplet matrix, -1 for compressed-col
 }
 
+// Size return size of matrix
+func (m *Matrix) Size() (rows, columns int) {
+	return m.m, m.n
+}
+
 type Triplet Matrix
 
 func NewTriplet() (*Triplet, error) {
