@@ -396,41 +396,6 @@ func TestNilCheck(t *testing.T) {
 			},
 		},
 		{
-			name: "IsSingular",
-			fs: []error{
-				func() error {
-					_, err := IsSingular(nil)
-					return err
-				}(),
-				func() error {
-					var s bytes.Buffer
-					s.WriteString("0 0 1\n0 1 2\n1 0 3\n1 1 4")
-					T, err := Load(&s)
-					if err != nil {
-						panic(err)
-					}
-					// triplet in input
-					_, err = IsSingular((*Matrix)(T))
-					return err
-				}(),
-				func() error {
-					var s bytes.Buffer
-					// rectangle matrix
-					s.WriteString("0 0 1\n0 1 2\n1 0 3\n1 1 4\n2 1 5")
-					T, err := Load(&s)
-					if err != nil {
-						panic(err)
-					}
-					A, err := Compress(T)
-					if err != nil {
-						panic(err)
-					}
-					_, err = IsSingular(A)
-					return err
-				}(),
-			},
-		},
-		{
 			name: "Zeroize",
 			fs: []error{
 				func() error {
@@ -480,41 +445,6 @@ func TestNilCheck(t *testing.T) {
 						panic(err)
 					}
 					err = Zeroize(A, 1, 4)
-					return err
-				}(),
-			},
-		},
-		{
-			name: "Limits",
-			fs: []error{
-				func() error {
-					_, _, err := Limits(nil)
-					return err
-				}(),
-				func() error {
-					var s bytes.Buffer
-					s.WriteString("0 0 1\n0 1 2\n1 0 3\n1 1 4")
-					T, err := Load(&s)
-					if err != nil {
-						panic(err)
-					}
-					// triplet in input
-					_, _, err = Limits((*Matrix)(T))
-					return err
-				}(),
-				func() error {
-					var s bytes.Buffer
-					// empty matrix
-					s.WriteString("")
-					T, err := Load(&s)
-					if err != nil {
-						panic(err)
-					}
-					A, err := Compress(T)
-					if err != nil {
-						panic(err)
-					}
-					_, _, err = Limits(A)
 					return err
 				}(),
 			},
@@ -1477,42 +1407,6 @@ func ExampleMultiply() {
 	//       0 : 3.400000e+01
 }
 
-func TestIsSingular(t *testing.T) {
-	tcs := []struct {
-		s string
-		r bool
-	}{
-		{"0 0 1\n 1 1 4", false},
-		{"0 0 1", false},
-		{"0 0 1\n 2 2 4", true},
-		{"2 2 4", true},
-		{"0 0 1\n 2 2 4\n 1 1 0", true},
-		{"0 0 1\n 0 1 1\n 0 2 1\n1 2 1\n2 2 1", true},
-	}
-
-	for i := range tcs {
-		t.Run(fmt.Sprintf("%d", i), func(t *testing.T) {
-			var stdin bytes.Buffer
-			stdin.WriteString(tcs[i].s)
-			T, err := Load(&stdin)
-			if err != nil {
-				t.Fatal(err)
-			}
-			A, err := Compress(T)
-			if err != nil {
-				t.Fatal(err)
-			}
-			e, err := IsSingular(A)
-			if err != nil {
-				t.Fatal(err)
-			}
-			if e != tcs[i].r {
-				t.Fatalf("Not correct result")
-			}
-		})
-	}
-}
-
 func TestAmd(t *testing.T) {
 	for _, a := range []Order{AmdNatural, AmdChol, AmdLU, AmdQR} {
 		t.Logf("%s", a)
@@ -1630,28 +1524,4 @@ func TestIsSym(t *testing.T) {
 			}
 		})
 	}
-}
-
-func ExampleLimits() {
-	var stdin bytes.Buffer
-	stdin.WriteString("0 0 1\n1 0 -2\n2 0 3\n2 1 4\n2 2 5\n 1 1 6")
-	T, err := Load(&stdin)
-	if err != nil {
-		panic(err)
-	}
-	A, err := Compress(T)
-	if err != nil {
-		panic(err)
-	}
-	osStdout = os.Stdout // for output in standart stdout
-
-	min, max, err := Limits(A)
-	if err != nil {
-		panic(err)
-	}
-	fmt.Fprintf(os.Stdout, "min = %5e\nmax = %5e\n", min, max)
-
-	// Output:
-	// min = -2.000000e+00
-	// max = 6.000000e+00
 }
