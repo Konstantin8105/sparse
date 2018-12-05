@@ -446,7 +446,7 @@ func cs_amd(order Order, A *Matrix) []int {
 			// node i is dead
 			elen[i] = -1
 			nel++
-			Cp[i] = -n - 2
+			Cp[i] = CS_FLIP(n)
 			nv[n]++
 
 		default:
@@ -497,7 +497,7 @@ func cs_amd(order Order, A *Matrix) []int {
 					// save first entry of object
 					Cp[j] = Ci[p]
 					// first entry is now CS_FLIP(j)
-					Ci[p] = -j - 2
+					Ci[p] = CS_FLIP(j)
 				}
 			}
 
@@ -505,7 +505,7 @@ func cs_amd(order Order, A *Matrix) []int {
 			var q, p int
 			for p = 0; p < cnz; {
 				if (func() int {
-					j = -Ci[p] - 2
+					j = CS_FLIP(Ci[p])
 					p++
 					return j
 				}()) >= 0 {
@@ -580,7 +580,7 @@ func cs_amd(order Order, A *Matrix) []int {
 			}
 			if e != k {
 				// absorb e into k
-				Cp[e] = -k - 2
+				Cp[e] = CS_FLIP(k)
 				// e is now a dead element
 				w[e] = 0
 			}
@@ -657,7 +657,7 @@ func cs_amd(order Order, A *Matrix) []int {
 						h += e
 					} else {
 						// aggressive absorb. e->k
-						Cp[e] = -k - 2
+						Cp[e] = CS_FLIP(k)
 						// e is a dead element
 						w[e] = 0
 					}
@@ -689,7 +689,7 @@ func cs_amd(order Order, A *Matrix) []int {
 			if d == 0 {
 				// check for mass elimination
 				// absorb i into k
-				Cp[i] = -k - 2
+				Cp[i] = CS_FLIP(k)
 				nvi = -nv[i]
 				// |Lk| -= |i|
 				dk -= nvi
@@ -774,7 +774,7 @@ func cs_amd(order Order, A *Matrix) []int {
 					if ok {
 						// i and j are identical
 						// absorb j into i
-						Cp[j] = -i - 2
+						Cp[j] = CS_FLIP(i)
 						nv[i] += nv[j]
 						nv[j] = 0
 						// node j is dead
@@ -859,7 +859,7 @@ func cs_amd(order Order, A *Matrix) []int {
 	// --- Postordering -----------------------------------------------------
 	// fix assembly tree
 	for i = 0; i < n; i++ {
-		Cp[i] = -Cp[i] - 2
+		Cp[i] = CS_FLIP(Cp[i])
 	}
 
 	for j = 0; j <= n; j++ {
@@ -4490,10 +4490,11 @@ func cs_utsolve(U *Matrix, x []float64) bool {
 
 // #define CS_MAX(a,b) (((a) > (b)) ? (a) : (b))
 // #define CS_MIN(a,b) (((a) < (b)) ? (a) : (b))
-// func CS_FLIP(i int) int {
-// 	return -i - 2
-// }
-//
+
+func CS_FLIP(i int) int {
+	return -i - 2
+}
+
 // func CS_UNFLIP(i int) int {
 // 	if i < 0 {
 // 		return CS_FLIP(i)
