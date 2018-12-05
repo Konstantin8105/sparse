@@ -3670,19 +3670,6 @@ func cs_schol(order Order, A *Matrix) (result *css) {
 
 // cs_spsolve - solve Gx=b(:,k), where G is either upper (lo=0) or lower (lo=1) triangular
 func cs_spsolve(G *Matrix, B *Matrix, k int, xi []int, x []float64, pinv []int, lo bool) int {
-	// var j int
-	// var J int
-	// var p int
-	// var q int
-	// var px int
-	// var top int
-	// var n int
-	// var Gp []int
-	// var Gi []int
-	// var Bp []int
-	// var Bi []int
-	// var Gx []float64
-	// var Bx []float64
 	if !(G != nil && G.nz == -1) || !(B != nil && B.nz == -1) || xi == nil || x == nil {
 		return -1
 	}
@@ -3707,12 +3694,10 @@ func cs_spsolve(G *Matrix, B *Matrix, k int, xi []int, x []float64, pinv []int, 
 		// x(j) is nonzero
 		j := xi[px]
 		// j maps to col J of G
-		J := func() int {
-			if pinv != nil {
-				return (pinv[j])
-			}
-			return (j)
-		}()
+		J := j
+		if pinv != nil {
+			J = pinv[j]
+		}
 		if J < 0 {
 			// column J is empty
 			continue
@@ -3725,19 +3710,15 @@ func cs_spsolve(G *Matrix, B *Matrix, k int, xi []int, x []float64, pinv []int, 
 			return (Gp[J+1] - 1)
 		}()]
 		// lo: L(j,j) 1st entry
-		p := func() int {
-			if lo {
-				return (Gp[J] + 1)
-			}
-			return Gp[J]
-		}()
+		p := Gp[J]
+		if lo {
+			p += 1
+		}
 		// up: U(j,j) last entry
-		q := func() int {
-			if lo {
-				return (Gp[J+1])
-			}
-			return (Gp[J+1] - 1)
-		}()
+		q := Gp[J+1] - 1
+		if lo {
+			q += 1
+		}
 		for ; p < q; p++ {
 			// x(i) -= G(i,j) * x(j)
 			x[Gi[p]] -= Gx[p] * x[j]

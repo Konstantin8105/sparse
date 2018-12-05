@@ -37,9 +37,16 @@ meld  /tmp/CXSparse/ ./CSparse/
 ### Profiling
 
 ```
-go test -v -cpuprofile cpu.prof -memprofile mem.prof -run=Benchmark -bench=Benchmark -benchmem
+go test -v -cpuprofile=cpu.prof -memprofile=mem.prof -run=Benchmark -bench=Benchmark -benchmem
 go tool pprof cpu.prof
 go tool pprof mem.prof
+```
+
+### Coverage
+
+```
+go test -coverprofile=coverage.out -run=TestLU
+go tool cover -html=coverage.out
 ```
 
 ### Questions for CSparse
