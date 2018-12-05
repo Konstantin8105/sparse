@@ -446,7 +446,7 @@ func cs_amd(order Order, A *Matrix) []int {
 			// node i is dead
 			elen[i] = -1
 			nel++
-			Cp[i] = CS_FLIP(n)
+			Cp[i] = flip(n)
 			nv[n]++
 
 		default:
@@ -496,8 +496,8 @@ func cs_amd(order Order, A *Matrix) []int {
 					// j is a live node or element
 					// save first entry of object
 					Cp[j] = Ci[p]
-					// first entry is now CS_FLIP(j)
-					Ci[p] = CS_FLIP(j)
+					// first entry is now flip(j)
+					Ci[p] = flip(j)
 				}
 			}
 
@@ -505,7 +505,7 @@ func cs_amd(order Order, A *Matrix) []int {
 			var q, p int
 			for p = 0; p < cnz; {
 				if (func() int {
-					j = CS_FLIP(Ci[p])
+					j = flip(Ci[p])
 					p++
 					return j
 				}()) >= 0 {
@@ -580,7 +580,7 @@ func cs_amd(order Order, A *Matrix) []int {
 			}
 			if e != k {
 				// absorb e into k
-				Cp[e] = CS_FLIP(k)
+				Cp[e] = flip(k)
 				// e is now a dead element
 				w[e] = 0
 			}
@@ -657,7 +657,7 @@ func cs_amd(order Order, A *Matrix) []int {
 						h += e
 					} else {
 						// aggressive absorb. e->k
-						Cp[e] = CS_FLIP(k)
+						Cp[e] = flip(k)
 						// e is a dead element
 						w[e] = 0
 					}
@@ -689,7 +689,7 @@ func cs_amd(order Order, A *Matrix) []int {
 			if d == 0 {
 				// check for mass elimination
 				// absorb i into k
-				Cp[i] = CS_FLIP(k)
+				Cp[i] = flip(k)
 				nvi = -nv[i]
 				// |Lk| -= |i|
 				dk -= nvi
@@ -774,7 +774,7 @@ func cs_amd(order Order, A *Matrix) []int {
 					if ok {
 						// i and j are identical
 						// absorb j into i
-						Cp[j] = CS_FLIP(i)
+						Cp[j] = flip(i)
 						nv[i] += nv[j]
 						nv[j] = 0
 						// node j is dead
@@ -859,7 +859,7 @@ func cs_amd(order Order, A *Matrix) []int {
 	// --- Postordering -----------------------------------------------------
 	// fix assembly tree
 	for i = 0; i < n; i++ {
-		Cp[i] = CS_FLIP(Cp[i])
+		Cp[i] = flip(Cp[i])
 	}
 
 	for j = 0; j <= n; j++ {
@@ -1379,14 +1379,14 @@ func cs_dfs(j int, G *Matrix, top int, xi []int, pstack []int, pinv []int) int {
 		if pinv != nil {
 			jnew = pinv[j]
 		}
-		if !CS_MARKED(Gp, j) {
+		if !marked(Gp, j) {
 			// mark node j as visited
-			Gp[j] = CS_MARK(Gp, j)
+			Gp[j] = mark(Gp, j)
 
 			if jnew < 0 {
 				pstack[head] = 0
 			} else {
-				pstack[head] = CS_UNFLIP(Gp[jnew])
+				pstack[head] = unflip(Gp[jnew])
 			}
 		}
 		// node j done if no unvisited neighbors
@@ -1396,14 +1396,14 @@ func cs_dfs(j int, G *Matrix, top int, xi []int, pstack []int, pinv []int) int {
 		if jnew < 0 {
 			p2 = 0
 		} else {
-			p2 = CS_UNFLIP(Gp[jnew+1])
+			p2 = unflip(Gp[jnew+1])
 		}
 
 		// examine all neighbors of j
 		for p := pstack[head]; p < p2; p++ {
 			// consider neighbor node i
 			i := Gi[p]
-			if CS_MARKED(Gp, i) {
+			if marked(Gp, i) {
 				// skip visited node i
 				continue
 			}
@@ -1872,7 +1872,7 @@ func cs_ereach(A *Matrix, k int, parent []int, s []int, w []int) int {
 	top := n
 
 	// mark node k as visited
-	w[k] = CS_MARK(w, k)
+	w[k] = mark(w, k)
 
 	for p := Ap[k]; p < Ap[k+1]; p++ {
 		// A(i,k) is nonzero
@@ -1884,13 +1884,13 @@ func cs_ereach(A *Matrix, k int, parent []int, s []int, w []int) int {
 
 		// traverse up etree
 		var len int
-		for len = 0; !CS_MARKED(w, i); i = parent[i] {
+		for len = 0; !marked(w, i); i = parent[i] {
 			// L(k,i) is nonzero
 			s[len] = i
 			len++
 
 			// mark i as visited
-			w[i] = CS_MARK(w, i)
+			w[i] = mark(w, i)
 		}
 
 		for len > 0 {
@@ -1903,11 +1903,11 @@ func cs_ereach(A *Matrix, k int, parent []int, s []int, w []int) int {
 
 	// unmark all nodes
 	for p := top; p < n; p++ {
-		w[s[p]] = CS_MARK(w, s[p])
+		w[s[p]] = mark(w, s[p])
 	}
 
 	// unmark node k
-	w[k] = CS_MARK(w, k)
+	w[k] = mark(w, k)
 
 	// s [top..n-1] contains pattern of L(k,:)
 	return top
@@ -3480,7 +3480,7 @@ func cs_reach(G *Matrix, B *Matrix, k int, xi []int, pinv []int) int {
 	top := n
 
 	for p := Bp[k]; p < Bp[k+1]; p++ {
-		if !CS_MARKED(Gp, Bi[p]) {
+		if !marked(Gp, Bi[p]) {
 			// start a dfs at unmarked node i
 			top = cs_dfs(Bi[p], G, top, xi, xi[n:], pinv)
 		}
@@ -3488,7 +3488,7 @@ func cs_reach(G *Matrix, B *Matrix, k int, xi []int, pinv []int) int {
 
 	// restore G
 	for p := top; p < n; p++ {
-		Gp[xi[p]] = CS_MARK(Gp, xi[p])
+		Gp[xi[p]] = mark(Gp, xi[p])
 	}
 
 	return top
@@ -3557,14 +3557,14 @@ func cs_scc(A *Matrix) *csd {
 
 	// first dfs(A) to find finish times (xi)
 	for i := 0; i < n; i++ {
-		if !CS_MARKED(Ap, i) {
+		if !marked(Ap, i) {
 			top = cs_dfs(i, A, top, xi, pstack, nil)
 		}
 	}
 
 	// restore A; unmark all nodes
 	for i := 0; i < n; i++ {
-		Ap[i] = CS_MARK(Ap, i)
+		Ap[i] = mark(Ap, i)
 	}
 
 	top = n
@@ -3574,7 +3574,7 @@ func cs_scc(A *Matrix) *csd {
 	for k := 0; k < n; k++ {
 		// get i in reverse order of finish times
 		i := xi[k]
-		if CS_MARKED(ATp, i) {
+		if marked(ATp, i) {
 			// skip node i if already ordered
 			continue
 		}
@@ -4482,28 +4482,26 @@ func cs_utsolve(U *Matrix, x []float64) bool {
 	return true
 }
 
-// #define CS_MAX(a,b) (((a) > (b)) ? (a) : (b))
-// #define CS_MIN(a,b) (((a) < (b)) ? (a) : (b))
-
-func CS_FLIP(i int) int {
+// Name function in CSparse: CS_FLIP
+func flip(i int) int {
 	return -i - 2
 }
 
-func CS_UNFLIP(i int) int {
+// Name function in CSparse: CS_UNFLIP
+func unflip(i int) int {
 	if i < 0 {
-		return CS_FLIP(i)
+		return flip(i)
 	}
 	return i
 }
 
-func CS_MARKED(w []int, j int) bool {
+// Name function in CSparse: CS_MARKED
+func marked(w []int, j int) bool {
 	return w[j] < 0
 }
 
-func CS_MARK(w []int, j int) int {
-	w[j] = CS_FLIP(w[j])
+// Name function in CSparse: CS_MARK
+func mark(w []int, j int) int {
+	w[j] = flip(w[j])
 	return w[j]
 }
-
-// #define CS_CSC(A) (A && (A->nz == -1))
-// #define CS_TRIPLET(A) (A && (A->nz >= 0))
