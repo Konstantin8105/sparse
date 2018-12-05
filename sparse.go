@@ -1379,7 +1379,7 @@ func cs_dfs(j int, G *Matrix, top int, xi []int, pstack []int, pinv []int) int {
 		if pinv != nil {
 			jnew = pinv[j]
 		}
-		if !(Gp[j] < 0) {
+		if !CS_MARKED(Gp, j) {
 			// mark node j as visited
 			Gp[j] = -Gp[j] - 2
 
@@ -1409,7 +1409,7 @@ func cs_dfs(j int, G *Matrix, top int, xi []int, pstack []int, pinv []int) int {
 		for p := pstack[head]; p < p2; p++ {
 			// consider neighbor node i
 			i := Gi[p]
-			if Gp[i] < 0 {
+			if CS_MARKED(Gp, i) {
 				// skip visited node i
 				continue
 			}
@@ -1890,7 +1890,7 @@ func cs_ereach(A *Matrix, k int, parent []int, s []int, w []int) int {
 
 		// traverse up etree
 		var len int
-		for len = 0; !(w[i] < 0); i = parent[i] {
+		for len = 0; !CS_MARKED(w, i); i = parent[i] {
 			// L(k,i) is nonzero
 			s[len] = i
 			len++
@@ -3486,7 +3486,7 @@ func cs_reach(G *Matrix, B *Matrix, k int, xi []int, pinv []int) int {
 	top := n
 
 	for p := Bp[k]; p < Bp[k+1]; p++ {
-		if !(Gp[Bi[p]] < 0) {
+		if !CS_MARKED(Gp, Bi[p]) {
 			// start a dfs at unmarked node i
 			top = cs_dfs(Bi[p], G, top, xi, xi[n:], pinv)
 		}
@@ -3563,7 +3563,7 @@ func cs_scc(A *Matrix) *csd {
 
 	// first dfs(A) to find finish times (xi)
 	for i := 0; i < n; i++ {
-		if !(Ap[i] < 0) {
+		if !CS_MARKED(Ap, i) {
 			top = cs_dfs(i, A, top, xi, pstack, nil)
 		}
 	}
@@ -3580,7 +3580,7 @@ func cs_scc(A *Matrix) *csd {
 	for k := 0; k < n; k++ {
 		// get i in reverse order of finish times
 		i := xi[k]
-		if ATp[i] < 0 {
+		if CS_MARKED(ATp, i) {
 			// skip node i if already ordered
 			continue
 		}
@@ -4488,6 +4488,8 @@ func cs_utsolve(U *Matrix, x []float64) bool {
 	return true
 }
 
+// #define CS_MAX(a,b) (((a) > (b)) ? (a) : (b))
+// #define CS_MIN(a,b) (((a) < (b)) ? (a) : (b))
 // func CS_FLIP(i int) int {
 // 	return -i - 2
 // }
@@ -4498,11 +4500,14 @@ func cs_utsolve(U *Matrix, x []float64) bool {
 // 	}
 // 	return i
 // }
-//
+
+func CS_MARKED(w []int, j int) bool {
+	return w[j] < 0
+}
+
 // func CS_MARK(w []int, j int) {
 // 	w[j] = CS_FLIP(w[j])
 // }
 //
-// func CS_MARKED(w []int, j int) bool {
-// 	return w[j] < 0
-// }
+// #define CS_CSC(A) (A && (A->nz == -1))
+// #define CS_TRIPLET(A) (A && (A->nz >= 0))
