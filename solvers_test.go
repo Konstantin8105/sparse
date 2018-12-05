@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"math"
 	"os"
+	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/Konstantin8105/sparse"
@@ -78,6 +80,62 @@ func ExampleLU() {
 
 	// Output:
 	// [1 2]
+}
+
+func BenchmarkLU(b *testing.B) {
+	matrixes, err := filepath.Glob("CSparse/Matrix/" + "*")
+	if err != nil {
+		b.Fatal(err)
+	}
+
+	for i := range matrixes {
+		if testing.Short() {
+			if !strings.Contains(matrixes[i], "bcsstk01") {
+				continue
+			}
+		}
+
+		b.Run(matrixes[i], func(b *testing.B) {
+			// triplet
+			T, err := sparse.NewTriplet()
+			if err != nil {
+				b.Fatal(err)
+			}
+			// compress
+			A, err := sparse.Compress(T)
+			if err != nil {
+				b.Fatal(err)
+			}
+
+			b.ResetTimer()
+			for i := 0; i < b.N; i++ {
+				// solving
+				lu := new(sparse.LU)
+
+				// order
+				lu.Order(sparse.AmdNatural)
+
+				// factorization
+				err = lu.Factorize(A)
+				if err != nil {
+					b.Fatal(err)
+				}
+
+				size, _ := A.Size()
+
+				br := make([]float64, size)
+				for j := 0; j < size; j++ {
+					br[j] = float64(j + 1)
+				}
+
+				x, err := lu.Solve(br)
+				if err != nil {
+					b.Fatal(err)
+				}
+				_ = x
+			}
+		})
+	}
 }
 
 func TestLU(t *testing.T) {
