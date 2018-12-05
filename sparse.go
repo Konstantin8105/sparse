@@ -3670,47 +3670,44 @@ func cs_schol(order Order, A *Matrix) (result *css) {
 
 // cs_spsolve - solve Gx=b(:,k), where G is either upper (lo=0) or lower (lo=1) triangular
 func cs_spsolve(G *Matrix, B *Matrix, k int, xi []int, x []float64, pinv []int, lo bool) int {
-	var j int
-	var J int
-	var p int
-	var q int
-	var px int
-	var top int
-	var n int
-	var Gp []int
-	var Gi []int
-	var Bp []int
-	var Bi []int
-	var Gx []float64
-	var Bx []float64
-	if !(G != nil && int(G.nz) == -1) || !(B != nil && int(B.nz) == -1) || xi == nil || x == nil {
+	// var j int
+	// var J int
+	// var p int
+	// var q int
+	// var px int
+	// var top int
+	// var n int
+	// var Gp []int
+	// var Gi []int
+	// var Bp []int
+	// var Bi []int
+	// var Gx []float64
+	// var Bx []float64
+	if !(G != nil && G.nz == -1) || !(B != nil && B.nz == -1) || xi == nil || x == nil {
 		return -1
 	}
-	Gp = G.p
-	Gi = G.i
-	Gx = G.x
-	n = G.n
-	Bp = B.p
-	Bi = B.i
-	Bx = B.x
+
+	// initialization
+	Gp, Gi, Gx, n, Bp, Bi, Bx := G.p, G.i, G.x, G.n, B.p, B.i, B.x
+
 	// xi[top..n-1]=Reach(B(:,k))
-	top = cs_reach(G, B, k, xi, pinv)
+	top := cs_reach(G, B, k, xi, pinv)
 
 	// clear x
-	for p = top; p < n; p++ {
+	for p := top; p < n; p++ {
 		x[xi[p]] = 0
 	}
 
 	// scatter B
-	for p = Bp[k]; p < Bp[k+1]; p++ {
+	for p := Bp[k]; p < Bp[k+1]; p++ {
 		x[Bi[p]] = Bx[p]
 	}
 
-	for px = top; px < n; px++ {
+	for px := top; px < n; px++ {
 		// x(j) is nonzero
-		j = xi[px]
+		j := xi[px]
 		// j maps to col J of G
-		J = func() int {
+		J := func() int {
 			if pinv != nil {
 				return (pinv[j])
 			}
@@ -3728,14 +3725,14 @@ func cs_spsolve(G *Matrix, B *Matrix, k int, xi []int, x []float64, pinv []int, 
 			return (Gp[J+1] - 1)
 		}()]
 		// lo: L(j,j) 1st entry
-		p = func() int {
+		p := func() int {
 			if lo {
 				return (Gp[J] + 1)
 			}
 			return Gp[J]
 		}()
 		// up: U(j,j) last entry
-		q = func() int {
+		q := func() int {
 			if lo {
 				return (Gp[J+1])
 			}
