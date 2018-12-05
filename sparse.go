@@ -29,7 +29,7 @@ type Matrix struct { // struct cs_sparse
 }
 
 // Size return size of matrix
-func (m *Matrix) Size() (rows, columns int) {
+func (m *Matrix) Dims() (rows, columns int) {
 	return m.m, m.n
 }
 

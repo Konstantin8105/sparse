@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/Konstantin8105/sparse"
+	"gonum.org/v1/gonum/mat"
 )
 
 func ExampleLU() {
@@ -81,7 +82,7 @@ func ExampleLU() {
 }
 
 func BenchmarkLU(b *testing.B) {
-	for _, size := range []int{300, 1000, 3000} {
+	for _, size := range []int{30, 100, 300, 1000, 3000} {
 		// triplet
 		T, err := sparse.NewTriplet()
 		if err != nil {
@@ -145,7 +146,7 @@ func BenchmarkLU(b *testing.B) {
 		})
 
 		b.ResetTimer()
-		b.Run(fmt.Sprintf("%d", nonZeros), func(b *testing.B) {
+		b.Run(fmt.Sprintf("Sparse:%4d:%5d", size, nonZeros), func(b *testing.B) {
 			for i := 0; i < b.N; i++ {
 				// solving
 				lu := new(sparse.LU)
@@ -159,7 +160,7 @@ func BenchmarkLU(b *testing.B) {
 					b.Fatal(err)
 				}
 
-				size, _ := A.Size()
+				size, _ := A.Dims()
 
 				br := make([]float64, size)
 				for j := 0; j < size; j++ {
@@ -167,6 +168,49 @@ func BenchmarkLU(b *testing.B) {
 				}
 
 				x, err := lu.Solve(br)
+				if err != nil {
+					panic(err)
+				}
+				_ = x
+			}
+		})
+
+		// compare with dense matrix
+		a := mat.NewDense(size, size, nil)
+		val = 1.0
+		for j := 0; j < size; j++ {
+			for k := 0; k < size; k++ {
+				// d - distance between diagonal and entry
+				d := j - k
+				if k > j {
+					d = k - j
+				}
+				if d > 5 { // spacing
+					continue
+				}
+
+				val += float64(j*size + k)
+				a.Set(j, k, val)
+			}
+		}
+		b.ResetTimer()
+		b.Run(fmt.Sprintf("Dense :%4d:%5d", size, nonZeros), func(b *testing.B) {
+			for i := 0; i < b.N; i++ {
+				// solving
+				var lu mat.LU
+
+				// factorization
+				lu.Factorize(a)
+
+				size, _ := a.Dims()
+
+				br := mat.NewDense(size, 1, nil)
+				for j := 0; j < size; j++ {
+					br.Set(j, 0, float64(j+1))
+				}
+
+				var x mat.Dense
+				err := lu.Solve(&x, false, br)
 				if err != nil {
 					panic(err)
 				}
