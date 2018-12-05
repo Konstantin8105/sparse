@@ -2293,22 +2293,6 @@ func cs_ltsolve(L *Matrix, x []float64) bool {
 
 // cs_lu - [L,U,pinv]=lu(A, [q lnz unz]). lnz and unz can be guess
 func cs_lu(A *Matrix, S *css, tol float64) *csn {
-	// var pivot float64
-	// var Lx []float64
-	// var Ux []float64
-	// var a float64
-	// var t float64
-	// var Lp []int
-	// var Li []int
-	// var Up []int
-	// var Ui []int
-	// var pinv []int
-	// var xi []int
-	// var ipiv int
-	// var k int
-	// var top int
-	// var p int
-	// var i int
 	var col int
 	if !(A != nil && A.nz == -1) || S == nil {
 		// check inputs
@@ -2375,7 +2359,7 @@ func cs_lu(A *Matrix, S *css, tol float64) *csn {
 		// U(:,k) starts here
 		Up[k] = unz
 		if (lnz+n > L.nzmax && !cs_sprealloc(L, 2*L.nzmax+n)) ||
-			(unz+n > U.nzmax && !cs_sprealloc(U, 2*(U.nzmax)+n)) {
+			(unz+n > U.nzmax && !cs_sprealloc(U, 2*U.nzmax+n)) {
 			return cs_ndone(N, nil, xi, x, false)
 		}
 		Li, Lx, Ui, Ux := L.i, L.x, U.i, U.x
