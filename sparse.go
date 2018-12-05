@@ -1381,28 +1381,22 @@ func cs_dfs(j int, G *Matrix, top int, xi []int, pstack []int, pinv []int) int {
 		}
 		if !CS_MARKED(Gp, j) {
 			// mark node j as visited
-			Gp[j] = -Gp[j] - 2
+			Gp[j] = CS_MARK(Gp, j)
 
-			switch {
-			case jnew < 0:
+			if jnew < 0 {
 				pstack[head] = 0
-			case Gp[jnew] < 0:
-				pstack[head] = -Gp[jnew] - 2
-			default:
-				pstack[head] = Gp[jnew]
+			} else {
+				pstack[head] = CS_UNFLIP(Gp[jnew])
 			}
 		}
 		// node j done if no unvisited neighbors
 		done := true
 
 		var p2 int
-		switch {
-		case jnew < 0:
+		if jnew < 0 {
 			p2 = 0
-		case Gp[jnew+1] < 0:
-			p2 = -Gp[jnew+1] - 2
-		default:
-			p2 = Gp[jnew+1]
+		} else {
+			p2 = CS_UNFLIP(Gp[jnew+1])
 		}
 
 		// examine all neighbors of j
@@ -1878,7 +1872,7 @@ func cs_ereach(A *Matrix, k int, parent []int, s []int, w []int) int {
 	top := n
 
 	// mark node k as visited
-	w[k] = -w[k] - 2
+	w[k] = CS_MARK(w, k)
 
 	for p := Ap[k]; p < Ap[k+1]; p++ {
 		// A(i,k) is nonzero
@@ -1896,7 +1890,7 @@ func cs_ereach(A *Matrix, k int, parent []int, s []int, w []int) int {
 			len++
 
 			// mark i as visited
-			w[i] = -w[i] - 2
+			w[i] = CS_MARK(w, i)
 		}
 
 		for len > 0 {
@@ -1909,11 +1903,11 @@ func cs_ereach(A *Matrix, k int, parent []int, s []int, w []int) int {
 
 	// unmark all nodes
 	for p := top; p < n; p++ {
-		w[s[p]] = -w[s[p]] - 2
+		w[s[p]] = CS_MARK(w, s[p])
 	}
 
 	// unmark node k
-	w[k] = -w[k] - 2
+	w[k] = CS_MARK(w, k)
 
 	// s [top..n-1] contains pattern of L(k,:)
 	return top
@@ -3494,7 +3488,7 @@ func cs_reach(G *Matrix, B *Matrix, k int, xi []int, pinv []int) int {
 
 	// restore G
 	for p := top; p < n; p++ {
-		Gp[xi[p]] = -Gp[xi[p]] - 2
+		Gp[xi[p]] = CS_MARK(Gp, xi[p])
 	}
 
 	return top
@@ -3570,7 +3564,7 @@ func cs_scc(A *Matrix) *csd {
 
 	// restore A; unmark all nodes
 	for i := 0; i < n; i++ {
-		Ap[i] = -Ap[i] - 2
+		Ap[i] = CS_MARK(Ap, i)
 	}
 
 	top = n
@@ -4495,20 +4489,21 @@ func CS_FLIP(i int) int {
 	return -i - 2
 }
 
-// func CS_UNFLIP(i int) int {
-// 	if i < 0 {
-// 		return CS_FLIP(i)
-// 	}
-// 	return i
-// }
+func CS_UNFLIP(i int) int {
+	if i < 0 {
+		return CS_FLIP(i)
+	}
+	return i
+}
 
 func CS_MARKED(w []int, j int) bool {
 	return w[j] < 0
 }
 
-// func CS_MARK(w []int, j int) {
-// 	w[j] = CS_FLIP(w[j])
-// }
-//
+func CS_MARK(w []int, j int) int {
+	w[j] = CS_FLIP(w[j])
+	return w[j]
+}
+
 // #define CS_CSC(A) (A && (A->nz == -1))
 // #define CS_TRIPLET(A) (A && (A->nz >= 0))
