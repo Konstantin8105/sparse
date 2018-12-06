@@ -165,16 +165,20 @@ func (lu *LU) Factorize(A *Matrix, ignore ...int) error {
 	return nil
 }
 
-// Solve solves a system of linear equations using the LU decomposition of a matrix
+// Solve solves a system of linear equations using the LU decomposition of
+// a matrix A.
 //
 //	A * x = b
 //
 // Output vector `x` have same length of vector `b`.
 // Length of vector `b` have 2 acceptable cases:
+//
 // 1) if length of vector b is matrix rows length factorized matrix A
-//    then for ignored rows added values `0.0`.
+// then for ignored rows added values `0.0`.
+//
 // 2) length of vector b is matrix rows length factorized matrix A
-//    minus length of ignore list.
+// minus length of ignore list.
+//
 func (lu *LU) Solve(b []float64) (x []float64, _ error) {
 	// check input data
 	et := errors.New("Function LU.Solve: check input data")
