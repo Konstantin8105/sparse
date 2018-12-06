@@ -3,8 +3,9 @@ sudo: false
 go:
   - tip
 before_install:
-  - go get golang.org/x/tools/cmd/cover
+  - go get github.com/modocache/gover
   - go get github.com/mattn/goveralls
 script:
-- go test -v -covermode=count -coverprofile=coverage.out
-- $GOPATH/bin/goveralls -coverprofile=coverage.out -service=travis-ci
+- go test -v -coverprofile=coverage.coverprofile
+- gover
+- goveralls -coverprofile=gover.coverprofile -service travis-ci
