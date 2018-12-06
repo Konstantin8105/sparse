@@ -5,7 +5,9 @@ go:
 before_install:
   - go get github.com/modocache/gover
   - go get github.com/mattn/goveralls
+env:
+  - COVERALLS_TOKEN=KnWl29qal6I7SWHY68XCPObn6C2qgQQhP
 script:
 - go test -v -coverprofile=coverage.coverprofile
 - gover
-- goveralls -coverprofile=gover.coverprofile -service travis-ci
+- goveralls -coverprofile=gover.coverprofile -service=travis-ci -repotoken=$COVERALLS_TOKEN
