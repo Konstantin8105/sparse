@@ -28,6 +28,33 @@ type Matrix struct { // struct cs_sparse
 	nz    int       // # of entries in triplet matrix, -1 for compressed-col
 }
 
+func (A *Matrix) Copy() (*Matrix, error) {
+	// check input data
+	et := errors.New("Function Copy: check input data")
+	if A == nil {
+		_ = et.Add(fmt.Errorf("matrix A is nil"))
+	}
+	if A != nil && A.nz != -1 {
+		_ = et.Add(fmt.Errorf("matrix A is not CSC(Compressed Sparse Column) format"))
+	}
+
+	if et.IsError() {
+		return nil, et
+	}
+
+	// coping
+	C := new(Matrix)
+	C.nzmax = A.nzmax
+	C.m = A.m
+	C.n = A.n
+	C.p = append([]int{}, A.p...)
+	C.i = append([]int{}, A.i...)
+	C.x = append([]float64{}, A.x...)
+	C.nz = A.nz
+
+	return C, nil
+}
+
 // Size return size of matrix
 func (m *Matrix) Dims() (rows, columns int) {
 	return m.m, m.n

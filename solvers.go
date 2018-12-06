@@ -2,6 +2,7 @@ package sparse
 
 import (
 	"fmt"
+	"sort"
 
 	"github.com/Konstantin8105/errors"
 )
@@ -48,7 +49,8 @@ func (lu *LU) Order(order Order) {
 
 // Factorize computes the LU factorization of the matrix a and stores
 // the result. Input matrix A is not checked on singular error.
-func (lu *LU) Factorize(A *Matrix) error {
+// List `ignore` is list of ignore row and column in calculation.
+func (lu *LU) Factorize(A *Matrix, ignore ...int) error {
 	// check input data
 	et := errors.New("Function LU.Factorize: check input data")
 	if A == nil {
@@ -58,11 +60,88 @@ func (lu *LU) Factorize(A *Matrix) error {
 		_ = et.Add(fmt.Errorf("matrix A is not CSC(Compressed Sparse Column) format"))
 	}
 
+	// sort ignore list
+	(sort.IntSlice(ignore)).Sort()
+	if len(ignore) > 0 {
+		if ignore[0] < 0 {
+			_ = et.Add(fmt.Errorf("ignore list have index less zero: %d", ignore[0]))
+		}
+		if ignore[len(ignore)-1] >= A.m || ignore[len(ignore)-1] >= A.n {
+			_ = et.Add(fmt.Errorf("ignore list have index outside matrix"))
+		}
+	}
+
 	if et.IsError() {
 		return et
 	}
 
-	lu.a = A
+	// remove duplicate from `ignore` list
+	if len(ignore) > 0 {
+		list := append([]int{}, ignore[0])
+		for i := 1; i < len(ignore); i++ {
+			if ignore[i-1] == ignore[i] {
+				continue
+			}
+			list = append(list, ignore[i])
+		}
+		list, ignore = ignore, list
+		cs_free(list)
+	}
+
+	// coping matrix A without ignored rows and columns
+	C, _ := A.Copy()
+	if len(ignore) > 0 {
+		_, err := Fkeep(C, func(i, j int, x float64) bool {
+			var found bool
+			for k := range ignore {
+				if i == ignore[k] || j == ignore[k] {
+					found = true
+					break
+				}
+			}
+			return !found // if not found , then keep value
+		})
+		if err != nil {
+			return err
+		}
+
+		// remove empty column
+		var pnew []int // append([]int{}, 0)
+		for j := 0; j < C.n; j++ {
+			var found bool
+			for k := range ignore {
+				if j == ignore[k] {
+					found = true
+					break
+				}
+			}
+			if found {
+				continue
+			}
+			pnew = append(pnew, C.p[j])
+		}
+		C.p = append(pnew, C.p[C.n])
+
+		// recalculate amount rows and columns
+		C.n -= len(ignore)
+		C.m -= len(ignore)
+
+		// recalculate vector i
+		for j := 0; j < C.n; j++ {
+			for p := C.p[j]; p < C.p[j+1]; p++ {
+				incr := 0
+				for k := range ignore {
+					if C.i[p] > ignore[k] {
+						incr++
+					}
+				}
+				C.i[p] -= incr
+			}
+		}
+	}
+
+	// store
+	lu.a = C
 
 	// partial pivoting tolerance
 	tol := func() float64 {
@@ -73,8 +152,14 @@ func (lu *LU) Factorize(A *Matrix) error {
 	}()
 	// ordering and symbolic analysis
 	lu.s = cs_sqr(lu.order, lu.a, false)
+	if lu.s == nil {
+		return fmt.Errorf("matrix S in LU decomposition is nil")
+	}
 	// numeric LU factorization
 	lu.n = cs_lu(lu.a, lu.s, tol)
+	if lu.n == nil {
+		return fmt.Errorf("matrix N in LU decomposition is nil")
+	}
 
 	return nil
 }
