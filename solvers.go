@@ -37,10 +37,10 @@ func is_sym(A *Matrix) int {
 
 // LU is a type for creating and using the LU factorization of a matrix.
 type LU struct {
-	order Order
-	a     *Matrix
-	s     *css
-	n     *csn
+	order  Order
+	s      *css
+	n      *csn
+	ignore []int
 }
 
 func (lu *LU) Order(order Order) {
@@ -90,6 +90,7 @@ func (lu *LU) Factorize(A *Matrix, ignore ...int) error {
 
 	// coping matrix A without ignored rows and columns
 	C, _ := A.Copy()
+	defer cs_free(C)
 	if len(ignore) > 0 {
 		_, err := Fkeep(C, func(i, j int, x float64) bool {
 			var found bool
@@ -106,7 +107,7 @@ func (lu *LU) Factorize(A *Matrix, ignore ...int) error {
 		}
 
 		// remove empty column
-		var pnew []int // append([]int{}, 0)
+		var pnew []int
 		for j := 0; j < C.n; j++ {
 			var found bool
 			for k := range ignore {
@@ -141,22 +142,22 @@ func (lu *LU) Factorize(A *Matrix, ignore ...int) error {
 	}
 
 	// store
-	lu.a = C
+	lu.ignore = ignore
 
 	// partial pivoting tolerance
 	tol := func() float64 {
-		if is_sym(lu.a) == 1 {
+		if is_sym(C) == 1 {
 			return 0.001
 		}
 		return 1
 	}()
 	// ordering and symbolic analysis
-	lu.s = cs_sqr(lu.order, lu.a, false)
+	lu.s = cs_sqr(lu.order, C, false)
 	if lu.s == nil {
 		return fmt.Errorf("matrix S in LU decomposition is nil")
 	}
 	// numeric LU factorization
-	lu.n = cs_lu(lu.a, lu.s, tol)
+	lu.n = cs_lu(C, lu.s, tol)
 	if lu.n == nil {
 		return fmt.Errorf("matrix N in LU decomposition is nil")
 	}
@@ -168,6 +169,12 @@ func (lu *LU) Factorize(A *Matrix, ignore ...int) error {
 //
 //	A * x = b
 //
+// Output vector `x` have same length of vector `b`.
+// Length of vector `b` have 2 acceptable cases:
+// 1) if length of vector b is matrix rows length factorized matrix A
+//    then for ignored rows added values `0.0`.
+// 2) length of vector b is matrix rows length factorized matrix A
+//    minus length of ignore list.
 func (lu *LU) Solve(b []float64) (x []float64, _ error) {
 	// check input data
 	et := errors.New("Function LU.Solve: check input data")
@@ -180,18 +187,23 @@ func (lu *LU) Solve(b []float64) (x []float64, _ error) {
 	if lu.n == nil {
 		_ = et.Add(fmt.Errorf("matrix N in LU decomposition is nil"))
 	}
+	if lu.n != nil {
+		if !(len(b) == lu.n.L.m || len(b) == lu.n.L.m+len(lu.ignore)) {
+			_ = et.Add(fmt.Errorf("not acceptable length of vector `b` = %d : [%d ... %d]",
+				len(b), lu.n.L.m, lu.n.L.m+len(lu.ignore)))
+		}
+	}
 
 	if et.IsError() {
 		return nil, et
 	}
 
 	// initialization
-	n := lu.a.n
+	n := lu.n.L.n
 
 	// get workspace
-	x = make([]float64, n)
-
-	bCopy := make([]float64, n)
+	x = make([]float64, len(b))
+	bCopy := make([]float64, len(b))
 	for i := range b {
 		bCopy[i] = b[i]
 	}
@@ -200,6 +212,52 @@ func (lu *LU) Solve(b []float64) (x []float64, _ error) {
 			b[i] = bCopy[i]
 		}
 	}()
+
+	// ignore list
+	if len(lu.ignore) > 0 && len(b) > n {
+		defer func() {
+			// decomperss vector `x`
+			// short x vector: x = [1 2]
+			// ignore list   :     [0 2 4]
+			// result        : x = [0 1 0 2 0]
+			counter := 0
+			size := len(b) + len(lu.ignore)
+			for i := size - 1; i >= 0; i-- {
+				var found bool
+				for k := range lu.ignore {
+					if i == lu.ignore[k] {
+						found = true
+						break
+					}
+				}
+				if found {
+					x[i] = 0
+					continue
+				}
+				counter++
+				x[i] = x[len(b)-counter]
+			}
+		}()
+
+		// compress `b` by `lu.ignore`
+		counter := 0
+		for i := 0; i < len(b); i++ {
+			var found bool
+			for k := range lu.ignore {
+				if i == lu.ignore[k] {
+					found = true
+					break
+				}
+			}
+			if found {
+				continue
+			}
+			b[counter] = b[i]
+			counter++
+		}
+		b = b[:counter]
+
+	}
 
 	// x = b(p)
 	cs_ipvec(lu.n.pinv, b, x, n)

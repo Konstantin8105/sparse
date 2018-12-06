@@ -2527,7 +2527,6 @@ func cs_free(p interface{}) {
 		// TODO (KI) : fmt.Fprintf(os.Stdout, "Type : %8d %T\n", cap(v), v)
 
 	case LU:
-		cs_free(v.a)
 		cs_free(v.s)
 		cs_free(v.n)
 

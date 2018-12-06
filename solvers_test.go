@@ -356,6 +356,58 @@ func TestLU(t *testing.T) {
 		}
 	})
 
+	t.Run("Vector b", func(t *testing.T) {
+		// Solve next:
+		// [ 0 0 0 0 0 ] [ ?  ]   [  ? ]
+		// [ 0 1 0 5 0 ] [ x0 ] = [ 11 ]
+		// [ 0 0 0 0 0 ] [ ?  ]   [  ? ]
+		// [ 0 2 0 3 0 ] [ x1 ]   [  8 ]
+		// [ 0 0 0 0 0 ] [ ?  ]   [  ? ]
+		T, err := sparse.NewTriplet()
+		if err != nil {
+			panic(err)
+		}
+		// storage
+		errs := []error{
+			sparse.Entry(T, 1, 1, 1),
+			sparse.Entry(T, 1, 3, 5),
+			sparse.Entry(T, 3, 1, 2),
+			sparse.Entry(T, 3, 3, 3),
+			sparse.Entry(T, 0, 0, 3000),
+			sparse.Entry(T, 2, 2, 3000),
+			sparse.Entry(T, 4, 4, 3000),
+		}
+		for i := range errs {
+			if errs[i] != nil {
+				panic(errs[i])
+			}
+		}
+
+		// compress
+		A, err := sparse.Compress(T)
+		if err != nil {
+			panic(err)
+		}
+		lu := new(sparse.LU)
+		err = lu.Factorize(A, 4, 2, 2, 0)
+		if err != nil {
+			t.Fatal(err)
+		}
+		b := []float64{0, 11, 0, 8, 0}
+
+		x, err := lu.Solve(b)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		if math.Abs(x[1]-1) > 1e-8 {
+			t.Errorf("x0 = %e", x[1])
+		}
+		if math.Abs(x[3]-2) > 1e-8 {
+			t.Errorf("x1 = %e", x[3])
+		}
+	})
+
 	t.Run("Add-Ignore-Begin", func(t *testing.T) {
 		// Solve next:
 		// [ 0 0 0 ] [ ?  ]   [  ? ]
