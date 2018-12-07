@@ -7,7 +7,6 @@ import (
 )
 
 func BenchmarkIsSym(b *testing.B) {
-
 	for _, size := range []int{30, 100, 300, 1000, 3000} {
 
 		// triplet
@@ -24,7 +23,7 @@ func BenchmarkIsSym(b *testing.B) {
 				if k > j {
 					d = k - j
 				}
-				if d > 2 { // spacing
+				if d > 5 { // spacing
 					continue
 				}
 
@@ -106,6 +105,12 @@ func TestIsSym(t *testing.T) {
 			}
 
 			ok, err := IsSym(A)
+
+			for i := range A.i {
+				if A.i[i] < 0 {
+					t.Fatalf("negative index")
+				}
+			}
 
 			isSame := true
 
