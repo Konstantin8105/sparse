@@ -132,6 +132,15 @@ func IsSym(A *Matrix) (ok bool, err error) {
 		}
 	}
 
+	defer func() {
+		// unmark all
+		for j := 0; j < n; j++ {
+			for p := Ap[j]; p < Ap[j+1]; p++ {
+				Ai[p] = unflip(Ai[p])
+			}
+		}
+	}()
+
 	// check values
 	for j := 0; j < n; j++ {
 		for p := Ap[j]; p < Ap[j+1]; p++ {
@@ -151,19 +160,15 @@ func IsSym(A *Matrix) (ok bool, err error) {
 			// finding
 			var found bool
 			for p2 := Ap[i]; p2 < Ap[i+1]; p2++ {
-				if marked(Ai, p2) {
-					// ignore marked
-					continue
-				}
 				i2 := Ai[p2] // row
 				j2 := i      // column
 				x2 := Ax[p2] // value
-				if i2 == j2 {
-					// ignore diagonal entries
-					continue
-				}
-				if i != j2 || j != i2 {
+				if marked(Ai, p2) || i != j2 || j != i2 || i2 == j2 {
+					// ignore marked
+					// or
 					// coordinates of entries is not same
+					// or
+					// ignore diagonal entries
 					continue
 				}
 				found = true
@@ -186,13 +191,6 @@ func IsSym(A *Matrix) (ok bool, err error) {
 					"matrix is not symmetric. Cannot find entry [%d,%d]",
 					i, j)
 			}
-		}
-	}
-
-	// unmark all
-	for j := 0; j < n; j++ {
-		for p := Ap[j]; p < Ap[j+1]; p++ {
-			Ai[p] = unflip(Ai[p])
 		}
 	}
 

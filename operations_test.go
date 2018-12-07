@@ -8,7 +8,6 @@ import (
 
 func BenchmarkIsSym(b *testing.B) {
 	for _, size := range []int{30, 100, 300, 1000, 3000} {
-
 		// triplet
 		T, err := NewTriplet()
 		if err != nil {
@@ -85,7 +84,27 @@ func TestIsSym(t *testing.T) {
 			isError: false,
 		},
 		{
-			mat:     "0 0 1\n1 1 1\n2 2 1\n0 0 1\n1 0 2\n0 1 2\n2 0 3\n0 2 3\n3 0 4\n0 3 4",
+			mat:     "0 0 1\n1 1 1\n2 2 1\n0 3 10\n0 0 1\n1 0 1\n0 1 1\n2 0 1\n0 2 1\n3 0 1\n0 3 1\n3 0 20",
+			isSym:   false,
+			isError: true,
+		},
+		{
+			mat:     "0 0 1\n1 1 1\n2 2 1\n3 0 10\n0 0 1\n1 0 1\n0 1 1\n2 0 1\n0 2 1\n3 0 1\n0 3 1\n0 3 20",
+			isSym:   false,
+			isError: true,
+		},
+		{
+			mat:     "0 0 0\n3 3 0\n1 0 5\n0 1 5\n0 2 -1\n2 0 10",
+			isSym:   false,
+			isError: true,
+		},
+		{
+			mat:     "0 0 0\n3 3 0\n1 0 5\n0 1 5\n0 2 -1\n2 0 10",
+			isSym:   false,
+			isError: true,
+		},
+		{
+			mat:     "0 0 1\n0 1 2\n1 0 2\n2 0 3\n0 2 3\n3 0 4\n0 3 4\n1 1 1\n2 2 1\n0 0 1",
 			isSym:   true,
 			isError: false,
 		},
