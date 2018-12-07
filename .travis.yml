@@ -5,4 +5,7 @@ go:
 before_install:
   - go get github.com/mattn/goveralls
 script:
-- $GOPATH/bin/goveralls -service=travis-ci
+  - go test -coverprofile=coverage.out
+
+after_success:
+  - include_cov=coverage.out bash <(curl -s https://codecov.io/bash)
