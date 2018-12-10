@@ -768,6 +768,21 @@ func TestNilCheck(t *testing.T) {
 	}
 }
 
+const (
+	MinUint uint = 0 // binary: all zeroes
+
+	// Perform a bitwise NOT to change every bit from 0 to 1
+	MaxUint = ^MinUint // binary: all ones
+
+	// Shift the binary number to the right (i.e. divide by two)
+	// to change the high bit to 0
+	MaxInt = int(MaxUint >> 1) // binary: all ones except high bit
+
+	// Perform another bitwise NOT to change the high bit to 1 and
+	// all other bits to 0
+	MinInt = ^MaxInt // binary: all zeroes except high bit
+)
+
 func TestCsCompress(t *testing.T) {
 
 	t.Run("BigMatrix", func(t *testing.T) {
@@ -779,7 +794,7 @@ func TestCsCompress(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		err = Entry(T, math.MaxInt64-2, math.MaxInt64-2, 1)
+		err = Entry(T, MaxInt-2, MaxInt-2, 1)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -1084,7 +1099,7 @@ func TestCumsum(t *testing.T) {
 	})
 	t.Run("overflow check", func(t *testing.T) {
 		p := []int{0, 0, 0}
-		c := []int{math.MaxInt64, math.MaxInt64}
+		c := []int{MaxInt, MaxInt}
 		_, err := cs_cumsum(p, c)
 		if err == nil {
 			t.Fatalf("Error for overflow is not happen")
@@ -1093,7 +1108,7 @@ func TestCumsum(t *testing.T) {
 	})
 	t.Run("overflow check 2", func(t *testing.T) {
 		p := []int{0, 0, 0, 0}
-		c := []int{math.MaxInt64, 1, 5}
+		c := []int{MaxInt, 1, 5}
 		_, err := cs_cumsum(p, c)
 		if err == nil {
 			t.Fatalf("Error for overflow is not happen")
