@@ -552,6 +552,27 @@ func TestNilCheck(t *testing.T) {
 				}(),
 			},
 		},
+		{
+			name: "Copy",
+			fs: []error{
+				func() error {
+					A := new(Matrix)
+					_, err := A.Copy()
+					return err
+				}(),
+				func() error {
+					var s bytes.Buffer
+					s.WriteString("0 0 1\n0 1 2\n1 0 3\n1 1 4")
+					T, err := Load(&s)
+					if err != nil {
+						panic(err)
+					}
+					// triplet in input
+					_, err = ((*Matrix)(T)).Copy()
+					return err
+				}(),
+			},
+		},
 	}
 
 	for i := range tcs {
