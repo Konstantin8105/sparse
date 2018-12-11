@@ -91,4 +91,38 @@ func TestPM(t *testing.T) {
 			}
 		}
 	})
+
+	t.Run("2x2: IterationMax error", func(t *testing.T) {
+		// too small amount iterations
+
+		T, err := sparse.NewTriplet()
+		if err != nil {
+			panic(err)
+		}
+		// storage
+		errs := []error{
+			sparse.Entry(T, 0, 0, 2),
+			sparse.Entry(T, 0, 1, -12),
+			sparse.Entry(T, 1, 0, 1),
+			sparse.Entry(T, 1, 1, -5),
+		}
+		for i := range errs {
+			if errs[i] != nil {
+				panic(errs[i])
+			}
+		}
+
+		// compress
+		A, err := sparse.Compress(T)
+		if err != nil {
+			panic(err)
+		}
+
+		_, x, err := sparse.PM(A, sparse.PmConfig{
+			IterationMax: 1,
+		})
+		if err == nil {
+			t.Errorf("cannot check max iter")
+		}
+	})
 }

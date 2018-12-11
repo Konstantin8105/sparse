@@ -6,27 +6,44 @@ import (
 )
 
 // PmConfig is default property of power method
-var PmConfig = struct {
+type PmConfig struct {
 	// Maximal amount iteration
 	IterationMax uint64
 
 	// Iteration tolerance
 	Tolerance float64
-}{
-	IterationMax: 50000,
-	Tolerance:    1e-8,
 }
 
 // PM is power method for approximating eigenvalues.
 // Find `dominant eigenvalue` of matrix A.
 // Vector `x` is eigenvector.
 // Value `𝛌` is eigenvalue.
-func PM(A *Matrix) (𝛌 float64, x []float64, err error) {
+func PM(A *Matrix, configs ...PmConfig) (𝛌 float64, x []float64, err error) {
 	if A.n < 1 || A.m < 1 {
 		panic("1")
 	}
 	if A == nil {
 		panic("2")
+	}
+
+	// property of iterations
+
+	// minimal configuration
+	config := PmConfig{
+		IterationMax: 500,
+		Tolerance:    1e-3,
+	}
+	if len(configs) > 0 {
+		cfg := configs[0]
+		for i := range configs {
+			if cfg.Tolerance > configs[i].Tolerance {
+				cfg.Tolerance = configs[i].Tolerance
+			}
+			if cfg.IterationMax > configs[i].IterationMax {
+				cfg.IterationMax = configs[i].IterationMax
+			}
+		}
+		config = cfg
 	}
 
 	// initialization
@@ -115,15 +132,15 @@ func PM(A *Matrix) (𝛌 float64, x []float64, err error) {
 
 		delta := math.Abs((math.Abs(𝛌) - math.Abs(𝛌Last)) / 𝛌)
 
-		if math.Abs(delta) < PmConfig.Tolerance {
+		if math.Abs(delta) < config.Tolerance {
 			break
 		}
-		if iter >= PmConfig.IterationMax {
+		if iter >= config.IterationMax {
 
 			// TODO : test to iterations
 
 			err = fmt.Errorf("Max iteration breaking: %d >= %d. Tolerance: %.5e",
-				iter, PmConfig.IterationMax, delta)
+				iter, config.IterationMax, delta)
 			return
 		}
 
