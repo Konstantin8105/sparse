@@ -74,26 +74,23 @@ func PM(A *Matrix, config *PmConfig) (𝛌 float64, x []float64, err error) {
 		}
 	}
 
-	// initialization
-	n, Ap, Ai, Ax := A.n, A.p, A.i, A.x
-
 	// workspace
 	x = make([]float64, A.m)
 	xNext := make([]float64, A.m)
+
+	// initial values
 	x[0] = 1
-
 	oneMax(x)
-
 	𝛌, 𝛌Last := -1.0, -1.0
+
 	var iter uint64
 
 	// calculation
 	for {
 		// x(k) = A*x(k-1)
-		for j := 0; j < n; j++ {
-			for p := Ap[j]; p < Ap[j+1]; p++ {
-				xNext[Ai[p]] += Ax[p] * x[j]
-			}
+		err = Gaxpy(A, x, xNext)
+		if err != nil {
+			return
 		}
 		x, xNext = xNext, x
 
@@ -105,46 +102,48 @@ func PM(A *Matrix, config *PmConfig) (𝛌 float64, x []float64, err error) {
 
 		// Ax
 		zeroize(xNext)
-		for j := 0; j < n; j++ {
-			for p := Ap[j]; p < Ap[j+1]; p++ {
-				xNext[Ai[p]] += Ax[p] * x[j]
-			}
+		err = Gaxpy(A, x, xNext)
+		if err != nil {
+			return
 		}
 
 		// up : Ax · x
 		var up float64
 		for i := range x {
-			// TODO : check overflow
 			up += x[i] * xNext[i]
 		}
 
 		// down : x · x
 		var down float64
 		for i := range x {
-			// TODO : check overflow
 			down += x[i] * x[i]
 		}
 
-		//
+		if math.Abs(down) == 0.0 {
+			err = fmt.Errorf("Not acceptable zero value")
+			return
+		}
+		if math.IsNaN(up) {
+			err = fmt.Errorf("Not acceptable Nan value")
+			return
+		}
+
+		// calculation eigenvalue
 		𝛌 = up / down
 
-		// TODO : if down is zero
-
-		// TODO : if up is Nan
-
-		// TODO : if lambda is Nan
-
+		// check breaking
 		delta := math.Abs((math.Abs(𝛌) - math.Abs(𝛌Last)) / 𝛌)
 
 		if math.Abs(delta) < config.Tolerance {
 			break
 		}
 		if iter >= config.IterationMax {
-
-			// TODO : test to iterations
-
-			err = fmt.Errorf("Max iteration breaking: %d >= %d. Tolerance: %.5e",
-				iter, config.IterationMax, delta)
+			err = ErrorPm{
+				Iteration:    iter,
+				IterationMax: config.IterationMax,
+				Delta:        delta,
+				Tolerance:    config.Tolerance,
+			}
 			return
 		}
 
@@ -153,4 +152,20 @@ func PM(A *Matrix, config *PmConfig) (𝛌 float64, x []float64, err error) {
 	}
 
 	return
+}
+
+type ErrorPm struct {
+	Iteration    uint64
+	IterationMax uint64
+	Delta        float64
+	Tolerance    float64
+}
+
+func (e ErrorPm) Error() string {
+	et := errors.New("Power method error")
+	_ = et.Add(fmt.Errorf("Iteration: %d", e.Iteration))
+	_ = et.Add(fmt.Errorf("Max.Iteration: %d", e.IterationMax))
+	_ = et.Add(fmt.Errorf("Delta tolerance: %5e", e.Tolerance))
+	_ = et.Add(fmt.Errorf("Tolerance: %5e", e.Tolerance))
+	return et.Error()
 }
