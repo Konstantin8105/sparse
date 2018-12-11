@@ -1,10 +1,8 @@
-package sparse_test
+package sparse
 
 import (
 	"math"
 	"testing"
-
-	"github.com/Konstantin8105/sparse"
 )
 
 func TestPM(t *testing.T) {
@@ -12,16 +10,16 @@ func TestPM(t *testing.T) {
 	eps := 1e-7
 
 	t.Run("2x2", func(t *testing.T) {
-		T, err := sparse.NewTriplet()
+		T, err := NewTriplet()
 		if err != nil {
 			panic(err)
 		}
 		// storage
 		errs := []error{
-			sparse.Entry(T, 0, 0, 2),
-			sparse.Entry(T, 0, 1, -12),
-			sparse.Entry(T, 1, 0, 1),
-			sparse.Entry(T, 1, 1, -5),
+			Entry(T, 0, 0, 2),
+			Entry(T, 0, 1, -12),
+			Entry(T, 1, 0, 1),
+			Entry(T, 1, 1, -5),
 		}
 		for i := range errs {
 			if errs[i] != nil {
@@ -30,12 +28,12 @@ func TestPM(t *testing.T) {
 		}
 
 		// compress
-		A, err := sparse.Compress(T)
+		A, err := Compress(T)
 		if err != nil {
 			panic(err)
 		}
 
-		_, x, err := sparse.PM(A, &sparse.PmConfig{
+		_, x, err := PM(A, &PmConfig{
 			IterationMax: 1000,
 			Tolerance:    1e-8,
 		})
@@ -52,22 +50,22 @@ func TestPM(t *testing.T) {
 		}
 	})
 	t.Run("3x3", func(t *testing.T) {
-		T, err := sparse.NewTriplet()
+		T, err := NewTriplet()
 		if err != nil {
 			panic(err)
 		}
 		// storage
 		errs := []error{
-			sparse.Entry(T, 0, 0, 1),
-			sparse.Entry(T, 0, 1, 2),
+			Entry(T, 0, 0, 1),
+			Entry(T, 0, 1, 2),
 
-			sparse.Entry(T, 1, 0, -2),
-			sparse.Entry(T, 1, 1, 1),
-			sparse.Entry(T, 1, 2, 2),
+			Entry(T, 1, 0, -2),
+			Entry(T, 1, 1, 1),
+			Entry(T, 1, 2, 2),
 
-			sparse.Entry(T, 2, 0, 1),
-			sparse.Entry(T, 2, 1, 3),
-			sparse.Entry(T, 2, 2, 1),
+			Entry(T, 2, 0, 1),
+			Entry(T, 2, 1, 3),
+			Entry(T, 2, 2, 1),
 		}
 		for i := range errs {
 			if errs[i] != nil {
@@ -76,12 +74,12 @@ func TestPM(t *testing.T) {
 		}
 
 		// compress
-		A, err := sparse.Compress(T)
+		A, err := Compress(T)
 		if err != nil {
 			panic(err)
 		}
 
-		_, x, err := sparse.PM(A, &sparse.PmConfig{
+		_, x, err := PM(A, &PmConfig{
 			IterationMax: 1000,
 			Tolerance:    1e-8,
 		})
@@ -101,16 +99,16 @@ func TestPM(t *testing.T) {
 	t.Run("2x2: IterationMax error", func(t *testing.T) {
 		// too small amount iterations
 
-		T, err := sparse.NewTriplet()
+		T, err := NewTriplet()
 		if err != nil {
 			panic(err)
 		}
 		// storage
 		errs := []error{
-			sparse.Entry(T, 0, 0, 2),
-			sparse.Entry(T, 0, 1, -12),
-			sparse.Entry(T, 1, 0, 1),
-			sparse.Entry(T, 1, 1, -5),
+			Entry(T, 0, 0, 2),
+			Entry(T, 0, 1, -12),
+			Entry(T, 1, 0, 1),
+			Entry(T, 1, 1, -5),
 		}
 		for i := range errs {
 			if errs[i] != nil {
@@ -119,14 +117,22 @@ func TestPM(t *testing.T) {
 		}
 
 		// compress
-		A, err := sparse.Compress(T)
+		A, err := Compress(T)
 		if err != nil {
 			panic(err)
 		}
 
-		_, _, err = sparse.PM(A, &sparse.PmConfig{IterationMax: 1})
+		_, _, err = PM(A, &PmConfig{IterationMax: 1})
 		if err == nil {
 			t.Errorf("cannot check max iter")
 		}
+	})
+	t.Run("oneMax: error", func(t *testing.T) {
+		defer func() {
+			if r := recover(); r != nil {
+				t.Fatalf("Not valid")
+			}
+		}()
+		oneMax(nil)
 	})
 }
