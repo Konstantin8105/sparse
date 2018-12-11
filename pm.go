@@ -3,6 +3,8 @@ package sparse
 import (
 	"fmt"
 	"math"
+
+	"github.com/Konstantin8105/errors"
 )
 
 // PmConfig is default property of power method
@@ -14,19 +16,34 @@ type PmConfig struct {
 	Tolerance float64
 }
 
+// zeroize - set 0.0 in each element of slice
+func zeroize(x []float64) {
+	for i := range x {
+		x[i] = 0.0
+	}
+}
+
 // PM is power method for approximating eigenvalues.
 // Find `dominant eigenvalue` of matrix A.
 // Vector `x` is eigenvector.
 // Value `𝛌` is eigenvalue.
 func PM(A *Matrix, config *PmConfig) (𝛌 float64, x []float64, err error) {
-	if A.n < 1 || A.m < 1 {
-		panic("1")
-	}
+	// check input data
+	et := errors.New("Function LU.Factorize: check input data")
 	if A == nil {
-		panic("2")
+		_ = et.Add(fmt.Errorf("matrix A is nil"))
+	}
+	if A != nil && A.nz != -1 {
+		_ = et.Add(fmt.Errorf("matrix A is not CSC(Compressed Sparse Column) format"))
+	}
+	if A != nil && (A.n < 1 || A.m < 1) {
+		_ = et.Add(fmt.Errorf("matrix A is small"))
 	}
 
-	// property of iterations
+	if et.IsError() {
+		err = et
+		return
+	}
 
 	// minimal configuration
 	if config == nil {
@@ -39,7 +56,7 @@ func PM(A *Matrix, config *PmConfig) (𝛌 float64, x []float64, err error) {
 	// initialization
 	n, Ap, Ai, Ax := A.n, A.p, A.i, A.x
 
-	// main operation: x(k) = A*x(k-1)
+	// workspace
 	x = make([]float64, A.m)
 	xNext := make([]float64, A.m)
 	x[0] = 1
@@ -64,18 +81,12 @@ func PM(A *Matrix, config *PmConfig) (𝛌 float64, x []float64, err error) {
 	}
 	harmonize(x)
 
-	zeroize := func(x []float64) {
-		for i := range x {
-			x[i] = 0.0
-		}
-	}
-
 	𝛌, 𝛌Last := -1.0, -1.0
 	var iter uint64
 
 	// calculation
 	for {
-		// multiplication
+		// x(k) = A*x(k-1)
 		for j := 0; j < n; j++ {
 			for p := Ap[j]; p < Ap[j+1]; p++ {
 				xNext[Ai[p]] += Ax[p] * x[j]
