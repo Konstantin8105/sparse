@@ -16,6 +16,21 @@ type PmConfig struct {
 	Tolerance float64
 }
 
+// PM power method result
+type PM struct {
+	a *Matrix
+	E []*Eigen
+}
+
+// Eigen result
+type Eigen struct {
+	// eigenvalue
+	𝜦 float64
+
+	// eigenvector
+	𝑿 []float64
+}
+
 // zeroize - set 0.0 in each element of slice
 func zeroize(x []float64) {
 	for i := range x {
