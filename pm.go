@@ -23,6 +23,27 @@ func zeroize(x []float64) {
 	}
 }
 
+// oneMax - modify slice with max value 1.0
+func oneMax(x []float64) {
+	// check input data
+	if len(x) == 0 {
+		return
+	}
+
+	// find max value
+	max := x[0]
+	for i := range x {
+		if math.Abs(x[i]) > math.Abs(max) {
+			max = x[i]
+		}
+	}
+
+	// modification
+	for i := range x {
+		x[i] /= max
+	}
+}
+
 // PM is power method for approximating eigenvalues.
 // Find `dominant eigenvalue` of matrix A.
 // Vector `x` is eigenvector.
@@ -61,25 +82,7 @@ func PM(A *Matrix, config *PmConfig) (𝛌 float64, x []float64, err error) {
 	xNext := make([]float64, A.m)
 	x[0] = 1
 
-	harmonize := func(x []float64) {
-		// max factor
-		max := math.Abs(x[0])
-		isMinus := math.Signbit(x[0])
-		for i := range x {
-			if math.Abs(x[i]) > max {
-				max = math.Abs(x[i])
-				isMinus = math.Signbit(x[0])
-			}
-		}
-		for i := range x {
-			if isMinus {
-				x[i] /= -max
-				continue
-			}
-			x[i] /= max
-		}
-	}
-	harmonize(x)
+	oneMax(x)
 
 	𝛌, 𝛌Last := -1.0, -1.0
 	var iter uint64
@@ -95,7 +98,7 @@ func PM(A *Matrix, config *PmConfig) (𝛌 float64, x []float64, err error) {
 		x, xNext = xNext, x
 
 		zeroize(xNext)
-		harmonize(x)
+		oneMax(x)
 
 		// compute the Rayleigh quotient
 		// 𝛌 = (Ax · x) / (x · x)
