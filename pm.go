@@ -88,8 +88,7 @@ func PM(A *Matrix, config *PmConfig) (𝛌 float64, x []float64, err error) {
 	// calculation
 	for {
 		// x(k) = A*x(k-1)
-		err = Gaxpy(A, x, xNext)
-		if err != nil {
+		if err = Gaxpy(A, x, xNext); err != nil {
 			return
 		}
 		x, xNext = xNext, x
@@ -102,8 +101,7 @@ func PM(A *Matrix, config *PmConfig) (𝛌 float64, x []float64, err error) {
 
 		// Ax
 		zeroize(xNext)
-		err = Gaxpy(A, x, xNext)
-		if err != nil {
+		if err = Gaxpy(A, x, xNext); err != nil {
 			return
 		}
 
@@ -119,12 +117,8 @@ func PM(A *Matrix, config *PmConfig) (𝛌 float64, x []float64, err error) {
 			down += x[i] * x[i]
 		}
 
-		if math.Abs(down) == 0.0 {
-			err = fmt.Errorf("Not acceptable zero value")
-			return
-		}
-		if math.IsNaN(up) {
-			err = fmt.Errorf("Not acceptable Nan value")
+		if math.Abs(down) == 0.0 || math.IsNaN(up) {
+			err = fmt.Errorf("Not acceptable value")
 			return
 		}
 
@@ -154,6 +148,7 @@ func PM(A *Matrix, config *PmConfig) (𝛌 float64, x []float64, err error) {
 	return
 }
 
+// ErrorPm error of power method
 type ErrorPm struct {
 	Iteration    uint64
 	IterationMax uint64
