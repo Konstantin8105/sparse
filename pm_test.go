@@ -35,7 +35,10 @@ func TestPM(t *testing.T) {
 			panic(err)
 		}
 
-		_, x, err := sparse.PM(A)
+		_, x, err := sparse.PM(A, &sparse.PmConfig{
+			IterationMax: 1000,
+			Tolerance:    1e-8,
+		})
 		if err != nil {
 			panic(err)
 		}
@@ -78,7 +81,10 @@ func TestPM(t *testing.T) {
 			panic(err)
 		}
 
-		_, x, err := sparse.PM(A)
+		_, x, err := sparse.PM(A, &sparse.PmConfig{
+			IterationMax: 1000,
+			Tolerance:    1e-8,
+		})
 		if err != nil {
 			panic(err)
 		}
@@ -118,9 +124,7 @@ func TestPM(t *testing.T) {
 			panic(err)
 		}
 
-		_, x, err := sparse.PM(A, sparse.PmConfig{
-			IterationMax: 1,
-		})
+		_, _, err = sparse.PM(A, &sparse.PmConfig{IterationMax: 1})
 		if err == nil {
 			t.Errorf("cannot check max iter")
 		}
