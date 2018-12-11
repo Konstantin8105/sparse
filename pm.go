@@ -93,17 +93,25 @@ func PM(A *Matrix) (𝛌 float64, x []float64, err error) {
 		// up : Ax · x
 		var up float64
 		for i := range x {
+			// TODO : check overflow
 			up += x[i] * xNext[i]
 		}
 
 		// down : x · x
 		var down float64
 		for i := range x {
+			// TODO : check overflow
 			down += x[i] * x[i]
 		}
 
 		//
 		𝛌 = up / down
+
+		// TODO : if down is zero
+
+		// TODO : if up is Nan
+
+		// TODO : if lambda is Nan
 
 		delta := math.Abs((math.Abs(𝛌) - math.Abs(𝛌Last)) / 𝛌)
 
@@ -111,6 +119,9 @@ func PM(A *Matrix) (𝛌 float64, x []float64, err error) {
 			break
 		}
 		if iter >= PmConfig.IterationMax {
+
+			// TODO : test to iterations
+
 			err = fmt.Errorf("Max iteration breaking: %d >= %d. Tolerance: %.5e",
 				iter, PmConfig.IterationMax, delta)
 			return
