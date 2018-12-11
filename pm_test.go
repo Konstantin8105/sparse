@@ -8,6 +8,9 @@ import (
 )
 
 func TestPM(t *testing.T) {
+	// tolerance
+	eps := 1e-7
+
 	t.Run("2x2", func(t *testing.T) {
 		T, err := sparse.NewTriplet()
 		if err != nil {
@@ -32,17 +35,12 @@ func TestPM(t *testing.T) {
 			panic(err)
 		}
 
-		x := make([]float64, 2)
-		x[0] = 10
-		x[1] = 1
-
-		_, x, err = sparse.PM(A)
+		_, x, err := sparse.PM(A)
 		if err != nil {
 			panic(err)
 		}
 
 		// result checking
-		eps := 1e-7
 		xExpect := []float64{1.0, 1.0 / 3.0}
 		for i := range x {
 			if math.Abs(x[i]-xExpect[i]) > eps {
@@ -80,18 +78,12 @@ func TestPM(t *testing.T) {
 			panic(err)
 		}
 
-		x := make([]float64, 3)
-		x[0] = 1
-		x[1] = 1
-		x[2] = 0
-
-		_, x, err = sparse.PM(A)
+		_, x, err := sparse.PM(A)
 		if err != nil {
 			panic(err)
 		}
 
 		// result checking
-		eps := 1e-7
 		xExpect := []float64{1.0 / 2.0, 1.0 / 2.0, 1.0}
 		for i := range x {
 			if math.Abs(x[i]-xExpect[i]) > eps {
