@@ -1,6 +1,7 @@
 package sparse
 
 import (
+	"bytes"
 	"math"
 	"testing"
 )
@@ -127,6 +128,30 @@ func TestPM(t *testing.T) {
 			t.Errorf("cannot check max iter")
 		}
 	})
+	t.Run("2x2: Iteration error", func(t *testing.T) {
+		T, err := NewTriplet()
+		if err != nil {
+			panic(err)
+		}
+		// storage
+		errs := []error{
+			Entry(T, 0, 0, 2),
+			Entry(T, 0, 1, -12),
+			Entry(T, 1, 0, 1),
+			Entry(T, 1, 1, -5),
+		}
+		for i := range errs {
+			if errs[i] != nil {
+				panic(errs[i])
+			}
+		}
+		// compress
+		A, err := Compress(T)
+		if err != nil {
+			panic(err)
+		}
+		_, _, _ = PM(A, nil)
+	})
 	t.Run("oneMax: error", func(t *testing.T) {
 		defer func() {
 			if r := recover(); r != nil {
@@ -134,5 +159,39 @@ func TestPM(t *testing.T) {
 			}
 		}()
 		oneMax(nil)
+	})
+	t.Run("A is nil", func(t *testing.T) {
+		_, _, err := PM(nil, nil)
+		if err == nil {
+			t.Fatalf("not check")
+		}
+	})
+	t.Run("Triplet", func(t *testing.T) {
+		var stdin bytes.Buffer
+		stdin.WriteString("0 0 1\n 0 1 2\n 1 0 3\n 1 1 4")
+		T, err := Load(&stdin)
+		if err != nil {
+			panic(err)
+		}
+		_, _, err = PM((*Matrix)(T), nil)
+		if err == nil {
+			t.Fatalf("not check")
+		}
+	})
+	t.Run("Small", func(t *testing.T) {
+		var stdin bytes.Buffer
+		stdin.WriteString("")
+		T, err := Load(&stdin)
+		if err != nil {
+			panic(err)
+		}
+		A, err := Compress(T)
+		if err != nil {
+			panic(err)
+		}
+		_, _, err = PM(A, nil)
+		if err == nil {
+			t.Fatalf("not check")
+		}
 	})
 }
