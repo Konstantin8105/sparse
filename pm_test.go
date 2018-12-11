@@ -127,6 +127,8 @@ func TestPM(t *testing.T) {
 		if err == nil {
 			t.Errorf("cannot check max iter")
 		}
+		t.Log(err)
+		t.Log(err.Error())
 	})
 	t.Run("2x2: Iteration error", func(t *testing.T) {
 		T, err := NewTriplet()
@@ -165,6 +167,7 @@ func TestPM(t *testing.T) {
 		if err == nil {
 			t.Fatalf("not check")
 		}
+		t.Log(err)
 	})
 	t.Run("Triplet", func(t *testing.T) {
 		var stdin bytes.Buffer
@@ -177,6 +180,7 @@ func TestPM(t *testing.T) {
 		if err == nil {
 			t.Fatalf("not check")
 		}
+		t.Log(err)
 	})
 	t.Run("Small", func(t *testing.T) {
 		var stdin bytes.Buffer
@@ -193,5 +197,6 @@ func TestPM(t *testing.T) {
 		if err == nil {
 			t.Fatalf("not check")
 		}
+		t.Log(err)
 	})
 }
