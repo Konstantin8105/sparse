@@ -36,7 +36,7 @@ func TestPM(t *testing.T) {
 		x[0] = 10
 		x[1] = 1
 
-		err = sparse.PM(A, &x)
+		_, x, err = sparse.PM(A)
 		if err != nil {
 			panic(err)
 		}
@@ -85,7 +85,7 @@ func TestPM(t *testing.T) {
 		x[1] = 1
 		x[2] = 0
 
-		err = sparse.PM(A, &x)
+		_, x, err = sparse.PM(A)
 		if err != nil {
 			panic(err)
 		}

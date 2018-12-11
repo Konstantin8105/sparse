@@ -5,25 +5,37 @@ import (
 	"math"
 )
 
+// PmConfig is default property of power method
+var PmConfig = struct {
+	// Maximal amount iteration
+	IterationMax uint64
+
+	// Iteration tolerance
+	Tolerance float64
+}{
+	IterationMax: 50000,
+	Tolerance:    1e-8,
+}
+
 // PM is power method for approximating eigenvalues.
 // Find `dominant eigenvalue` of matrix A.
 // Vector `x` is eigenvector.
-func PM(A *Matrix, x *[]float64) (err error) {
-	if x == nil {
+// Value `𝛌` is eigenvalue.
+func PM(A *Matrix) (𝛌 float64, x []float64, err error) {
+	if A.n < 1 || A.m < 1 {
 		panic("1")
 	}
 	if A == nil {
 		panic("2")
-	}
-	if A.m != len(*x) {
-		panic("3")
 	}
 
 	// initialization
 	n, Ap, Ai, Ax := A.n, A.p, A.i, A.x
 
 	// main operation: x(k) = A*x(k-1)
+	x = make([]float64, A.m)
 	xNext := make([]float64, A.m)
+	x[0] = 1
 
 	harmonize := func(x []float64) {
 		// max factor
@@ -43,7 +55,7 @@ func PM(A *Matrix, x *[]float64) (err error) {
 			x[i] /= max
 		}
 	}
-	harmonize(*x)
+	harmonize(x)
 
 	zeroize := func(x []float64) {
 		for i := range x {
@@ -52,22 +64,20 @@ func PM(A *Matrix, x *[]float64) (err error) {
 	}
 
 	𝛌, 𝛌Last := -1.0, -1.0
-	eps := 1e-8
 	var iter uint64
-	var iterMax uint64 = 10000
 
 	// calculation
-	for iter = 0; iter < iterMax; iter++ {
+	for {
 		// multiplication
 		for j := 0; j < n; j++ {
 			for p := Ap[j]; p < Ap[j+1]; p++ {
-				xNext[Ai[p]] += Ax[p] * (*x)[j]
+				xNext[Ai[p]] += Ax[p] * x[j]
 			}
 		}
-		*x, xNext = xNext, *x
+		x, xNext = xNext, x
 
 		zeroize(xNext)
-		harmonize(*x)
+		harmonize(x)
 
 		// compute the Rayleigh quotient
 		// 𝛌 = (Ax · x) / (x · x)
@@ -76,35 +86,39 @@ func PM(A *Matrix, x *[]float64) (err error) {
 		zeroize(xNext)
 		for j := 0; j < n; j++ {
 			for p := Ap[j]; p < Ap[j+1]; p++ {
-				xNext[Ai[p]] += Ax[p] * (*x)[j]
+				xNext[Ai[p]] += Ax[p] * x[j]
 			}
 		}
 
 		// up : Ax · x
 		var up float64
-		for i := range *x {
-			up += (*x)[i] * xNext[i]
+		for i := range x {
+			up += x[i] * xNext[i]
 		}
 
 		// down : x · x
 		var down float64
-		for i := range *x {
-			down += (*x)[i] * (*x)[i]
+		for i := range x {
+			down += x[i] * x[i]
 		}
 
 		//
 		𝛌 = up / down
 
-		delta := math.Abs(math.Abs(𝛌)-math.Abs(𝛌Last)) / math.Abs(𝛌)
+		delta := math.Abs((math.Abs(𝛌) - math.Abs(𝛌Last)) / 𝛌)
 
-		if math.Abs(delta) < eps {
+		if math.Abs(delta) < PmConfig.Tolerance {
 			break
 		}
-		_ = eps
-		𝛌Last = 𝛌
-	}
-	fmt.Println(">> 𝛌     : ", 𝛌)
-	fmt.Println(">> iter  : ", iter)
+		if iter >= PmConfig.IterationMax {
+			err = fmt.Errorf("Max iteration breaking: %d >= %d. Tolerance: %.5e",
+				iter, PmConfig.IterationMax, delta)
+			return
+		}
 
-	return nil
+		𝛌Last = 𝛌
+		iter++
+	}
+
+	return
 }
