@@ -13,17 +13,6 @@ func BenchmarkPM(b *testing.B) {
 	}
 	// storage
 	errs := []error{
-		// Entry(T, 0, 0, 1),
-		// Entry(T, 0, 1, 2),
-		//
-		// Entry(T, 1, 0, -2),
-		// Entry(T, 1, 1, 1),
-		// Entry(T, 1, 2, 2),
-		//
-		// Entry(T, 2, 0, 1),
-		// Entry(T, 2, 1, 3),
-		// Entry(T, 2, 2, 1),
-
 		Entry(T, 0, 3, 0.9090),
 		Entry(T, 0, 4, 0.0910),
 
