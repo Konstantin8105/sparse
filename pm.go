@@ -57,6 +57,9 @@ func oneMax(x []float64) {
 			max = x[i]
 		}
 	}
+	if max == 1.0 {
+		return
+	}
 
 	// modification
 	for i := range x {
@@ -76,6 +79,11 @@ func oneMax(x []float64) {
 //		δ = || x(k) - x(k-1) ||1
 //		k = k + 1
 //	}
+//
+// See next articles:
+//
+//	1. Sepandar D. Kamvar, Taher H. Haveliwala, Christopher D. Manning, Gene H. Golub
+//	"Extrapolation Methods for Accelerating PageRank Computations"
 //
 func (pm *PM) Factorize(A *Matrix, config *PmConfig, ignore ...int) (err error) {
 	// check input data

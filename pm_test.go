@@ -13,16 +13,31 @@ func BenchmarkPM(b *testing.B) {
 	}
 	// storage
 	errs := []error{
-		Entry(T, 0, 0, 1),
-		Entry(T, 0, 1, 2),
+		// Entry(T, 0, 0, 1),
+		// Entry(T, 0, 1, 2),
+		//
+		// Entry(T, 1, 0, -2),
+		// Entry(T, 1, 1, 1),
+		// Entry(T, 1, 2, 2),
+		//
+		// Entry(T, 2, 0, 1),
+		// Entry(T, 2, 1, 3),
+		// Entry(T, 2, 2, 1),
 
-		Entry(T, 1, 0, -2),
-		Entry(T, 1, 1, 1),
-		Entry(T, 1, 2, 2),
+		Entry(T, 0, 3, 0.9090),
+		Entry(T, 0, 4, 0.0910),
 
-		Entry(T, 2, 0, 1),
-		Entry(T, 2, 1, 3),
-		Entry(T, 2, 2, 1),
+		Entry(T, 1, 0, 0.0002),
+		Entry(T, 1, 2, 0.9998),
+
+		Entry(T, 2, 1, 0.9998),
+		Entry(T, 2, 3, 0.0002),
+
+		Entry(T, 3, 0, 0.6690),
+		Entry(T, 3, 4, 0.3310),
+
+		Entry(T, 4, 0, 0.9989),
+		Entry(T, 4, 1, 0.0011),
 	}
 	for i := range errs {
 		if errs[i] != nil {
@@ -40,8 +55,8 @@ func BenchmarkPM(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		var pm PM
 		err = pm.Factorize(A, &PmConfig{
-			IterationMax: 1000,
-			Tolerance:    1e-8,
+			IterationMax: 10000,
+			Tolerance:    1e-6,
 		})
 		if err != nil {
 			panic(err)
