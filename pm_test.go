@@ -106,7 +106,7 @@ func TestPM(t *testing.T) {
 			panic(err)
 		}
 
-		err = pm.Next(1)
+		err = pm.Next(2)
 		if err != nil {
 			panic(err)
 		}
@@ -118,6 +118,14 @@ func TestPM(t *testing.T) {
 		}
 		if math.Abs(pm.E[0].𝑿[3]-xExpect[1]) > eps {
 			t.Errorf("Not correct : %e != %e", pm.E[0].𝑿[3], xExpect[1])
+		}
+
+		𝛌Expect := []float64{-1, -2}
+		if math.Abs(math.Abs(pm.E[0].𝜦)-math.Abs(𝛌Expect[0])) > eps {
+			t.Errorf("Not correct : %e != %e", pm.E[0].𝜦, 𝛌Expect[0])
+		}
+		if math.Abs(math.Abs(pm.E[1].𝜦)-math.Abs(𝛌Expect[1])) > eps {
+			t.Errorf("Not correct : %e != %e", pm.E[1].𝜦, 𝛌Expect[1])
 		}
 	})
 	t.Run("3x3", func(t *testing.T) {
@@ -152,7 +160,7 @@ func TestPM(t *testing.T) {
 
 		var pm PM
 		err = pm.Factorize(A, &PmConfig{
-			IterationMax: 1000,
+			IterationMax: 10000000,
 			Tolerance:    1e-8,
 		})
 		if err != nil {
