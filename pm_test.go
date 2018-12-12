@@ -34,7 +34,8 @@ func TestPM(t *testing.T) {
 			panic(err)
 		}
 
-		_, x, err := PM(A, &PmConfig{
+		var pm PM
+		err = pm.Factorize(A, &PmConfig{
 			IterationMax: 1000,
 			Tolerance:    1e-8,
 		})
@@ -42,11 +43,16 @@ func TestPM(t *testing.T) {
 			panic(err)
 		}
 
+		err = pm.Next(1)
+		if err != nil {
+			panic(err)
+		}
+
 		// result checking
 		xExpect := []float64{1.0, 1.0 / 3.0}
-		for i := range x {
-			if math.Abs(x[i]-xExpect[i]) > eps {
-				t.Errorf("Not correct %d : %e != %e", i, x[i], xExpect[i])
+		for i := range pm.E[0].𝑿 {
+			if math.Abs(pm.E[0].𝑿[i]-xExpect[i]) > eps {
+				t.Errorf("Not correct %d : %e != %e", i, pm.E[0].𝑿[i], xExpect[i])
 			}
 		}
 	})
@@ -80,7 +86,8 @@ func TestPM(t *testing.T) {
 			panic(err)
 		}
 
-		_, x, err := PM(A, &PmConfig{
+		var pm PM
+		err = pm.Factorize(A, &PmConfig{
 			IterationMax: 1000,
 			Tolerance:    1e-8,
 		})
@@ -88,11 +95,16 @@ func TestPM(t *testing.T) {
 			panic(err)
 		}
 
+		err = pm.Next(1)
+		if err != nil {
+			panic(err)
+		}
+
 		// result checking
 		xExpect := []float64{1.0 / 2.0, 1.0 / 2.0, 1.0}
-		for i := range x {
-			if math.Abs(x[i]-xExpect[i]) > eps {
-				t.Errorf("Not correct %d : %e != %e", i, x[i], xExpect[i])
+		for i := range pm.E[0].𝑿 {
+			if math.Abs(pm.E[0].𝑿[i]-xExpect[i]) > eps {
+				t.Errorf("Not correct %d : %e != %e", i, pm.E[0].𝑿[i], xExpect[i])
 			}
 		}
 	})
@@ -123,7 +135,13 @@ func TestPM(t *testing.T) {
 			panic(err)
 		}
 
-		_, _, err = PM(A, &PmConfig{IterationMax: 1})
+		var pm PM
+		err = pm.Factorize(A, &PmConfig{IterationMax: 1})
+		if err != nil {
+			panic(err)
+		}
+
+		err = pm.Next(1)
 		if err == nil {
 			t.Errorf("cannot check max iter")
 		}
@@ -152,7 +170,8 @@ func TestPM(t *testing.T) {
 		if err != nil {
 			panic(err)
 		}
-		_, _, _ = PM(A, nil)
+		var pm PM
+		_ = pm.Factorize(A, nil)
 	})
 	t.Run("oneMax: error", func(t *testing.T) {
 		defer func() {
@@ -163,7 +182,8 @@ func TestPM(t *testing.T) {
 		oneMax(nil)
 	})
 	t.Run("A is nil", func(t *testing.T) {
-		_, _, err := PM(nil, nil)
+		var pm PM
+		err := pm.Factorize(nil, nil)
 		if err == nil {
 			t.Fatalf("not check")
 		}
@@ -176,7 +196,8 @@ func TestPM(t *testing.T) {
 		if err != nil {
 			panic(err)
 		}
-		_, _, err = PM((*Matrix)(T), nil)
+		var pm PM
+		err = pm.Factorize((*Matrix)(T), nil)
 		if err == nil {
 			t.Fatalf("not check")
 		}
@@ -193,7 +214,8 @@ func TestPM(t *testing.T) {
 		if err != nil {
 			panic(err)
 		}
-		_, _, err = PM(A, nil)
+		var pm PM
+		err = pm.Factorize(A, nil)
 		if err == nil {
 			t.Fatalf("not check")
 		}
