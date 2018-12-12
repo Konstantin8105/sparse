@@ -2,6 +2,7 @@ package sparse
 
 import (
 	"bytes"
+	"fmt"
 	"math"
 	"testing"
 )
@@ -40,21 +41,24 @@ func BenchmarkPM(b *testing.B) {
 		panic(err)
 	}
 
-	b.ResetTimer()
-	for i := 0; i < b.N; i++ {
-		var pm PM
-		err = pm.Factorize(A, &PmConfig{
-			IterationMax: 10000,
-			Tolerance:    1e-6,
-		})
-		if err != nil {
-			panic(err)
-		}
+	for _, p := range []int{1, 3} {
+		b.Run(fmt.Sprintf("%d", p), func(b *testing.B) {
+			for i := 0; i < b.N; i++ {
+				var pm PM
+				err = pm.Factorize(A, &PmConfig{
+					IterationMax: 10000,
+					Tolerance:    1e-6,
+				})
+				if err != nil {
+					panic(err)
+				}
 
-		err = pm.Next(1)
-		if err != nil {
-			panic(err)
-		}
+				err = pm.Next(p)
+				if err != nil {
+					panic(err)
+				}
+			}
+		})
 	}
 }
 
