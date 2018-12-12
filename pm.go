@@ -57,9 +57,6 @@ func oneMax(x []float64) {
 			max = x[i]
 		}
 	}
-	if max == 1.0 {
-		return
-	}
 
 	// modification
 	for i := range x {
