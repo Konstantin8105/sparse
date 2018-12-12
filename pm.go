@@ -188,8 +188,7 @@ func (pm *PM) Next(amount int) (err error) {
 		return nil
 	case amount > 1:
 		for i := 0; i < amount; i++ {
-			err = pm.Next(1)
-			if err != nil {
+			if err = pm.Next(1); err != nil {
 				return
 			}
 		}
@@ -199,14 +198,16 @@ func (pm *PM) Next(amount int) (err error) {
 
 	// workspace
 	var (
-		x     = make([]float64, pm.a.m)
-		xNext = make([]float64, pm.a.m)
+		x     = make([]float64, pm.a.m+len(pm.ignore))
+		xNext = make([]float64, pm.a.m+len(pm.ignore))
 	)
+	x = x[:pm.a.m]
+	xNext = xNext[:pm.a.m]
 
 	// initial values
 	x[0] = 1
 	oneMax(x)
-	𝛌, 𝛌Last := -1.0, -1.0
+	𝛌, 𝛌Last := math.MaxFloat64/100, math.MaxFloat64/100
 
 	var iter uint64
 
@@ -243,15 +244,18 @@ func (pm *PM) Next(amount int) (err error) {
 		}
 
 		if math.Abs(down) == 0.0 || math.IsNaN(up) {
-			err = fmt.Errorf("Not acceptable value")
-			return
+			return fmt.Errorf("Not acceptable value")
 		}
 
 		// calculation eigenvalue
 		𝛌 = up / down
+		// fmt.Println("|| ", iter, x)
 
 		// check breaking
 		delta := math.Abs((math.Abs(𝛌) - math.Abs(𝛌Last)) / 𝛌)
+
+		// fmt.Println("PP : ", 𝛌, 𝛌Last)
+		// fmt.Println(">", delta, pm.config.Tolerance)
 
 		if math.Abs(delta) < pm.config.Tolerance {
 			break
@@ -269,7 +273,33 @@ func (pm *PM) Next(amount int) (err error) {
 		𝛌Last = 𝛌
 		iter++
 	}
-	// TODO (KI) : add ignore list
+
+	x = append(x, make([]float64, len(pm.ignore))...)
+	xNext = append(xNext, make([]float64, len(pm.ignore))...)
+
+	// ignore list
+	if len(pm.ignore) > 0 {
+		// decomperess vector `x`
+		// short x vector: x = [1 2]
+		// ignore list   :     [0 2 4]
+		// result        : x = [0 1 0 2 0]
+		counter := 0
+		for i := len(x) - 1; i >= 0; i-- {
+			var found bool
+			for k := range pm.ignore {
+				if i == pm.ignore[k] {
+					found = true
+					break
+				}
+			}
+			if found {
+				x[i] = 0
+				continue
+			}
+			counter++
+			x[i] = x[len(x)-len(pm.ignore)-counter]
+		}
+	}
 
 	pm.E = append(pm.E, &Eigen{
 		// eigenvalue

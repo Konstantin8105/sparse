@@ -17,10 +17,17 @@ func TestPM(t *testing.T) {
 		}
 		// storage
 		errs := []error{
-			Entry(T, 0, 0, 2),
-			Entry(T, 0, 1, -12),
-			Entry(T, 1, 0, 1),
-			Entry(T, 1, 1, -5),
+			Entry(T, 0, 0, 2000),
+
+			Entry(T, 1, 1, 2),
+			Entry(T, 1, 3, -12),
+
+			Entry(T, 2, 2, 2000),
+
+			Entry(T, 3, 1, 1),
+			Entry(T, 3, 3, -5),
+
+			Entry(T, 4, 4, 2000),
 		}
 		for i := range errs {
 			if errs[i] != nil {
@@ -38,7 +45,7 @@ func TestPM(t *testing.T) {
 		err = pm.Factorize(A, &PmConfig{
 			IterationMax: 1000,
 			Tolerance:    1e-8,
-		})
+		}, 0, 4, 2, 0, 2, 4)
 		if err != nil {
 			panic(err)
 		}
@@ -50,10 +57,11 @@ func TestPM(t *testing.T) {
 
 		// result checking
 		xExpect := []float64{1.0, 1.0 / 3.0}
-		for i := range pm.E[0].𝑿 {
-			if math.Abs(pm.E[0].𝑿[i]-xExpect[i]) > eps {
-				t.Errorf("Not correct %d : %e != %e", i, pm.E[0].𝑿[i], xExpect[i])
-			}
+		if math.Abs(pm.E[0].𝑿[1]-xExpect[0]) > eps {
+			t.Errorf("Not correct : %e != %e", pm.E[0].𝑿[1], xExpect[0])
+		}
+		if math.Abs(pm.E[0].𝑿[3]-xExpect[1]) > eps {
+			t.Errorf("Not correct : %e != %e", pm.E[0].𝑿[3], xExpect[1])
 		}
 	})
 	t.Run("3x3", func(t *testing.T) {
@@ -95,7 +103,7 @@ func TestPM(t *testing.T) {
 			panic(err)
 		}
 
-		err = pm.Next(1)
+		err = pm.Next(2)
 		if err != nil {
 			panic(err)
 		}
@@ -215,8 +223,10 @@ func TestPM(t *testing.T) {
 			panic(err)
 		}
 		var pm PM
-		err = pm.Factorize(A, nil)
-		if err == nil {
+		if err = pm.Factorize(A, nil, -1, 2, 100, 9); err == nil {
+			t.Fatalf("not check")
+		}
+		if err = pm.Next(-1); err == nil {
 			t.Fatalf("not check")
 		}
 		t.Log(err)
