@@ -221,13 +221,10 @@ func (pm *PM) Next(amount int) (err error) {
 
 	// initial values
 	x[0] = 1
+	dlast := 1.0
 
 	// iteration value
 	var iter uint64
-
-	// first norm of vector
-	// link: https://en.wikipedia.org/wiki/Norm_(mathematics)#Taxicab_norm_or_Manhattan_norm
-	var dlast float64 = 1.0
 
 	// calculation
 	for {
