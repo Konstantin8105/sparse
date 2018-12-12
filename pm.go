@@ -52,14 +52,23 @@ func oneMax(x []float64) {
 
 	// find max value
 	max := x[0]
+	min := x[0]
 	for i := range x {
-		if math.Abs(x[i]) > math.Abs(max) {
+		if min < x[i] && x[i] < max {
+			continue
+		}
+		if x[i] < min {
+			min = x[i]
+		}
+		if x[i] > max {
 			max = x[i]
 		}
 	}
+	max = math.Max(max, math.Abs(min))
 
 	// modification
 	for i := range x {
+		// TODO (KI) : need parallel
 		x[i] /= max
 	}
 }
@@ -209,7 +218,34 @@ func (pm *PM) Next(amount int) (err error) {
 	}
 	// Now `amount = 1`
 
-	// TODO (KI) : calculate second frequency
+	// calculate next eigenvalue
+	if len(pm.E) > 0 {
+		// Algorithm
+		// A · x(n) = 𝛌(n) · x(n)
+		// calculate next eigenvalue
+		// A(n) = A - 𝛌(n-1) · E
+		𝛌 := pm.E[len(pm.E)-1].𝜦
+		for j := 0; j < pm.a.n; j++ {
+			found := false
+			for p := pm.a.p[j]; p < pm.a.p[j+1]; p++ {
+				if j != pm.a.i[p] {
+					continue
+				}
+				// only diagonal element
+				pm.a.x[p] -= 𝛌
+				found = true
+			}
+			if !found {
+				// diagonal element is not found in that column
+				pm.a.inject(j, j, -𝛌)
+			}
+		}
+
+		// 𝛌(n) = 𝜦 + 𝛌(n-1)
+		defer func() {
+			pm.E[len(pm.E)-1].𝜦 += pm.E[len(pm.E)-2].𝜦
+		}()
+	}
 
 	// workspace
 	var (
@@ -253,6 +289,7 @@ func (pm *PM) Next(amount int) (err error) {
 				IterationMax: pm.config.IterationMax,
 				Delta:        dlast - d,
 				Tolerance:    pm.config.Tolerance,
+				err:          fmt.Errorf("iteration limit"),
 			}
 			return
 		}
@@ -331,6 +368,7 @@ type ErrorPm struct {
 	IterationMax uint64
 	Delta        float64
 	Tolerance    float64
+	err          error
 }
 
 func (e ErrorPm) Error() string {
@@ -339,5 +377,6 @@ func (e ErrorPm) Error() string {
 	_ = et.Add(fmt.Errorf("Max.Iteration: %d", e.IterationMax))
 	_ = et.Add(fmt.Errorf("Delta tolerance: %5e", e.Tolerance))
 	_ = et.Add(fmt.Errorf("Tolerance: %5e", e.Tolerance))
+	_ = et.Add(e.err)
 	return et.Error()
 }

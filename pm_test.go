@@ -46,7 +46,7 @@ func BenchmarkPM(b *testing.B) {
 			for i := 0; i < b.N; i++ {
 				var pm PM
 				err = pm.Factorize(A, &PmConfig{
-					IterationMax: 10000,
+					IterationMax: 1000000000,
 					Tolerance:    1e-6,
 				})
 				if err != nil {
