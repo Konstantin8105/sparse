@@ -64,7 +64,9 @@ func oneMax(x []float64) {
 			max = x[i]
 		}
 	}
-	max = math.Max(max, math.Abs(min))
+	if math.Abs(min) > max {
+		max = min
+	}
 
 	// modification
 	for i := range x {

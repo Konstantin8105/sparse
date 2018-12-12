@@ -49,7 +49,7 @@ func (A *Matrix) inject(i, j int, x float64) error {
 		A.x[k] = A.x[k-1]
 		A.i[k] = A.i[k-1]
 	}
-	for k := j; k < A.n+1; k++ {
+	for k := j + 1; k < A.n+1; k++ {
 		A.p[k]++
 	}
 	// inject
