@@ -28,6 +28,37 @@ type Matrix struct { // struct cs_sparse
 	nz    int       // # of entries in triplet matrix, -1 for compressed-col
 }
 
+// inject value `x` in matrix coordinate `i`,`j`,
+// but only inside matrix [m,n].
+func (A *Matrix) inject(i, j int, x float64) error {
+	if i < 0 || j < 0 || i >= A.m || j >= A.n {
+		panic("not acceptable indexes")
+	}
+
+	// TODO (KI) : inject if column is not exist
+
+	// add one element in slices
+	A.nzmax += 1
+	// A.p = append(A.p, 0.0)
+	A.i = append(A.i, 0.0)
+	A.x = append(A.x, 0.0)
+	// find position
+	position := A.p[j]
+	// move data
+	for k := len(A.x) - 1; k > position; k-- {
+		A.x[k] = A.x[k-1]
+		A.i[k] = A.i[k-1]
+	}
+	for k := j; k < A.n+1; k++ {
+		A.p[k]++
+	}
+	// inject
+	A.x[position] = x
+	A.i[position] = i
+
+	return nil
+}
+
 func (A *Matrix) Copy() (*Matrix, error) {
 	// check input data
 	et := errors.New("Function Copy: check input data")
