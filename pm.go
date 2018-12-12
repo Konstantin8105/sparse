@@ -66,9 +66,17 @@ func oneMax(x []float64) {
 
 // PM is power method for approximating eigenvalues.
 // Find `dominant eigenvalue` of matrix A.
-// Vector `x` is eigenvector.
-// Value `𝛌` is eigenvalue.
 // List `ignore` is list of ignore row and column in calculation.
+//
+//	Algorith : Power Method
+//	x(0) // initial vector
+//	k = 1
+//	for δ < ɛ {
+//		x(k) = A · x(k-1)
+//		δ = || x(k) - x(k-1) ||1
+//		k = k + 1
+//	}
+//
 func (pm *PM) Factorize(A *Matrix, config *PmConfig, ignore ...int) (err error) {
 	// check input data
 	et := errors.New("Function LU.Factorize: check input data")
@@ -196,6 +204,8 @@ func (pm *PM) Next(amount int) (err error) {
 	}
 	// Now `amount = 1`
 
+	// TODO (KI) : calculate second frequency
+
 	// workspace
 	var (
 		x     = make([]float64, pm.a.m+len(pm.ignore))
@@ -206,72 +216,77 @@ func (pm *PM) Next(amount int) (err error) {
 
 	// initial values
 	x[0] = 1
-	oneMax(x)
-	𝛌, 𝛌Last := math.MaxFloat64/100, math.MaxFloat64/100
 
+	// iteration value
 	var iter uint64
+
+	// first norm of vector
+	// link: https://en.wikipedia.org/wiki/Norm_(mathematics)#Taxicab_norm_or_Manhattan_norm
+	var dlast float64 = 1.0
 
 	// calculation
 	for {
 		// x(k) = A*x(k-1)
+		zeroize(xNext)
+		oneMax(x)
 		if err = Gaxpy(pm.a, x, xNext); err != nil {
 			return
 		}
 		x, xNext = xNext, x
 
-		zeroize(xNext)
-		oneMax(x)
-
-		// compute the Rayleigh quotient
-		// 𝛌 = (Ax · x) / (x · x)
-
-		// Ax
-		zeroize(xNext)
-		if err = Gaxpy(pm.a, x, xNext); err != nil {
-			return
-		}
-
-		// up : Ax · x
-		var up float64
+		// first norm of vector
+		// link: https://en.wikipedia.org/wiki/Norm_(mathematics)#Taxicab_norm_or_Manhattan_norm
+		var d float64
 		for i := range x {
-			up += x[i] * xNext[i]
+			d += math.Abs(x[i] - xNext[i])
 		}
 
-		// down : x · x
-		var down float64
-		for i := range x {
-			down += x[i] * x[i]
-		}
-
-		if math.Abs(down) == 0.0 || math.IsNaN(up) {
-			return fmt.Errorf("Not acceptable value")
-		}
-
-		// calculation eigenvalue
-		𝛌 = up / down
-
-		// check breaking
-		delta := math.Abs((math.Abs(𝛌) - math.Abs(𝛌Last)) / 𝛌)
-
-		if math.Abs(delta) < pm.config.Tolerance {
+		if math.Abs(dlast-d) < pm.config.Tolerance {
+			// tolerance breaking
 			break
 		}
 		if iter >= pm.config.IterationMax {
 			err = ErrorPm{
 				Iteration:    iter,
 				IterationMax: pm.config.IterationMax,
-				Delta:        delta,
+				Delta:        dlast - d,
 				Tolerance:    pm.config.Tolerance,
 			}
 			return
 		}
 
-		𝛌Last = 𝛌
+		dlast = d
 		iter++
 	}
+	oneMax(x)
+	oneMax(xNext)
 
+	// compute the Rayleigh quotient
+	// 𝛌 = (Ax · x) / (x · x)
+
+	// calculation of Ax is ignore and takes value x(k-1)
+
+	// up : Ax · x
+	var up float64
+	for i := range x {
+		up += x[i] * xNext[i]
+	}
+
+	// down : x · x
+	var down float64
+	for i := range x {
+		down += x[i] * x[i]
+	}
+
+	if math.Abs(down) == 0.0 || math.IsNaN(up) {
+		return fmt.Errorf("Not acceptable value")
+	}
+
+	// calculation eigenvalue
+	𝛌 := up / down
+
+	// change workspace with length of ignore list
 	x = append(x, make([]float64, len(pm.ignore))...)
-	xNext = append(xNext, make([]float64, len(pm.ignore))...)
 
 	// ignore list
 	if len(pm.ignore) > 0 {

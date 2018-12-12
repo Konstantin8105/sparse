@@ -6,6 +6,54 @@ import (
 	"testing"
 )
 
+func BenchmarkPM(b *testing.B) {
+	T, err := NewTriplet()
+	if err != nil {
+		panic(err)
+	}
+	// storage
+	errs := []error{
+		Entry(T, 0, 0, 1),
+		Entry(T, 0, 1, 2),
+
+		Entry(T, 1, 0, -2),
+		Entry(T, 1, 1, 1),
+		Entry(T, 1, 2, 2),
+
+		Entry(T, 2, 0, 1),
+		Entry(T, 2, 1, 3),
+		Entry(T, 2, 2, 1),
+	}
+	for i := range errs {
+		if errs[i] != nil {
+			panic(errs[i])
+		}
+	}
+
+	// compress
+	A, err := Compress(T)
+	if err != nil {
+		panic(err)
+	}
+
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		var pm PM
+		err = pm.Factorize(A, &PmConfig{
+			IterationMax: 1000,
+			Tolerance:    1e-8,
+		})
+		if err != nil {
+			panic(err)
+		}
+
+		err = pm.Next(1)
+		if err != nil {
+			panic(err)
+		}
+	}
+}
+
 func TestPM(t *testing.T) {
 	// tolerance
 	eps := 1e-7
