@@ -2115,6 +2115,7 @@ func Gaxpy(A *Matrix, x []float64, y []float64) error {
 
 	// calculation
 	for j := 0; j < n; j++ {
+		// TODO (KI): need parallel
 		for p := Ap[j]; p < Ap[j+1]; p++ {
 			y[Ai[p]] += Ax[p] * x[j]
 		}
