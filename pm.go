@@ -249,13 +249,9 @@ func (pm *PM) Next(amount int) (err error) {
 
 		// calculation eigenvalue
 		𝛌 = up / down
-		// fmt.Println("|| ", iter, x)
 
 		// check breaking
 		delta := math.Abs((math.Abs(𝛌) - math.Abs(𝛌Last)) / 𝛌)
-
-		// fmt.Println("PP : ", 𝛌, 𝛌Last)
-		// fmt.Println(">", delta, pm.config.Tolerance)
 
 		if math.Abs(delta) < pm.config.Tolerance {
 			break
