@@ -70,10 +70,10 @@ func TestEispack(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	old := os.Stdout
-	os.Stdout = tmpfile
+	old := osStdout
+	osStdout = tmpfile
 	defer func() {
-		os.Stdout = old
+		osStdout = old
 	}()
 
 	// run transpiled code
@@ -186,11 +186,11 @@ func r8mat_print_some(m int, n int, a []float64, ilo int, jlo int, ihi int, jhi 
 	var j int
 	var j2hi int
 	var j2lo int
-	fmt.Fprintf(os.Stdout, "\n")
-	fmt.Fprintf(os.Stdout, "%s\n", title)
+	fmt.Fprintf(osStdout, "\n")
+	fmt.Fprintf(osStdout, "%s\n", title)
 	if m <= 0 || n <= 0 {
-		fmt.Fprintf(os.Stdout, "\n")
-		fmt.Fprintf(os.Stdout, "  (None)\n")
+		fmt.Fprintf(osStdout, "\n")
+		fmt.Fprintf(osStdout, "  (None)\n")
 		return
 	}
 	{
@@ -201,19 +201,19 @@ func r8mat_print_some(m int, n int, a []float64, ilo int, jlo int, ihi int, jhi 
 			j2hi = j2lo + 5 - 1
 			j2hi = i4_min(j2hi, n)
 			j2hi = i4_min(j2hi, jhi)
-			fmt.Fprintf(os.Stdout, "\n")
+			fmt.Fprintf(osStdout, "\n")
 			//
 			//  For each column J in the current range...
 			//
 			//  Write the header.
 			//
-			fmt.Fprintf(os.Stdout, "  Col:  ")
+			fmt.Fprintf(osStdout, "  Col:  ")
 			for j = j2lo; j <= j2hi; j++ {
-				fmt.Fprintf(os.Stdout, "  %7d     ", j-1)
+				fmt.Fprintf(osStdout, "  %7d     ", j-1)
 			}
-			fmt.Fprintf(os.Stdout, "\n")
-			fmt.Fprintf(os.Stdout, "  Row\n")
-			fmt.Fprintf(os.Stdout, "\n")
+			fmt.Fprintf(osStdout, "\n")
+			fmt.Fprintf(osStdout, "  Row\n")
+			fmt.Fprintf(osStdout, "\n")
 			//
 			//  Determine the range of the rows in this strip.
 			//
@@ -223,11 +223,11 @@ func r8mat_print_some(m int, n int, a []float64, ilo int, jlo int, ihi int, jhi 
 				//
 				//  Print out (up to) 5 entries in row I, that lie in the current strip.
 				//
-				fmt.Fprintf(os.Stdout, "%5d:", i-1)
+				fmt.Fprintf(osStdout, "%5d:", i-1)
 				for j = j2lo; j <= j2hi; j++ {
-					fmt.Fprintf(os.Stdout, "  %14f", a[i-1+(j-1)*m])
+					fmt.Fprintf(osStdout, "  %14f", a[i-1+(j-1)*m])
 				}
-				fmt.Fprintf(os.Stdout, "\n")
+				fmt.Fprintf(osStdout, "\n")
 			}
 		}
 	}
@@ -348,11 +348,11 @@ func r8mat_uniform_01_new(m int, n int, seed *int) []float64 {
 //
 func r8vec_print(n int, a []float64, title string) {
 	var i int
-	fmt.Fprintf(os.Stdout, "\n")
-	fmt.Fprintf(os.Stdout, "%s\n", title)
-	fmt.Fprintf(os.Stdout, "\n")
+	fmt.Fprintf(osStdout, "\n")
+	fmt.Fprintf(osStdout, "%s\n", title)
+	fmt.Fprintf(osStdout, "\n")
 	for i = 0; i < n; i++ {
-		fmt.Fprintf(os.Stdout, "  %8d: %14f\n", i, a[i])
+		fmt.Fprintf(osStdout, "  %8d: %14f\n", i, a[i])
 	}
 }
 
@@ -380,10 +380,10 @@ func r8vec_print(n int, a []float64, title string) {
 //
 func intenalEispack() {
 	// timestamp()
-	fmt.Fprintf(os.Stdout, "\n")
-	fmt.Fprintf(os.Stdout, "EISPACK_PRB\n")
-	fmt.Fprintf(os.Stdout, "  C version.\n")
-	fmt.Fprintf(os.Stdout, "  Test the EISPACK library.\n")
+	fmt.Fprintf(osStdout, "\n")
+	fmt.Fprintf(osStdout, "EISPACK_PRB\n")
+	fmt.Fprintf(osStdout, "  C version.\n")
+	fmt.Fprintf(osStdout, "  Test the EISPACK library.\n")
 	//
 	//  test01 ( );
 	//  test02 ( );
@@ -409,15 +409,36 @@ func intenalEispack() {
 	//
 	//  Terminate.
 	//
-	fmt.Fprintf(os.Stdout, "\n")
-	fmt.Fprintf(os.Stdout, "EISPACK_PRB1\n")
-	fmt.Fprintf(os.Stdout, "  Normal end of execution.\n")
-	fmt.Fprintf(os.Stdout, "\n")
+	fmt.Fprintf(osStdout, "\n")
+	fmt.Fprintf(osStdout, "EISPACK_PRB1\n")
+	fmt.Fprintf(osStdout, "  Normal end of execution.\n")
+	fmt.Fprintf(osStdout, "\n")
 	// timestamp()
 	return
 }
 
 // test06 - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/Eispack/eispack_prb1.c:95
+//
+//
+//
+//  Purpose:
+//
+//    TEST06 tests RS.
+//
+//  Licensing:
+//
+//    This code is distributed under the GNU LGPL license.
+//
+//  Modified:
+//
+//    08 November 2012
+//
+//  Author:
+//
+//    John Burkardt
+//
+//
+//  Save a copy of the matrix.
 //
 func test06() {
 	var a []float64 = []float64{5, 4, 1, 1, 4, 5, 1, 1, 1, 1, 4, 2, 1, 1, 2, 4}
@@ -431,47 +452,24 @@ func test06() {
 	var r []float64
 	var w []float64 = make([]float64, 4)
 	var x []float64 = make([]float64, 16)
-	{
-		//
-		//
-		//  Purpose:
-		//
-		//    TEST06 tests RS.
-		//
-		//  Licensing:
-		//
-		//    This code is distributed under the GNU LGPL license.
-		//
-		//  Modified:
-		//
-		//    08 November 2012
-		//
-		//  Author:
-		//
-		//    John Burkardt
-		//
-		//
-		//  Save a copy of the matrix.
-		//
-		for j = 0; j < n; j++ {
-			for i = 0; i < n; i++ {
-				a2[i+j*n] = a[i+j*n]
-			}
+	for j = 0; j < n; j++ {
+		for i = 0; i < n; i++ {
+			a2[i+j*n] = a[i+j*n]
 		}
 	}
-	fmt.Fprintf(os.Stdout, "\n")
-	fmt.Fprintf(os.Stdout, "TEST06\n")
-	fmt.Fprintf(os.Stdout, "  RS computes the eigenvalues and eigenvectors\n")
-	fmt.Fprintf(os.Stdout, "  of a real symmetric matrix.\n")
-	fmt.Fprintf(os.Stdout, "\n")
-	fmt.Fprintf(os.Stdout, "  Matrix order = %d\n", n)
+	fmt.Fprintf(osStdout, "\n")
+	fmt.Fprintf(osStdout, "TEST06\n")
+	fmt.Fprintf(osStdout, "  RS computes the eigenvalues and eigenvectors\n")
+	fmt.Fprintf(osStdout, "  of a real symmetric matrix.\n")
+	fmt.Fprintf(osStdout, "\n")
+	fmt.Fprintf(osStdout, "  Matrix order = %d\n", n)
 	r8mat_print(n, n, a, "  The matrix A:")
 	matz = 1
 	ierr = rs(n, a, w, matz, x)
 	if ierr != 0 {
-		fmt.Fprintf(os.Stdout, "\n")
-		fmt.Fprintf(os.Stdout, "TEST06 - Warning!\n")
-		fmt.Fprintf(os.Stdout, "  The error return flag IERR = %d\n", ierr)
+		fmt.Fprintf(osStdout, "\n")
+		fmt.Fprintf(osStdout, "TEST06 - Warning!\n")
+		fmt.Fprintf(osStdout, "  The error return flag IERR = %d\n", ierr)
 		return
 	}
 	r8vec_print(n, w, "  The eigenvalues Lambda:")
@@ -485,7 +483,6 @@ func test06() {
 		}
 		r8mat_print(n, n, r, "  The residual (A-Lambda*I)*X:")
 	}
-	_ = r
 }
 
 // test065 - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/Eispack/eispack_prb1.c:187
@@ -522,12 +519,12 @@ func test065() {
 	var t float64
 	var w []float64 = make([]float64, 3)
 	var x []float64 = make([]float64, 9)
-	fmt.Fprintf(os.Stdout, "\n")
-	fmt.Fprintf(os.Stdout, "TEST065\n")
-	fmt.Fprintf(os.Stdout, "  RS computes the eigenvalues and eigenvectors\n")
-	fmt.Fprintf(os.Stdout, "  of a real symmetric matrix.\n")
-	fmt.Fprintf(os.Stdout, "\n")
-	fmt.Fprintf(os.Stdout, "  Matrix order = %d\n", n)
+	fmt.Fprintf(osStdout, "\n")
+	fmt.Fprintf(osStdout, "TEST065\n")
+	fmt.Fprintf(osStdout, "  RS computes the eigenvalues and eigenvectors\n")
+	fmt.Fprintf(osStdout, "  of a real symmetric matrix.\n")
+	fmt.Fprintf(osStdout, "\n")
+	fmt.Fprintf(osStdout, "  Matrix order = %d\n", n)
 	seed = 123456789
 	a = r8mat_uniform_01_new(n, n, &seed)
 	for i = 0; i < n-1; i++ {
@@ -551,9 +548,9 @@ func test065() {
 	matz = 1
 	ierr = rs(n, a, w, matz, x)
 	if ierr != 0 {
-		fmt.Fprintf(os.Stdout, "\n")
-		fmt.Fprintf(os.Stdout, "TEST065 - Warning!\n")
-		fmt.Fprintf(os.Stdout, "  The error return flag IERR = %d\n", ierr)
+		fmt.Fprintf(osStdout, "\n")
+		fmt.Fprintf(osStdout, "TEST065 - Warning!\n")
+		fmt.Fprintf(osStdout, "  The error return flag IERR = %d\n", ierr)
 		return
 	}
 	r8vec_print(n, w, "  The eigenvalues Lambda:")
@@ -629,21 +626,21 @@ func test07() {
 			}
 		}
 	}
-	fmt.Fprintf(os.Stdout, "\n")
-	fmt.Fprintf(os.Stdout, "TEST07\n")
-	fmt.Fprintf(os.Stdout, "  RSB computes the eigenvalues and eigenvectors\n")
-	fmt.Fprintf(os.Stdout, "  of a real symmetric band matrix.\n")
-	fmt.Fprintf(os.Stdout, "\n")
-	fmt.Fprintf(os.Stdout, "  Matrix order = %d\n", n)
+	fmt.Fprintf(osStdout, "\n")
+	fmt.Fprintf(osStdout, "TEST07\n")
+	fmt.Fprintf(osStdout, "  RSB computes the eigenvalues and eigenvectors\n")
+	fmt.Fprintf(osStdout, "  of a real symmetric band matrix.\n")
+	fmt.Fprintf(osStdout, "\n")
+	fmt.Fprintf(osStdout, "  Matrix order = %d\n", n)
 	r8mat_print(n, n, a2, "  The matrix A:")
 	w = make([]float64, uint32(n)*8*1/8)
 	x = make([]float64, uint32(n*n)*8*1/8)
 	matz = 1
 	ierr = rsb(n, mb, a, w, matz, x)
 	if ierr != 0 {
-		fmt.Fprintf(os.Stdout, "\n")
-		fmt.Fprintf(os.Stdout, "TEST07 - Warning!\n")
-		fmt.Fprintf(os.Stdout, "  The error return flag IERR = %d\n", ierr)
+		fmt.Fprintf(osStdout, "\n")
+		fmt.Fprintf(osStdout, "TEST07 - Warning!\n")
+		fmt.Fprintf(osStdout, "  The error return flag IERR = %d\n", ierr)
 		return
 	}
 	r8vec_print(n, w, "  The eigenvalues Lambda:")
