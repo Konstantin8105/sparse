@@ -1446,17 +1446,17 @@ func tql2(n int, d []float64, e []float64, z []float64) int {
 		j = 0
 		h = r8_abs(d[l]) + r8_abs(e[l])
 		tst1 = r8_max(tst1, h)
-		{
-			//
-			//  Look for a small sub-diagonal element.
-			//
-			for m = l; m < n; m++ {
-				tst2 = tst1 + r8_abs(e[m])
-				if tst2 == tst1 {
-					break
-				}
+
+		//
+		//  Look for a small sub-diagonal element.
+		//
+		for m = l; m < n; m++ {
+			tst2 = tst1 + r8_abs(e[m])
+			if tst2 == tst1 {
+				break
 			}
 		}
+
 		if m != l {
 			for {
 				if 30 <= j {
@@ -1502,16 +1502,16 @@ func tql2(n int, d []float64, e []float64, z []float64) int {
 					c = p / r
 					p = c*d[i] - s*g
 					d[i+1] = h + s*(c*g+s*d[i])
-					{
-						//
-						//  Form vector.
-						//
-						for k = 0; k < n; k++ {
-							h = z[k+(i+1)*n]
-							z[k+(i+1)*n] = s*z[k+i*n] + c*h
-							z[k+i*n] = c*z[k+i*n] - s*h
-						}
+
+					//
+					//  Form vector.
+					//
+					for k = 0; k < n; k++ {
+						h = z[k+(i+1)*n]
+						z[k+(i+1)*n] = s*z[k+i*n] + c*h
+						z[k+i*n] = c*z[k+i*n] - s*h
 					}
+
 				}
 				p = -s * s2 * c3 * el1 * e[l] / dl1
 				e[l] = s * p
@@ -1524,31 +1524,31 @@ func tql2(n int, d []float64, e []float64, z []float64) int {
 		}
 		d[l] = d[l] + f
 	}
-	{
-		//
-		//  Order eigenvalues and eigenvectors.
-		//
-		for ii = 1; ii < n; ii++ {
-			i = ii - 1
-			k = i
-			p = d[i]
-			for j = ii; j < n; j++ {
-				if d[j] < p {
-					k = j
-					p = d[j]
-				}
+
+	//
+	//  Order eigenvalues and eigenvectors.
+	//
+	for ii = 1; ii < n; ii++ {
+		i = ii - 1
+		k = i
+		p = d[i]
+		for j = ii; j < n; j++ {
+			if d[j] < p {
+				k = j
+				p = d[j]
 			}
-			if k != i {
-				d[k] = d[i]
-				d[i] = p
-				for j = 0; j < n; j++ {
-					t = z[j+i*n]
-					z[j+i*n] = z[j+k*n]
-					z[j+k*n] = t
-				}
+		}
+		if k != i {
+			d[k] = d[i]
+			d[i] = p
+			for j = 0; j < n; j++ {
+				t = z[j+i*n]
+				z[j+i*n] = z[j+k*n]
+				z[j+k*n] = t
 			}
 		}
 	}
+
 	return ierr
 }
 
