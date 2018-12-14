@@ -75,49 +75,56 @@ func TestEispack(t *testing.T) {
 			source: "Eispack/eispack_prb2.c",
 			f:      intenalEispack2,
 		},
+		{
+			source: "Eispack/eispack_prb3.c",
+			f:      intenalEispack3,
+		},
 	}
 
 	for i := range tcs {
-		out := runEispack(tcs[i].source, t)
+		t.Run(tcs[i].source, func(t *testing.T) {
+			out := runEispack(tcs[i].source, t)
 
-		// remove first and last line
-		{
-			lines := strings.Split(out, "\n")
-			out = strings.Join(lines[1:len(lines)-2], "\n")
-			out = strings.TrimSpace(out)
-		}
+			// remove first and last line
+			{
+				lines := strings.Split(out, "\n")
+				out = strings.Join(lines[1:len(lines)-2], "\n")
+				out = strings.TrimSpace(out)
+			}
 
-		// generate output
-		tmpfile, err := ioutil.TempFile("", "demo2")
-		if err != nil {
-			t.Fatal(err)
-		}
-		old := osStdout
-		osStdout = tmpfile
-		defer func() {
-			osStdout = old
-		}()
+			// generate output
+			tmpfile, err := ioutil.TempFile("", "demo2")
+			if err != nil {
+				t.Fatal(err)
+			}
+			old := osStdout
+			osStdout = tmpfile
+			defer func() {
+				osStdout = old
+			}()
 
-		// run transpiled code
-		tcs[i].f()
+			// run transpiled code
+			tcs[i].f()
 
-		// compare output
-		filename := tmpfile.Name()
-		defer func() { _ = os.Remove(filename) }()
-		err = tmpfile.Close()
-		if err != nil {
-			t.Fatal(err)
-		}
-		cb2, err := ioutil.ReadFile(filename)
-		if err != nil {
-			t.Fatal(err)
-		}
-		out2 := string(cb2)
-		out2 = strings.TrimSpace(out2)
+			// compare output
+			filename := tmpfile.Name()
+			defer func() { _ = os.Remove(filename) }()
+			err = tmpfile.Close()
+			if err != nil {
+				t.Fatal(err)
+			}
+			cb2, err := ioutil.ReadFile(filename)
+			if err != nil {
+				t.Fatal(err)
+			}
+			out2 := string(cb2)
+			out2 = strings.TrimSpace(out2)
 
-		if out != out2 {
-			t.Fatal(ShowDiff(out, out2))
-		}
+			if out != out2 {
+				t.Fatal(ShowDiff(out, out2))
+			}
+			// t.Log(out2)
+		})
 	}
 }
 
@@ -467,6 +474,63 @@ func intenalEispack2() {
 	if ierr != 0 {
 		fmt.Fprintf(osStdout, "\n")
 		fmt.Fprintf(osStdout, "TEST06 - Warning!\n")
+		fmt.Fprintf(osStdout, "  The error return flag IERR = %d\n", ierr)
+		return
+	}
+	r8vec_print(n, w, "  The eigenvalues Lambda:")
+}
+
+func intenalEispack3() {
+	var a []float64
+	var a2 []float64
+	var i int
+	var ierr int
+	var j int
+	var matz int
+	var mb int = 2
+	var n int = 5
+	var w []float64
+	var x []float64
+	a = make([]float64, uint32(n*mb)*8*1/8)
+	for j = 0; j < mb; j++ {
+		for i = 0; i < n; i++ {
+			a[i+j*n] = 0
+		}
+	}
+	j = mb - 1
+	for i = 0; i < n; i++ {
+		a[i+j*n] = 2
+	}
+	j = 0
+	for i = 1; i < n; i++ {
+		a[i+j*n] = -1
+	}
+	a2 = make([]float64, uint32(n*n)*8*1/8)
+	for j = 0; j < n; j++ {
+		for i = 0; i < n; i++ {
+			if i == j {
+				a2[i+j*n] = 2
+			} else if int(math.Abs(float64(i-j))) == 1 {
+				a2[i+j*n] = -1
+			} else {
+				a2[i+j*n] = 0
+			}
+		}
+	}
+	fmt.Fprintf(osStdout, "\n")
+	fmt.Fprintf(osStdout, "TEST07 (KI)\n")
+	fmt.Fprintf(osStdout, "  RSB computes the eigenvalues and eigenvectors\n")
+	fmt.Fprintf(osStdout, "  of a real symmetric band matrix.\n")
+	fmt.Fprintf(osStdout, "\n")
+	fmt.Fprintf(osStdout, "  Matrix order = %d\n", n)
+	r8mat_print(n, n, a2, "  The matrix A:")
+	w = make([]float64, uint32(n)*8*1/8)
+	x = make([]float64, uint32(n*n)*8*1/8)
+	matz = 0
+	ierr = rsb(n, mb, a, w, matz, x)
+	if ierr != 0 {
+		fmt.Fprintf(osStdout, "\n")
+		fmt.Fprintf(osStdout, "TEST07 - Warning!\n")
 		fmt.Fprintf(osStdout, "  The error return flag IERR = %d\n", ierr)
 		return
 	}
