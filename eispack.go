@@ -1,15 +1,9 @@
-//
-//	Package main - transpiled by c4go
-//
-//	If you have found any issues, please raise an issue at:
-//	https://github.com/Konstantin8105/c4go/
-//
-
 package sparse
 
 import (
-	"github.com/Konstantin8105/c4go/noarch"
+	"fmt"
 	"math"
+	"os"
 )
 
 // bakvec - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/Eispack/eispack.c:10
@@ -1212,11 +1206,11 @@ func r8mat_print_some(m int, n int, a []float64, ilo int, jlo int, ihi int, jhi 
 	//
 	//    Input, char *TITLE, a title.
 	//
-	noarch.Fprintf(noarch.Stdout, []byte("\n\x00"))
-	noarch.Fprintf(noarch.Stdout, []byte("%s\n\x00"), title)
+	fmt.Fprintf(os.Stdout, "\n")
+	fmt.Fprintf(os.Stdout, "%s\n", title)
 	if m <= 0 || n <= 0 {
-		noarch.Fprintf(noarch.Stdout, []byte("\n\x00"))
-		noarch.Fprintf(noarch.Stdout, []byte("  (None)\n\x00"))
+		fmt.Fprintf(os.Stdout, "\n")
+		fmt.Fprintf(os.Stdout, "  (None)\n")
 		return
 	}
 	{
@@ -1227,19 +1221,19 @@ func r8mat_print_some(m int, n int, a []float64, ilo int, jlo int, ihi int, jhi 
 			j2hi = j2lo + 5 - 1
 			j2hi = i4_min(j2hi, n)
 			j2hi = i4_min(j2hi, jhi)
-			noarch.Fprintf(noarch.Stdout, []byte("\n\x00"))
+			fmt.Fprintf(os.Stdout, "\n")
 			//
 			//  For each column J in the current range...
 			//
 			//  Write the header.
 			//
-			noarch.Fprintf(noarch.Stdout, []byte("  Col:  \x00"))
+			fmt.Fprintf(os.Stdout, "  Col:  ")
 			for j = j2lo; j <= j2hi; j++ {
-				noarch.Fprintf(noarch.Stdout, []byte("  %7d     \x00"), j-1)
+				fmt.Fprintf(os.Stdout, "  %7d     ", j-1)
 			}
-			noarch.Fprintf(noarch.Stdout, []byte("\n\x00"))
-			noarch.Fprintf(noarch.Stdout, []byte("  Row\n\x00"))
-			noarch.Fprintf(noarch.Stdout, []byte("\n\x00"))
+			fmt.Fprintf(os.Stdout, "\n")
+			fmt.Fprintf(os.Stdout, "  Row\n")
+			fmt.Fprintf(os.Stdout, "\n")
 			//
 			//  Determine the range of the rows in this strip.
 			//
@@ -1249,11 +1243,11 @@ func r8mat_print_some(m int, n int, a []float64, ilo int, jlo int, ihi int, jhi 
 				//
 				//  Print out (up to) 5 entries in row I, that lie in the current strip.
 				//
-				noarch.Fprintf(noarch.Stdout, []byte("%5d:\x00"), i-1)
+				fmt.Fprintf(os.Stdout, "%5d:", i-1)
 				for j = j2lo; j <= j2hi; j++ {
-					noarch.Fprintf(noarch.Stdout, []byte("  %14f\x00"), a[i-1+(j-1)*m])
+					fmt.Fprintf(os.Stdout, "  %14f", a[i-1+(j-1)*m])
 				}
-				noarch.Fprintf(noarch.Stdout, []byte("\n\x00"))
+				fmt.Fprintf(os.Stdout, "\n")
 			}
 		}
 	}
@@ -1374,11 +1368,11 @@ func r8vec_print(n int, a []float64, title string) {
 	//
 	//    Input, char *TITLE, a title.
 	//
-	noarch.Fprintf(noarch.Stdout, []byte("\n\x00"))
-	noarch.Fprintf(noarch.Stdout, []byte("%s\n\x00"), title)
-	noarch.Fprintf(noarch.Stdout, []byte("\n\x00"))
+	fmt.Fprintf(os.Stdout, "\n")
+	fmt.Fprintf(os.Stdout, "%s\n", title)
+	fmt.Fprintf(os.Stdout, "\n")
 	for i = 0; i < n; i++ {
-		noarch.Fprintf(noarch.Stdout, []byte("  %8d: %14f\n\x00"), i, a[i])
+		fmt.Fprintf(os.Stdout, "  %8d: %14f\n", i, a[i])
 	}
 }
 
@@ -1605,8 +1599,8 @@ func rsb(n int, mb int, a []float64, w []float64, matz int, z []float64) int {
 // 	var now noarch.TimeT
 // 	now = noarch.Time(nil)
 // 	tm = noarch.LocalTime((*[100000000]noarch.TimeT)(unsafe.Pointer(&now))[:])
-// 	len = strftime(time_buffer, 40, []byte("%d %B %Y %I:%M:%S %p\x00"), tm)
-// 	noarch.Fprintf(noarch.Stdout, []byte("%s\n\x00"), time_buffer)
+// 	len = strftime(time_buffer, 40, "%d %B %Y %I:%M:%S %p"), tm)
+// 	fmt.Fprintf(os.Stdout, "%s\n", time_buffer)
 // }
 
 // tql2 - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/Eispack/eispack.c:1858
