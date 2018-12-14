@@ -1,9 +1,12 @@
 package sparse_test
 
 import (
+	"bytes"
 	"fmt"
+	"io/ioutil"
 	"math"
 	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/Konstantin8105/sparse"
@@ -641,4 +644,43 @@ func TestLU(t *testing.T) {
 			t.Fatalf("Not correct ignore list")
 		}
 	})
+}
+
+func TestMatLU(t *testing.T) {
+	matrixes, err := filepath.Glob("./testdata/matrix/" + "*.lu")
+	if err != nil {
+		t.Fatal(err)
+	}
+	for i := range matrixes {
+		if testing.Short() && i < len(matrixes)-1 {
+			continue
+		}
+		t.Run(matrixes[i], func(t *testing.T) {
+			o, err := ioutil.ReadFile(matrixes[i])
+			if err != nil {
+				t.Fatal(err)
+			}
+			var stdin bytes.Buffer
+			stdin.Write(o)
+			T, err := sparse.Load(&stdin)
+			if err != nil {
+				t.Fatal(err)
+			}
+			A, err := sparse.Compress(T)
+			if err != nil {
+				t.Fatal(err)
+			}
+			r, c := A.Dims()
+			t.Logf("size : %4d %4d", r, c)
+			if ok, err := sparse.IsSym(A); !ok || err != nil {
+				t.Fatalf("matrix is not symmetrical: %v", err)
+			}
+			t.Log("symmetrical")
+			lu := new(sparse.LU)
+			err = lu.Factorize(A)
+			if err != nil {
+				t.Fatal(err)
+			}
+		})
+	}
 }
