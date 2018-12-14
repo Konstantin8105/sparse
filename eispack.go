@@ -663,7 +663,7 @@ func csroot(xr float64, xi float64, yr []float64, yi []float64) {
 	var tr float64
 	tr = xr
 	ti = xi
-	s = math.Sqrt(0.5 * (pythag(tr, ti) + r8_abs(tr)))
+	s = math.Sqrt(0.5 * (pythag(tr, ti) + math.Abs(tr)))
 	if 0 <= tr {
 		yr[0] = s
 	}
@@ -817,9 +817,9 @@ func pythag(a float64, b float64) float64 {
 	var s float64
 	var t float64
 	var u float64
-	p = r8_max(r8_abs(a), r8_abs(b))
+	p = r8_max(math.Abs(a), math.Abs(b))
 	if p != 0 {
-		r = r8_min(r8_abs(a), r8_abs(b)) / p
+		r = r8_min(math.Abs(a), math.Abs(b)) / p
 		r = r * r
 		for {
 			t = 4 + r
@@ -836,40 +836,7 @@ func pythag(a float64, b float64) float64 {
 }
 
 // r8_abs - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/Eispack/eispack.c:988
-//
-//
-//  Purpose:
-//
-//    R8_ABS returns the absolute value of an R8.
-//
-//  Licensing:
-//
-//    This code is distributed under the GNU LGPL license.
-//
-//  Modified:
-//
-//    07 May 2006
-//
-//  Author:
-//
-//    John Burkardt
-//
-//  Parameters:
-//
-//    Input, double X, the quantity whose absolute value is desired.
-//
-//    Output, double R8_ABS, the absolute value of X.
-//
-//
-func r8_abs(x float64) float64 {
-	var value float64
-	if 0 <= x {
-		value = +x
-	} else {
-		value = -x
-	}
-	return value
-}
+// removed
 
 // r8_epsilon - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/Eispack/eispack.c:1029
 //
@@ -1444,14 +1411,14 @@ func tql2(n int, d []float64, e []float64, z []float64) int {
 	e[n-1] = 0
 	for l = 0; l < n; l++ {
 		j = 0
-		h = r8_abs(d[l]) + r8_abs(e[l])
+		h = math.Abs(d[l]) + math.Abs(e[l])
 		tst1 = r8_max(tst1, h)
 
 		//
 		//  Look for a small sub-diagonal element.
 		//
 		for m = l; m < n; m++ {
-			tst2 = tst1 + r8_abs(e[m])
+			tst2 = tst1 + math.Abs(e[m])
 			if tst2 == tst1 {
 				break
 			}
@@ -1472,8 +1439,8 @@ func tql2(n int, d []float64, e []float64, z []float64) int {
 				g = d[l]
 				p = (d[l1] - g) / (2 * e[l])
 				r = pythag(p, 1)
-				d[l] = e[l] / (p + r8_sign(p)*r8_abs(r))
-				d[l1] = e[l] * (p + r8_sign(p)*r8_abs(r))
+				d[l] = e[l] / (p + r8_sign(p)*math.Abs(r))
+				d[l1] = e[l] * (p + r8_sign(p)*math.Abs(r))
 				dl1 = d[l1]
 				h = g - d[l]
 				for i = l2; i < n; i++ {
@@ -1516,7 +1483,7 @@ func tql2(n int, d []float64, e []float64, z []float64) int {
 				p = -s * s2 * c3 * el1 * e[l] / dl1
 				e[l] = s * p
 				d[l] = c * p
-				tst2 = tst1 + r8_abs(e[l])
+				tst2 = tst1 + math.Abs(e[l])
 				if tst2 <= tst1 {
 					break
 				}
@@ -1649,10 +1616,10 @@ func tqlrat(n int, d []float64, e2 []float64) int {
 	e2[n-1] = 0
 	for l = 0; l < n; l++ {
 		j = 0
-		h = r8_abs(d[l]) + math.Sqrt(e2[l])
+		h = math.Abs(d[l]) + math.Sqrt(e2[l])
 		if t <= h {
 			t = h
-			b = r8_abs(t) * r8_epsilon()
+			b = math.Abs(t) * r8_epsilon()
 			c = b * b
 		}
 
@@ -1680,7 +1647,7 @@ func tqlrat(n int, d []float64, e2 []float64) int {
 				g = d[l]
 				p = (d[l1] - g) / (2 * s)
 				r = pythag(p, 1)
-				d[l] = s / (p + r8_abs(r)*r8_sign(p))
+				d[l] = s / (p + math.Abs(r)*r8_sign(p))
 				h = g - d[l]
 				for i = l1; i < n; i++ {
 					d[i] = d[i] - h
@@ -1717,7 +1684,7 @@ func tqlrat(n int, d []float64, e2 []float64) int {
 					//
 					break
 				}
-				if r8_abs(e2[l]) <= r8_abs(c/h) {
+				if math.Abs(e2[l]) <= math.Abs(c/h) {
 					break
 				}
 				e2[l] = h * e2[l]
@@ -1840,7 +1807,7 @@ func tred1(n int, a []float64, d []float64, e []float64, e2 []float64) {
 		//
 		scale = 0
 		for k = 0; k <= l; k++ {
-			scale = scale + r8_abs(d[k])
+			scale = scale + math.Abs(d[k])
 		}
 		if scale == 0 {
 			for j = 0; j <= l; j++ {
@@ -2018,7 +1985,7 @@ func tred2(n int, a []float64, d []float64, e []float64, z []float64) {
 		//
 		scale = 0
 		for k = 0; k <= l; k++ {
-			scale = scale + r8_abs(d[k])
+			scale = scale + math.Abs(d[k])
 		}
 		if scale == 0 {
 			e[i] = d[l]
