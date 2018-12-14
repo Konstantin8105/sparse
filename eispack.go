@@ -1655,16 +1655,16 @@ func tqlrat(n int, d []float64, e2 []float64) int {
 			b = r8_abs(t) * r8_epsilon()
 			c = b * b
 		}
-		{
-			//
-			//  Look for small squared sub-diagonal element.
-			//
-			for m = l; m < n; m++ {
-				if e2[m] <= c {
-					break
-				}
+
+		//
+		//  Look for small squared sub-diagonal element.
+		//
+		for m = l; m < n; m++ {
+			if e2[m] <= c {
+				break
 			}
 		}
+
 		if m != l {
 			for {
 				if 30 <= j {
@@ -1727,21 +1727,21 @@ func tqlrat(n int, d []float64, e2 []float64) int {
 			}
 		}
 		p = d[l] + f
-		{
-			//
-			//  Order the eigenvalues.
-			//
-			for i = l; 0 <= i; i-- {
-				if i == 0 {
-					d[i] = p
-					break
-				} else if d[i-1] <= p {
-					d[i] = p
-					break
-				}
-				d[i] = d[i-1]
+
+		//
+		//  Order the eigenvalues.
+		//
+		for i = l; 0 <= i; i-- {
+			if i == 0 {
+				d[i] = p
+				break
+			} else if d[i-1] <= p {
+				d[i] = p
+				break
 			}
+			d[i] = d[i-1]
 		}
+
 	}
 	return ierr
 }
