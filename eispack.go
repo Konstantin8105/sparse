@@ -1182,11 +1182,13 @@ func rs(n int, a []float64, w []float64, matz int, z []float64) (ierr int) {
 		fv2 := make([]float64, n)
 		tred1(n, a, w, fv1, fv2)
 		ierr = tqlrat(n, w, fv2)
-	} else {
-		fv1 := make([]float64, n)
-		tred2(n, a, w, fv1, z)
-		ierr = tql2(n, w, fv1, z)
+		return
 	}
+
+	fv1 := make([]float64, n)
+	tred2(n, a, w, fv1, z)
+	ierr = tql2(n, w, fv1, z)
+
 	return
 }
 
