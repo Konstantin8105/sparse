@@ -1,87 +1,85 @@
 package sparse
 
 import (
-	"fmt"
 	"math"
-	"os"
 )
 
 // bakvec - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/Eispack/eispack.c:10
+//
+//
+//
+//  Purpose:
+//
+//    BAKVEC determines eigenvectors by reversing the FIGI transformation.
+//
+//  Discussion:
+//
+//    This subroutine forms the eigenvectors of a nonsymmetric tridiagonal
+//    matrix by back transforming those of the corresponding symmetric
+//    matrix determined by FIGI.
+//
+//  Licensing:
+//
+//    This code is distributed under the GNU LGPL license.
+//
+//  Modified:
+//
+//    08 November 2012
+//
+//  Author:
+//
+//    Original FORTRAN77 version by Smith, Boyle, Dongarra, Garbow, Ikebe,
+//    Klema, Moler.
+//    C version by John Burkardt.
+//
+//  Reference:
+//
+//    James Wilkinson, Christian Reinsch,
+//    Handbook for Automatic Computation,
+//    Volume II, Linear Algebra, Part 2,
+//    Springer, 1971,
+//    ISBN: 0387054146,
+//    LC: QA251.W67.
+//
+//    Brian Smith, James Boyle, Jack Dongarra, Burton Garbow,
+//    Yasuhiko Ikebe, Virginia Klema, Cleve Moler,
+//    Matrix Eigensystem Routines, EISPACK Guide,
+//    Lecture Notes in Computer Science, Volume 6,
+//    Springer Verlag, 1976,
+//    ISBN13: 978-3540075462,
+//    LC: QA193.M37.
+//
+//  Parameters:
+//
+//    Input, int N, the order of the matrix.
+//
+//    Input, double T[N*3], contains the nonsymmetric matrix.  Its
+//    subdiagonal is stored in the positions 2:N of the first column,
+//    its diagonal in positions 1:N of the second column,
+//    and its superdiagonal in positions 1:N-1 of the third column.
+//    T(1,1) and T(N,3) are arbitrary.
+//
+//    Input/output, double E[N].  On input, E(2:N) contains the
+//    subdiagonal elements of the symmetric matrix.  E(1) is arbitrary.
+//    On output, the contents of E have been destroyed.
+//
+//    Input, int M, the number of eigenvectors to be back
+//    transformed.
+//
+//    Input/output, double Z[N*M], contains the eigenvectors.
+//    On output, they have been transformed as requested.
+//
+//    Output, int BAKVEC, an error flag.
+//    0, for normal return,
+//    2*N+I, if E(I) is zero with T(I,1) or T(I-1,3) non-zero.
+//    In this case, the symmetric matrix is not similar
+//    to the original matrix, and the eigenvectors
+//    cannot be found by this program.
 //
 func bakvec(n int, t []float64, e []float64, m int, z []float64) int {
 	var i int
 	var ierr int
 	var j int
-	//
-	//
-	//  Purpose:
-	//
-	//    BAKVEC determines eigenvectors by reversing the FIGI transformation.
-	//
-	//  Discussion:
-	//
-	//    This subroutine forms the eigenvectors of a nonsymmetric tridiagonal
-	//    matrix by back transforming those of the corresponding symmetric
-	//    matrix determined by FIGI.
-	//
-	//  Licensing:
-	//
-	//    This code is distributed under the GNU LGPL license.
-	//
-	//  Modified:
-	//
-	//    08 November 2012
-	//
-	//  Author:
-	//
-	//    Original FORTRAN77 version by Smith, Boyle, Dongarra, Garbow, Ikebe,
-	//    Klema, Moler.
-	//    C version by John Burkardt.
-	//
-	//  Reference:
-	//
-	//    James Wilkinson, Christian Reinsch,
-	//    Handbook for Automatic Computation,
-	//    Volume II, Linear Algebra, Part 2,
-	//    Springer, 1971,
-	//    ISBN: 0387054146,
-	//    LC: QA251.W67.
-	//
-	//    Brian Smith, James Boyle, Jack Dongarra, Burton Garbow,
-	//    Yasuhiko Ikebe, Virginia Klema, Cleve Moler,
-	//    Matrix Eigensystem Routines, EISPACK Guide,
-	//    Lecture Notes in Computer Science, Volume 6,
-	//    Springer Verlag, 1976,
-	//    ISBN13: 978-3540075462,
-	//    LC: QA193.M37.
-	//
-	//  Parameters:
-	//
-	//    Input, int N, the order of the matrix.
-	//
-	//    Input, double T[N*3], contains the nonsymmetric matrix.  Its
-	//    subdiagonal is stored in the positions 2:N of the first column,
-	//    its diagonal in positions 1:N of the second column,
-	//    and its superdiagonal in positions 1:N-1 of the third column.
-	//    T(1,1) and T(N,3) are arbitrary.
-	//
-	//    Input/output, double E[N].  On input, E(2:N) contains the
-	//    subdiagonal elements of the symmetric matrix.  E(1) is arbitrary.
-	//    On output, the contents of E have been destroyed.
-	//
-	//    Input, int M, the number of eigenvectors to be back
-	//    transformed.
-	//
-	//    Input/output, double Z[N*M], contains the eigenvectors.
-	//    On output, they have been transformed as requested.
-	//
-	//    Output, int BAKVEC, an error flag.
-	//    0, for normal return,
-	//    2*N+I, if E(I) is zero with T(I,1) or T(I-1,3) non-zero.
-	//    In this case, the symmetric matrix is not similar
-	//    to the original matrix, and the eigenvectors
-	//    cannot be found by this program.
-	//
 	ierr = 0
 	if m == 0 {
 		return ierr
@@ -209,6 +207,83 @@ func balbak(n int, low int, igh int, scale []float64, m int, z []float64) {
 
 // bandr - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/Eispack/eispack.c:246
 //
+//
+//
+//  Purpose:
+//
+//    BANDR reduces a symmetric band matrix to symmetric tridiagonal form.
+//
+//  Discussion:
+//
+//    This subroutine reduces a real symmetric band matrix
+//    to a symmetric tridiagonal matrix using and optionally
+//    accumulating orthogonal similarity transformations.
+//
+//  Licensing:
+//
+//    This code is distributed under the GNU LGPL license.
+//
+//  Modified:
+//
+//    09 November 2012
+//
+//  Author:
+//
+//    Original FORTRAN77 version by Smith, Boyle, Dongarra, Garbow, Ikebe,
+//    Klema, Moler.
+//    C version by John Burkardt.
+//
+//  Reference:
+//
+//    James Wilkinson, Christian Reinsch,
+//    Handbook for Automatic Computation,
+//    Volume II, Linear Algebra, Part 2,
+//    Springer, 1971,
+//    ISBN: 0387054146,
+//    LC: QA251.W67.
+//
+//    Brian Smith, James Boyle, Jack Dongarra, Burton Garbow,
+//    Yasuhiko Ikebe, Virginia Klema, Cleve Moler,
+//    Matrix Eigensystem Routines, EISPACK Guide,
+//    Lecture Notes in Computer Science, Volume 6,
+//    Springer Verlag, 1976,
+//    ISBN13: 978-3540075462,
+//    LC: QA193.M37.
+//
+//  Parameters:
+//
+//    Input, int N, the order of the matrix.
+//
+//    Input, int MB, is the (half) band width of the matrix,
+//    defined as the number of adjacent diagonals, including the principal
+//    diagonal, required to specify the non-zero portion of the
+//    lower triangle of the matrix.
+//
+//    Input/output, double A[N*MB].  On input, contains the lower
+//    triangle of the symmetric band input matrix stored as an N by MB array.
+//    Its lowest subdiagonal is stored in the last N+1-MB positions of the first
+//    column, its next subdiagonal in the last N+2-MB positions of the second
+//    column, further subdiagonals similarly, and finally its principal diagonal
+//    in the N positions of the last column.  Contents of storages not part of
+//    the matrix are arbitrary.  On output, A has been destroyed, except for
+//    its last two columns which contain a copy of the tridiagonal matrix.
+//
+//    Output, double D[N], the diagonal elements of the tridiagonal
+//    matrix.
+//
+//    Output, double E[N], the subdiagonal elements of the tridiagonal
+//    matrix in E(2:N).  E(1) is set to zero.
+//
+//    Output, double E2[N], contains the squares of the corresponding
+//    elements of E.  E2 may coincide with E if the squares are not needed.
+//
+//    Input, logical MATZ, should be set to TRUE if the transformation matrix is
+//    to be accumulated, and to FALSE otherwise.
+//
+//    Output, double Z[N*N], the orthogonal transformation matrix
+//    produced in the reduction if MATZ has been set to TRUE.  Otherwise, Z is
+//    not referenced.
+//
 func bandr(n int, mb int, a []float64, d []float64, e []float64, e2 []float64, matz int, z []float64) {
 	var b1 float64
 	var b2 float64
@@ -237,83 +312,6 @@ func bandr(n int, mb int, a []float64, d []float64, e []float64, e2 []float64, m
 	var s2 float64
 	var u float64
 	var ugl int
-	//
-	//
-	//  Purpose:
-	//
-	//    BANDR reduces a symmetric band matrix to symmetric tridiagonal form.
-	//
-	//  Discussion:
-	//
-	//    This subroutine reduces a real symmetric band matrix
-	//    to a symmetric tridiagonal matrix using and optionally
-	//    accumulating orthogonal similarity transformations.
-	//
-	//  Licensing:
-	//
-	//    This code is distributed under the GNU LGPL license.
-	//
-	//  Modified:
-	//
-	//    09 November 2012
-	//
-	//  Author:
-	//
-	//    Original FORTRAN77 version by Smith, Boyle, Dongarra, Garbow, Ikebe,
-	//    Klema, Moler.
-	//    C version by John Burkardt.
-	//
-	//  Reference:
-	//
-	//    James Wilkinson, Christian Reinsch,
-	//    Handbook for Automatic Computation,
-	//    Volume II, Linear Algebra, Part 2,
-	//    Springer, 1971,
-	//    ISBN: 0387054146,
-	//    LC: QA251.W67.
-	//
-	//    Brian Smith, James Boyle, Jack Dongarra, Burton Garbow,
-	//    Yasuhiko Ikebe, Virginia Klema, Cleve Moler,
-	//    Matrix Eigensystem Routines, EISPACK Guide,
-	//    Lecture Notes in Computer Science, Volume 6,
-	//    Springer Verlag, 1976,
-	//    ISBN13: 978-3540075462,
-	//    LC: QA193.M37.
-	//
-	//  Parameters:
-	//
-	//    Input, int N, the order of the matrix.
-	//
-	//    Input, int MB, is the (half) band width of the matrix,
-	//    defined as the number of adjacent diagonals, including the principal
-	//    diagonal, required to specify the non-zero portion of the
-	//    lower triangle of the matrix.
-	//
-	//    Input/output, double A[N*MB].  On input, contains the lower
-	//    triangle of the symmetric band input matrix stored as an N by MB array.
-	//    Its lowest subdiagonal is stored in the last N+1-MB positions of the first
-	//    column, its next subdiagonal in the last N+2-MB positions of the second
-	//    column, further subdiagonals similarly, and finally its principal diagonal
-	//    in the N positions of the last column.  Contents of storages not part of
-	//    the matrix are arbitrary.  On output, A has been destroyed, except for
-	//    its last two columns which contain a copy of the tridiagonal matrix.
-	//
-	//    Output, double D[N], the diagonal elements of the tridiagonal
-	//    matrix.
-	//
-	//    Output, double E[N], the subdiagonal elements of the tridiagonal
-	//    matrix in E(2:N).  E(1) is set to zero.
-	//
-	//    Output, double E2[N], contains the squares of the corresponding
-	//    elements of E.  E2 may coincide with E if the squares are not needed.
-	//
-	//    Input, logical MATZ, should be set to TRUE if the transformation matrix is
-	//    to be accumulated, and to FALSE otherwise.
-	//
-	//    Output, double Z[N*N], the orthogonal transformation matrix
-	//    produced in the reduction if MATZ has been set to TRUE.  Otherwise, Z is
-	//    not referenced.
-	//
 	dmin = r8_epsilon()
 	dminrt = math.Sqrt(dmin)
 	{
@@ -506,6 +504,66 @@ func bandr(n int, mb int, a []float64, d []float64, e []float64, e2 []float64, m
 
 // cbabk2 - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/Eispack/eispack.c:606
 //
+//
+//
+//  Purpose:
+//
+//    CBABK2 finds eigenvectors by undoing the CBAL transformation.
+//
+//  Discussion:
+//
+//    This subroutine forms the eigenvectors of a complex general
+//    matrix by back transforming those of the corresponding
+//    balanced matrix determined by CBAL.
+//
+//  Licensing:
+//
+//    This code is distributed under the GNU LGPL license.
+//
+//  Modified:
+//
+//    08 November 2012
+//
+//  Author:
+//
+//    Original FORTRAN77 version by Smith, Boyle, Dongarra, Garbow, Ikebe,
+//    Klema, Moler.
+//    C version by John Burkardt.
+//
+//  Reference:
+//
+//    James Wilkinson, Christian Reinsch,
+//    Handbook for Automatic Computation,
+//    Volume II, Linear Algebra, Part 2,
+//    Springer, 1971,
+//    ISBN: 0387054146,
+//    LC: QA251.W67.
+//
+//    Brian Smith, James Boyle, Jack Dongarra, Burton Garbow,
+//    Yasuhiko Ikebe, Virginia Klema, Cleve Moler,
+//    Matrix Eigensystem Routines, EISPACK Guide,
+//    Lecture Notes in Computer Science, Volume 6,
+//    Springer Verlag, 1976,
+//    ISBN13: 978-3540075462,
+//    LC: QA193.M37.
+//
+//  Parameters:
+//
+//    Input, int N, the order of the matrix.
+//
+//    Input, int LOW, IGH, values determined by CBAL.
+//
+//    Input, double SCALE[N], information determining the permutations
+//    and scaling factors used by CBAL.
+//
+//    Input, int M, the number of eigenvectors to be back
+//    transformed.
+//
+//    Input/output, double ZR[N*M], ZI[N*M].  On input, the real
+//    and imaginary parts, respectively, of the eigenvectors to be back
+//    transformed in their first M columns.  On output, the transformed
+//    eigenvectors.
+//
 func cbabk2(n int, low int, igh int, scale []float64, m int, zr []float64, zi []float64) {
 	var i int
 	var ii int
@@ -513,66 +571,6 @@ func cbabk2(n int, low int, igh int, scale []float64, m int, zr []float64, zi []
 	var k int
 	var s float64
 	if m == 0 {
-		//
-		//
-		//  Purpose:
-		//
-		//    CBABK2 finds eigenvectors by undoing the CBAL transformation.
-		//
-		//  Discussion:
-		//
-		//    This subroutine forms the eigenvectors of a complex general
-		//    matrix by back transforming those of the corresponding
-		//    balanced matrix determined by CBAL.
-		//
-		//  Licensing:
-		//
-		//    This code is distributed under the GNU LGPL license.
-		//
-		//  Modified:
-		//
-		//    08 November 2012
-		//
-		//  Author:
-		//
-		//    Original FORTRAN77 version by Smith, Boyle, Dongarra, Garbow, Ikebe,
-		//    Klema, Moler.
-		//    C version by John Burkardt.
-		//
-		//  Reference:
-		//
-		//    James Wilkinson, Christian Reinsch,
-		//    Handbook for Automatic Computation,
-		//    Volume II, Linear Algebra, Part 2,
-		//    Springer, 1971,
-		//    ISBN: 0387054146,
-		//    LC: QA251.W67.
-		//
-		//    Brian Smith, James Boyle, Jack Dongarra, Burton Garbow,
-		//    Yasuhiko Ikebe, Virginia Klema, Cleve Moler,
-		//    Matrix Eigensystem Routines, EISPACK Guide,
-		//    Lecture Notes in Computer Science, Volume 6,
-		//    Springer Verlag, 1976,
-		//    ISBN13: 978-3540075462,
-		//    LC: QA193.M37.
-		//
-		//  Parameters:
-		//
-		//    Input, int N, the order of the matrix.
-		//
-		//    Input, int LOW, IGH, values determined by CBAL.
-		//
-		//    Input, double SCALE[N], information determining the permutations
-		//    and scaling factors used by CBAL.
-		//
-		//    Input, int M, the number of eigenvectors to be back
-		//    transformed.
-		//
-		//    Input/output, double ZR[N*M], ZI[N*M].  On input, the real
-		//    and imaginary parts, respectively, of the eigenvectors to be back
-		//    transformed in their first M columns.  On output, the transformed
-		//    eigenvectors.
-		//
 		return
 	}
 	if igh != low {
@@ -607,62 +605,62 @@ func cbabk2(n int, low int, igh int, scale []float64, m int, zr []float64, zi []
 
 // csroot - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/Eispack/eispack.c:724
 //
+//
+//
+//  Purpose:
+//
+//    CSROOT computes the complex square root of a complex quantity.
+//
+//  Discussion:
+//
+//    The branch of the square function is chosen so that
+//      0.0 <= YR
+//    and
+//      sign ( YI ) == sign ( XI )
+//
+//  Licensing:
+//
+//    This code is distributed under the GNU LGPL license.
+//
+//  Modified:
+//
+//    12 November 2012
+//
+//  Author:
+//
+//    Original FORTRAN77 version by Smith, Boyle, Dongarra, Garbow, Ikebe,
+//    Klema, Moler.
+//    C version by John Burkardt.
+//
+//  Reference:
+//
+//    James Wilkinson, Christian Reinsch,
+//    Handbook for Automatic Computation,
+//    Volume II, Linear Algebra, Part 2,
+//    Springer, 1971,
+//    ISBN: 0387054146,
+//    LC: QA251.W67.
+//
+//    Brian Smith, James Boyle, Jack Dongarra, Burton Garbow,
+//    Yasuhiko Ikebe, Virginia Klema, Cleve Moler,
+//    Matrix Eigensystem Routines, EISPACK Guide,
+//    Lecture Notes in Computer Science, Volume 6,
+//    Springer Verlag, 1976,
+//    ISBN13: 978-3540075462,
+//    LC: QA193.M37.
+//
+//  Parameters:
+//
+//    Input, double XR, XI, the real and imaginary parts of the
+//    quantity whose square root is desired.
+//
+//    Output, double *YR, *YI, the real and imaginary parts of the
+//    square root.
+//
 func csroot(xr float64, xi float64, yr []float64, yi []float64) {
 	var s float64
 	var ti float64
 	var tr float64
-	//
-	//
-	//  Purpose:
-	//
-	//    CSROOT computes the complex square root of a complex quantity.
-	//
-	//  Discussion:
-	//
-	//    The branch of the square function is chosen so that
-	//      0.0 <= YR
-	//    and
-	//      sign ( YI ) == sign ( XI )
-	//
-	//  Licensing:
-	//
-	//    This code is distributed under the GNU LGPL license.
-	//
-	//  Modified:
-	//
-	//    12 November 2012
-	//
-	//  Author:
-	//
-	//    Original FORTRAN77 version by Smith, Boyle, Dongarra, Garbow, Ikebe,
-	//    Klema, Moler.
-	//    C version by John Burkardt.
-	//
-	//  Reference:
-	//
-	//    James Wilkinson, Christian Reinsch,
-	//    Handbook for Automatic Computation,
-	//    Volume II, Linear Algebra, Part 2,
-	//    Springer, 1971,
-	//    ISBN: 0387054146,
-	//    LC: QA251.W67.
-	//
-	//    Brian Smith, James Boyle, Jack Dongarra, Burton Garbow,
-	//    Yasuhiko Ikebe, Virginia Klema, Cleve Moler,
-	//    Matrix Eigensystem Routines, EISPACK Guide,
-	//    Lecture Notes in Computer Science, Volume 6,
-	//    Springer Verlag, 1976,
-	//    ISBN13: 978-3540075462,
-	//    LC: QA193.M37.
-	//
-	//  Parameters:
-	//
-	//    Input, double XR, XI, the real and imaginary parts of the
-	//    quantity whose square root is desired.
-	//
-	//    Output, double *YR, *YI, the real and imaginary parts of the
-	//    square root.
-	//
 	tr = xr
 	ti = xi
 	s = math.Sqrt(0.5 * (pythag(tr, ti) + r8_abs(tr)))
@@ -684,33 +682,33 @@ func csroot(xr float64, xi float64, yr []float64, yi []float64) {
 
 // i4_max - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/Eispack/eispack.c:814
 //
+//
+//
+//  Purpose:
+//
+//    I4_MAX returns the maximum of two I4's.
+//
+//  Licensing:
+//
+//    This code is distributed under the GNU LGPL license.
+//
+//  Modified:
+//
+//    29 August 2006
+//
+//  Author:
+//
+//    John Burkardt
+//
+//  Parameters:
+//
+//    Input, int I1, I2, are two integers to be compared.
+//
+//    Output, int I4_MAX, the larger of I1 and I2.
+//
 func i4_max(i1 int, i2 int) int {
 	var value int
 	if i2 < i1 {
-		//
-		//
-		//  Purpose:
-		//
-		//    I4_MAX returns the maximum of two I4's.
-		//
-		//  Licensing:
-		//
-		//    This code is distributed under the GNU LGPL license.
-		//
-		//  Modified:
-		//
-		//    29 August 2006
-		//
-		//  Author:
-		//
-		//    John Burkardt
-		//
-		//  Parameters:
-		//
-		//    Input, int I1, I2, are two integers to be compared.
-		//
-		//    Output, int I4_MAX, the larger of I1 and I2.
-		//
 		value = i1
 	} else {
 		value = i2
@@ -720,33 +718,33 @@ func i4_max(i1 int, i2 int) int {
 
 // i4_min - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/Eispack/eispack.c:855
 //
+//
+//
+//  Purpose:
+//
+//    I4_MIN returns the smaller of two I4's.
+//
+//  Licensing:
+//
+//    This code is distributed under the GNU LGPL license.
+//
+//  Modified:
+//
+//    29 August 2006
+//
+//  Author:
+//
+//    John Burkardt
+//
+//  Parameters:
+//
+//    Input, int I1, I2, two integers to be compared.
+//
+//    Output, int I4_MIN, the smaller of I1 and I2.
+//
 func i4_min(i1 int, i2 int) int {
 	var value int
 	if i1 < i2 {
-		//
-		//
-		//  Purpose:
-		//
-		//    I4_MIN returns the smaller of two I4's.
-		//
-		//  Licensing:
-		//
-		//    This code is distributed under the GNU LGPL license.
-		//
-		//  Modified:
-		//
-		//    29 August 2006
-		//
-		//  Author:
-		//
-		//    John Burkardt
-		//
-		//  Parameters:
-		//
-		//    Input, int I1, I2, two integers to be compared.
-		//
-		//    Output, int I4_MIN, the smaller of I1 and I2.
-		//
 		value = i1
 	} else {
 		value = i2
@@ -756,69 +754,69 @@ func i4_min(i1 int, i2 int) int {
 
 // pythag - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/Eispack/eispack.c:896
 //
+//
+//
+//  Purpose:
+//
+//    PYTHAG computes SQRT ( A * A + B * B ) carefully.
+//
+//  Discussion:
+//
+//    The formula
+//
+//      PYTHAG = sqrt ( A * A + B * B )
+//
+//    is reasonably accurate, but can fail if, for example, A^2 is larger
+//    than the machine overflow.  The formula can lose most of its accuracy
+//    if the sum of the squares is very large or very small.
+//
+//  Licensing:
+//
+//    This code is distributed under the GNU LGPL license.
+//
+//  Modified:
+//
+//    08 November 2012
+//
+//  Author:
+//
+//    Original FORTRAN77 version by Smith, Boyle, Dongarra, Garbow, Ikebe,
+//    Klema, Moler.
+//    C version by John Burkardt.
+//
+//  Reference:
+//
+//    James Wilkinson, Christian Reinsch,
+//    Handbook for Automatic Computation,
+//    Volume II, Linear Algebra, Part 2,
+//    Springer, 1971,
+//    ISBN: 0387054146,
+//    LC: QA251.W67.
+//
+//    Brian Smith, James Boyle, Jack Dongarra, Burton Garbow,
+//    Yasuhiko Ikebe, Virginia Klema, Cleve Moler,
+//    Matrix Eigensystem Routines, EISPACK Guide,
+//    Lecture Notes in Computer Science, Volume 6,
+//    Springer Verlag, 1976,
+//    ISBN13: 978-3540075462,
+//    LC: QA193.M37.
+//
+//  Modified:
+//
+//    08 November 2012
+//
+//  Parameters:
+//
+//    Input, double A, B, the two legs of a right triangle.
+//
+//    Output, double PYTHAG, the length of the hypotenuse.
+//
 func pythag(a float64, b float64) float64 {
 	var p float64
 	var r float64
 	var s float64
 	var t float64
 	var u float64
-	//
-	//
-	//  Purpose:
-	//
-	//    PYTHAG computes SQRT ( A * A + B * B ) carefully.
-	//
-	//  Discussion:
-	//
-	//    The formula
-	//
-	//      PYTHAG = sqrt ( A * A + B * B )
-	//
-	//    is reasonably accurate, but can fail if, for example, A^2 is larger
-	//    than the machine overflow.  The formula can lose most of its accuracy
-	//    if the sum of the squares is very large or very small.
-	//
-	//  Licensing:
-	//
-	//    This code is distributed under the GNU LGPL license.
-	//
-	//  Modified:
-	//
-	//    08 November 2012
-	//
-	//  Author:
-	//
-	//    Original FORTRAN77 version by Smith, Boyle, Dongarra, Garbow, Ikebe,
-	//    Klema, Moler.
-	//    C version by John Burkardt.
-	//
-	//  Reference:
-	//
-	//    James Wilkinson, Christian Reinsch,
-	//    Handbook for Automatic Computation,
-	//    Volume II, Linear Algebra, Part 2,
-	//    Springer, 1971,
-	//    ISBN: 0387054146,
-	//    LC: QA251.W67.
-	//
-	//    Brian Smith, James Boyle, Jack Dongarra, Burton Garbow,
-	//    Yasuhiko Ikebe, Virginia Klema, Cleve Moler,
-	//    Matrix Eigensystem Routines, EISPACK Guide,
-	//    Lecture Notes in Computer Science, Volume 6,
-	//    Springer Verlag, 1976,
-	//    ISBN13: 978-3540075462,
-	//    LC: QA193.M37.
-	//
-	//  Modified:
-	//
-	//    08 November 2012
-	//
-	//  Parameters:
-	//
-	//    Input, double A, B, the two legs of a right triangle.
-	//
-	//    Output, double PYTHAG, the length of the hypotenuse.
-	//
 	p = r8_max(r8_abs(a), r8_abs(b))
 	if p != 0 {
 		r = r8_min(r8_abs(a), r8_abs(b)) / p
@@ -875,70 +873,70 @@ func r8_abs(x float64) float64 {
 
 // r8_epsilon - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/Eispack/eispack.c:1029
 //
+//
+//
+//  Purpose:
+//
+//    R8_EPSILON returns the R8 round off unit.
+//
+//  Discussion:
+//
+//    R8_EPSILON is a number R which is a power of 2 with the property that,
+//    to the precision of the computer's arithmetic,
+//      1 < 1 + R
+//    but
+//      1 = ( 1 + R / 2 )
+//
+//  Licensing:
+//
+//    This code is distributed under the GNU LGPL license.
+//
+//  Modified:
+//
+//    01 September 2012
+//
+//  Author:
+//
+//    John Burkardt
+//
+//  Parameters:
+//
+//    Output, double R8_EPSILON, the R8 round-off unit.
+//
 func r8_epsilon() float64 {
 	var value float64 = 2.220446049250313e-16
-	//
-	//
-	//  Purpose:
-	//
-	//    R8_EPSILON returns the R8 round off unit.
-	//
-	//  Discussion:
-	//
-	//    R8_EPSILON is a number R which is a power of 2 with the property that,
-	//    to the precision of the computer's arithmetic,
-	//      1 < 1 + R
-	//    but
-	//      1 = ( 1 + R / 2 )
-	//
-	//  Licensing:
-	//
-	//    This code is distributed under the GNU LGPL license.
-	//
-	//  Modified:
-	//
-	//    01 September 2012
-	//
-	//  Author:
-	//
-	//    John Burkardt
-	//
-	//  Parameters:
-	//
-	//    Output, double R8_EPSILON, the R8 round-off unit.
-	//
 	return value
 }
 
 // r8_max - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/Eispack/eispack.c:1068
 //
+//
+//
+//  Purpose:
+//
+//    R8_MAX returns the maximum of two R8's.
+//
+//  Licensing:
+//
+//    This code is distributed under the GNU LGPL license.
+//
+//  Modified:
+//
+//    07 May 2006
+//
+//  Author:
+//
+//    John Burkardt
+//
+//  Parameters:
+//
+//    Input, double X, Y, the quantities to compare.
+//
+//    Output, double R8_MAX, the maximum of X and Y.
+//
 func r8_max(x float64, y float64) float64 {
 	var value float64
 	if y < x {
-		//
-		//
-		//  Purpose:
-		//
-		//    R8_MAX returns the maximum of two R8's.
-		//
-		//  Licensing:
-		//
-		//    This code is distributed under the GNU LGPL license.
-		//
-		//  Modified:
-		//
-		//    07 May 2006
-		//
-		//  Author:
-		//
-		//    John Burkardt
-		//
-		//  Parameters:
-		//
-		//    Input, double X, Y, the quantities to compare.
-		//
-		//    Output, double R8_MAX, the maximum of X and Y.
-		//
 		value = x
 	} else {
 		value = y
@@ -948,33 +946,33 @@ func r8_max(x float64, y float64) float64 {
 
 // r8_min - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/Eispack/eispack.c:1109
 //
+//
+//
+//  Purpose:
+//
+//    R8_MIN returns the minimum of two R8's.
+//
+//  Licensing:
+//
+//    This code is distributed under the GNU LGPL license.
+//
+//  Modified:
+//
+//    07 May 2006
+//
+//  Author:
+//
+//    John Burkardt
+//
+//  Parameters:
+//
+//    Input, double X, Y, the quantities to compare.
+//
+//    Output, double R8_MIN, the minimum of X and Y.
+//
 func r8_min(x float64, y float64) float64 {
 	var value float64
 	if y < x {
-		//
-		//
-		//  Purpose:
-		//
-		//    R8_MIN returns the minimum of two R8's.
-		//
-		//  Licensing:
-		//
-		//    This code is distributed under the GNU LGPL license.
-		//
-		//  Modified:
-		//
-		//    07 May 2006
-		//
-		//  Author:
-		//
-		//    John Burkardt
-		//
-		//  Parameters:
-		//
-		//    Input, double X, Y, the quantities to compare.
-		//
-		//    Output, double R8_MIN, the minimum of X and Y.
-		//
 		value = y
 	} else {
 		value = x
@@ -984,33 +982,33 @@ func r8_min(x float64, y float64) float64 {
 
 // r8_sign - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/Eispack/eispack.c:1150
 //
+//
+//
+//  Purpose:
+//
+//    R8_SIGN returns the sign of an R8.
+//
+//  Licensing:
+//
+//    This code is distributed under the GNU LGPL license.
+//
+//  Modified:
+//
+//    08 May 2006
+//
+//  Author:
+//
+//    John Burkardt
+//
+//  Parameters:
+//
+//    Input, double X, the number whose sign is desired.
+//
+//    Output, double R8_SIGN, the sign of X.
+//
 func r8_sign(x float64) float64 {
 	var value float64
 	if x < 0 {
-		//
-		//
-		//  Purpose:
-		//
-		//    R8_SIGN returns the sign of an R8.
-		//
-		//  Licensing:
-		//
-		//    This code is distributed under the GNU LGPL license.
-		//
-		//  Modified:
-		//
-		//    08 May 2006
-		//
-		//  Author:
-		//
-		//    John Burkardt
-		//
-		//  Parameters:
-		//
-		//    Input, double X, the number whose sign is desired.
-		//
-		//    Output, double R8_SIGN, the sign of X.
-		//
 		value = -1
 	} else {
 		value = +1
@@ -1020,39 +1018,39 @@ func r8_sign(x float64) float64 {
 
 // r8mat_identity - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/Eispack/eispack.c:1191
 //
+//
+//
+//  Purpose:
+//
+//    R8MAT_IDENTITY sets an R8MAT to the identity matrix.
+//
+//  Discussion:
+//
+//    An R8MAT is a doubly dimensioned array of R8 values, stored as a vector
+//    in column-major order.
+//
+//  Licensing:
+//
+//    This code is distributed under the GNU LGPL license.
+//
+//  Modified:
+//
+//    06 September 2005
+//
+//  Author:
+//
+//    John Burkardt
+//
+//  Parameters:
+//
+//    Input, int N, the order of A.
+//
+//    Output, double A[N*N], the N by N identity matrix.
+//
 func r8mat_identity(n int, a []float64) {
 	var i int
 	var j int
 	var k int
-	//
-	//
-	//  Purpose:
-	//
-	//    R8MAT_IDENTITY sets an R8MAT to the identity matrix.
-	//
-	//  Discussion:
-	//
-	//    An R8MAT is a doubly dimensioned array of R8 values, stored as a vector
-	//    in column-major order.
-	//
-	//  Licensing:
-	//
-	//    This code is distributed under the GNU LGPL license.
-	//
-	//  Modified:
-	//
-	//    06 September 2005
-	//
-	//  Author:
-	//
-	//    John Burkardt
-	//
-	//  Parameters:
-	//
-	//    Input, int N, the order of A.
-	//
-	//    Output, double A[N*N], the N by N identity matrix.
-	//
 	k = 0
 	for j = 0; j < n; j++ {
 		for i = 0; i < n; i++ {
@@ -1068,44 +1066,44 @@ func r8mat_identity(n int, a []float64) {
 
 // r8mat_mm_new - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/Eispack/eispack.c:1248
 //
+//
+//
+//  Purpose:
+//
+//    R8MAT_MM_NEW multiplies two matrices.
+//
+//  Discussion:
+//
+//    An R8MAT is a doubly dimensioned array of R8 values, stored as a vector
+//    in column-major order.
+//
+//    For this routine, the result is returned as the function value.
+//
+//  Licensing:
+//
+//    This code is distributed under the GNU LGPL license.
+//
+//  Modified:
+//
+//    08 April 2009
+//
+//  Author:
+//
+//    John Burkardt
+//
+//  Parameters:
+//
+//    Input, int N1, N2, N3, the order of the matrices.
+//
+//    Input, double A[N1*N2], double B[N2*N3], the matrices to multiply.
+//
+//    Output, double R8MAT_MM[N1*N3], the product matrix C = A * B.
+//
 func r8mat_mm_new(n1 int, n2 int, n3 int, a []float64, b []float64) []float64 {
 	var c []float64
 	var i int
 	var j int
 	var k int
-	//
-	//
-	//  Purpose:
-	//
-	//    R8MAT_MM_NEW multiplies two matrices.
-	//
-	//  Discussion:
-	//
-	//    An R8MAT is a doubly dimensioned array of R8 values, stored as a vector
-	//    in column-major order.
-	//
-	//    For this routine, the result is returned as the function value.
-	//
-	//  Licensing:
-	//
-	//    This code is distributed under the GNU LGPL license.
-	//
-	//  Modified:
-	//
-	//    08 April 2009
-	//
-	//  Author:
-	//
-	//    John Burkardt
-	//
-	//  Parameters:
-	//
-	//    Input, int N1, N2, N3, the order of the matrices.
-	//
-	//    Input, double A[N1*N2], double B[N2*N3], the matrices to multiply.
-	//
-	//    Output, double R8MAT_MM[N1*N3], the product matrix C = A * B.
-	//
 	c = make([]float64, uint32(n1*n3)*8*1/8)
 	for i = 0; i < n1; i++ {
 		for j = 0; j < n3; j++ {
@@ -1118,333 +1116,75 @@ func r8mat_mm_new(n1 int, n2 int, n3 int, a []float64, b []float64) []float64 {
 	return c
 }
 
-// r8mat_print - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/Eispack/eispack.c:1307
-//
-func r8mat_print(m int, n int, a []float64, title string) {
-	//
-	//
-	//  Purpose:
-	//
-	//    R8MAT_PRINT prints an R8MAT.
-	//
-	//  Discussion:
-	//
-	//    An R8MAT is a doubly dimensioned array of R8's, which
-	//    may be stored as a vector in column-major order.
-	//
-	//    Entry A(I,J) is stored as A[I+J*M]
-	//
-	//  Licensing:
-	//
-	//    This code is distributed under the GNU LGPL license.
-	//
-	//  Modified:
-	//
-	//    28 May 2008
-	//
-	//  Author:
-	//
-	//    John Burkardt
-	//
-	//  Parameters:
-	//
-	//    Input, int M, the number of rows in A.
-	//
-	//    Input, int N, the number of columns in A.
-	//
-	//    Input, double A[M*N], the M by N matrix.
-	//
-	//    Input, char *TITLE, a title.
-	//
-	r8mat_print_some(m, n, a, 1, 1, m, n, title)
-}
-
-// r8mat_print_some - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/Eispack/eispack.c:1351
-//
-func r8mat_print_some(m int, n int, a []float64, ilo int, jlo int, ihi int, jhi int, title string) {
-	var i int
-	var i2hi int
-	var i2lo int
-	var j int
-	var j2hi int
-	var j2lo int
-	//
-	//
-	//  Purpose:
-	//
-	//    R8MAT_PRINT_SOME prints some of an R8MAT.
-	//
-	//  Discussion:
-	//
-	//    An R8MAT is a doubly dimensioned array of R8's, which
-	//    may be stored as a vector in column-major order.
-	//
-	//  Licensing:
-	//
-	//    This code is distributed under the GNU LGPL license.
-	//
-	//  Modified:
-	//
-	//    20 August 2010
-	//
-	//  Author:
-	//
-	//    John Burkardt
-	//
-	//  Parameters:
-	//
-	//    Input, int M, the number of rows of the matrix.
-	//    M must be positive.
-	//
-	//    Input, int N, the number of columns of the matrix.
-	//    N must be positive.
-	//
-	//    Input, double A[M*N], the matrix.
-	//
-	//    Input, int ILO, JLO, IHI, JHI, designate the first row and
-	//    column, and the last row and column to be printed.
-	//
-	//    Input, char *TITLE, a title.
-	//
-	fmt.Fprintf(os.Stdout, "\n")
-	fmt.Fprintf(os.Stdout, "%s\n", title)
-	if m <= 0 || n <= 0 {
-		fmt.Fprintf(os.Stdout, "\n")
-		fmt.Fprintf(os.Stdout, "  (None)\n")
-		return
-	}
-	{
-		//
-		//  Print the columns of the matrix, in strips of 5.
-		//
-		for j2lo = jlo; j2lo <= jhi; j2lo = j2lo + 5 {
-			j2hi = j2lo + 5 - 1
-			j2hi = i4_min(j2hi, n)
-			j2hi = i4_min(j2hi, jhi)
-			fmt.Fprintf(os.Stdout, "\n")
-			//
-			//  For each column J in the current range...
-			//
-			//  Write the header.
-			//
-			fmt.Fprintf(os.Stdout, "  Col:  ")
-			for j = j2lo; j <= j2hi; j++ {
-				fmt.Fprintf(os.Stdout, "  %7d     ", j-1)
-			}
-			fmt.Fprintf(os.Stdout, "\n")
-			fmt.Fprintf(os.Stdout, "  Row\n")
-			fmt.Fprintf(os.Stdout, "\n")
-			//
-			//  Determine the range of the rows in this strip.
-			//
-			i2lo = i4_max(ilo, 1)
-			i2hi = i4_min(ihi, m)
-			for i = i2lo; i <= i2hi; i++ {
-				//
-				//  Print out (up to) 5 entries in row I, that lie in the current strip.
-				//
-				fmt.Fprintf(os.Stdout, "%5d:", i-1)
-				for j = j2lo; j <= j2hi; j++ {
-					fmt.Fprintf(os.Stdout, "  %14f", a[i-1+(j-1)*m])
-				}
-				fmt.Fprintf(os.Stdout, "\n")
-			}
-		}
-	}
-}
-
-// r8mat_uniform_01_new - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/Eispack/eispack.c:1459
-//
-func r8mat_uniform_01_new(m int, n int, seed *int) []float64 {
-	var i int
-	var j int
-	var k int
-	var r []float64
-	//
-	//
-	//  Purpose:
-	//
-	//    R8MAT_UNIFORM_01_NEW fills an R8MAT with pseudorandom values scaled to [0,1].
-	//
-	//  Discussion:
-	//
-	//    An R8MAT is a doubly dimensioned array of R8 values, stored as a vector
-	//    in column-major order.
-	//
-	//    This routine implements the recursion
-	//
-	//      seed = 16807 * seed mod ( 2^31 - 1 )
-	//      unif = seed / ( 2^31 - 1 )
-	//
-	//    The integer arithmetic never requires more than 32 bits,
-	//    including a sign bit.
-	//
-	//  Licensing:
-	//
-	//    This code is distributed under the GNU LGPL license.
-	//
-	//  Modified:
-	//
-	//    30 June 2009
-	//
-	//  Author:
-	//
-	//    John Burkardt
-	//
-	//  Reference:
-	//
-	//    Paul Bratley, Bennett Fox, Linus Schrage,
-	//    A Guide to Simulation,
-	//    Springer Verlag, pages 201-202, 1983.
-	//
-	//    Bennett Fox,
-	//    Algorithm 647:
-	//    Implementation and Relative Efficiency of Quasirandom
-	//    Sequence Generators,
-	//    ACM Transactions on Mathematical Software,
-	//    Volume 12, Number 4, pages 362-376, 1986.
-	//
-	//    Philip Lewis, Allen Goodman, James Miller,
-	//    A Pseudo-Random Number Generator for the System/360,
-	//    IBM Systems Journal,
-	//    Volume 8, pages 136-143, 1969.
-	//
-	//  Parameters:
-	//
-	//    Input, int M, N, the number of rows and columns.
-	//
-	//    Input/output, int *SEED, the "seed" value.  Normally, this
-	//    value should not be 0, otherwise the output value of SEED
-	//    will still be 0, and R8_UNIFORM will be 0.  On output, SEED has
-	//    been updated.
-	//
-	//    Output, double R8MAT_UNIFORM_01_NEW[M*N], a matrix of pseudorandom values.
-	//
-	r = make([]float64, uint32(m*n)*8*1/8)
-	for j = 0; j < n; j++ {
-		for i = 0; i < m; i++ {
-			k = *seed / 127773
-			*seed = 16807*(*seed-k*127773) - k*2836
-			if *seed < 0 {
-				*seed = *seed + 2147483647
-			}
-			r[i+j*m] = float64(*seed) * 4.656612875e-10
-		}
-	}
-	return r
-}
-
-// r8vec_print - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/Eispack/eispack.c:1549
-//
-func r8vec_print(n int, a []float64, title string) {
-	var i int
-	//
-	//
-	//  Purpose:
-	//
-	//    R8VEC_PRINT prints an R8VEC.
-	//
-	//  Discussion:
-	//
-	//    An R8VEC is a vector of R8's.
-	//
-	//  Licensing:
-	//
-	//    This code is distributed under the GNU LGPL license.
-	//
-	//  Modified:
-	//
-	//    08 April 2009
-	//
-	//  Author:
-	//
-	//    John Burkardt
-	//
-	//  Parameters:
-	//
-	//    Input, int N, the number of components of the vector.
-	//
-	//    Input, double A[N], the vector to be printed.
-	//
-	//    Input, char *TITLE, a title.
-	//
-	fmt.Fprintf(os.Stdout, "\n")
-	fmt.Fprintf(os.Stdout, "%s\n", title)
-	fmt.Fprintf(os.Stdout, "\n")
-	for i = 0; i < n; i++ {
-		fmt.Fprintf(os.Stdout, "  %8d: %14f\n", i, a[i])
-	}
-}
-
 // rs - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/Eispack/eispack.c:1596
+//
+//
+//
+//  Purpose:
+//
+//    RS computes eigenvalues and eigenvectors of real symmetric matrix.
+//
+//  Discussion:
+//
+//    This subroutine calls the recommended sequence of
+//    subroutines from the eigensystem subroutine package (eispack)
+//    to find the eigenvalues and eigenvectors (if desired)
+//    of a real symmetric matrix.
+//
+//  Licensing:
+//
+//    This code is distributed under the GNU LGPL license.
+//
+//  Modified:
+//
+//    08 November 2012
+//
+//  Author:
+//
+//    Original FORTRAN77 version by Smith, Boyle, Dongarra, Garbow, Ikebe,
+//    Klema, Moler.
+//    C version by John Burkardt.
+//
+//  Reference:
+//
+//    James Wilkinson, Christian Reinsch,
+//    Handbook for Automatic Computation,
+//    Volume II, Linear Algebra, Part 2,
+//    Springer, 1971,
+//    ISBN: 0387054146,
+//    LC: QA251.W67.
+//
+//    Brian Smith, James Boyle, Jack Dongarra, Burton Garbow,
+//    Yasuhiko Ikebe, Virginia Klema, Cleve Moler,
+//    Matrix Eigensystem Routines, EISPACK Guide,
+//    Lecture Notes in Computer Science, Volume 6,
+//    Springer Verlag, 1976,
+//    ISBN13: 978-3540075462,
+//    LC: QA193.M37.
+//
+//  Parameters:
+//
+//    Input, int N, the order of the matrix.
+//
+//    Input, double A[N*N], the real symmetric matrix.
+//
+//    Input, int MATZ, is zero if only eigenvalues are desired,
+//    and nonzero if both eigenvalues and eigenvectors are desired.
+//
+//    Output, double W[N], the eigenvalues in ascending order.
+//
+//    Output, double Z[N*N], contains the eigenvectors, if MATZ
+//    is nonzero.
+//
+//    Output, int RS, is set equal to an error
+//    completion code described in the documentation for TQLRAT and TQL2.
+//    The normal completion code is zero.
 //
 func rs(n int, a []float64, w []float64, matz int, z []float64) int {
 	var fv1 []float64
 	var fv2 []float64
 	var ierr int
 	if matz == 0 {
-		//
-		//
-		//  Purpose:
-		//
-		//    RS computes eigenvalues and eigenvectors of real symmetric matrix.
-		//
-		//  Discussion:
-		//
-		//    This subroutine calls the recommended sequence of
-		//    subroutines from the eigensystem subroutine package (eispack)
-		//    to find the eigenvalues and eigenvectors (if desired)
-		//    of a real symmetric matrix.
-		//
-		//  Licensing:
-		//
-		//    This code is distributed under the GNU LGPL license.
-		//
-		//  Modified:
-		//
-		//    08 November 2012
-		//
-		//  Author:
-		//
-		//    Original FORTRAN77 version by Smith, Boyle, Dongarra, Garbow, Ikebe,
-		//    Klema, Moler.
-		//    C version by John Burkardt.
-		//
-		//  Reference:
-		//
-		//    James Wilkinson, Christian Reinsch,
-		//    Handbook for Automatic Computation,
-		//    Volume II, Linear Algebra, Part 2,
-		//    Springer, 1971,
-		//    ISBN: 0387054146,
-		//    LC: QA251.W67.
-		//
-		//    Brian Smith, James Boyle, Jack Dongarra, Burton Garbow,
-		//    Yasuhiko Ikebe, Virginia Klema, Cleve Moler,
-		//    Matrix Eigensystem Routines, EISPACK Guide,
-		//    Lecture Notes in Computer Science, Volume 6,
-		//    Springer Verlag, 1976,
-		//    ISBN13: 978-3540075462,
-		//    LC: QA193.M37.
-		//
-		//  Parameters:
-		//
-		//    Input, int N, the order of the matrix.
-		//
-		//    Input, double A[N*N], the real symmetric matrix.
-		//
-		//    Input, int MATZ, is zero if only eigenvalues are desired,
-		//    and nonzero if both eigenvalues and eigenvectors are desired.
-		//
-		//    Output, double W[N], the eigenvalues in ascending order.
-		//
-		//    Output, double Z[N*N], contains the eigenvectors, if MATZ
-		//    is nonzero.
-		//
-		//    Output, int RS, is set equal to an error
-		//    completion code described in the documentation for TQLRAT and TQL2.
-		//    The normal completion code is zero.
-		//
 		fv1 = make([]float64, uint32(n)*8*1/8)
 		fv2 = make([]float64, uint32(n)*8*1/8)
 		tred1(n, a, w, fv1, fv2)
@@ -1462,84 +1202,84 @@ func rs(n int, a []float64, w []float64, matz int, z []float64) int {
 
 // rsb - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/Eispack/eispack.c:1690
 //
+//
+//
+//  Purpose:
+//
+//    RSB computes eigenvalues and eigenvectors of a real symmetric band matrix.
+//
+//  Discussion:
+//
+//    This subroutine calls the recommended sequence of
+//    subroutines from the eigensystem subroutine package (eispack)
+//    to find the eigenvalues and eigenvectors (if desired)
+//    of a real symmetric band matrix.
+//
+//  Licensing:
+//
+//    This code is distributed under the GNU LGPL license.
+//
+//  Modified:
+//
+//    12 November 2012
+//
+//  Author:
+//
+//    Original FORTRAN77 version by Smith, Boyle, Dongarra, Garbow, Ikebe,
+//    Klema, Moler.
+//    C version by John Burkardt.
+//
+//  Reference:
+//
+//    James Wilkinson, Christian Reinsch,
+//    Handbook for Automatic Computation,
+//    Volume II, Linear Algebra, Part 2,
+//    Springer, 1971,
+//    ISBN: 0387054146,
+//    LC: QA251.W67.
+//
+//    Brian Smith, James Boyle, Jack Dongarra, Burton Garbow,
+//    Yasuhiko Ikebe, Virginia Klema, Cleve Moler,
+//    Matrix Eigensystem Routines, EISPACK Guide,
+//    Lecture Notes in Computer Science, Volume 6,
+//    Springer Verlag, 1976,
+//    ISBN13: 978-3540075462,
+//    LC: QA193.M37.
+//
+//  Parameters:
+//
+//    Input, int N, the order of the matrix.
+//
+//    Input, int MB, the half band width of the matrix,
+//    defined as the number of adjacent diagonals, including the principal
+//    diagonal, required to specify the non-zero portion of the lower triangle
+//    of the matrix.
+//
+//    Input, double A[N*MB], contains the lower triangle of the real
+//    symmetric band matrix.  Its lowest subdiagonal is stored in the last N+1-MB
+//    positions of the first column, its next subdiagonal in the last
+//    N+2-MB positions of the second column, further subdiagonals similarly,
+//    and finally its principal diagonal in the N positions of the last
+//    column.  Contents of storages not part of the matrix are arbitrary.
+//
+//    Input, int MATZ, is zero if only eigenvalues are desired,
+//    and nonzero if both eigenvalues and eigenvectors are desired.
+//
+//    Output, double W[N], the eigenvalues in ascending order.
+//
+//    Output, double Z[N*N], contains the eigenvectors, if MATZ
+//    is nonzero.
+//
+//    Output, int BANDR, is set to an error
+//    completion code described in the documentation for TQLRAT and TQL2.
+//    The normal completion code is zero.
+//
 func rsb(n int, mb int, a []float64, w []float64, matz int, z []float64) int {
 	var fv1 []float64
 	var fv2 []float64
 	var ierr int
 	var tf int
 	if mb <= 0 {
-		//
-		//
-		//  Purpose:
-		//
-		//    RSB computes eigenvalues and eigenvectors of a real symmetric band matrix.
-		//
-		//  Discussion:
-		//
-		//    This subroutine calls the recommended sequence of
-		//    subroutines from the eigensystem subroutine package (eispack)
-		//    to find the eigenvalues and eigenvectors (if desired)
-		//    of a real symmetric band matrix.
-		//
-		//  Licensing:
-		//
-		//    This code is distributed under the GNU LGPL license.
-		//
-		//  Modified:
-		//
-		//    12 November 2012
-		//
-		//  Author:
-		//
-		//    Original FORTRAN77 version by Smith, Boyle, Dongarra, Garbow, Ikebe,
-		//    Klema, Moler.
-		//    C version by John Burkardt.
-		//
-		//  Reference:
-		//
-		//    James Wilkinson, Christian Reinsch,
-		//    Handbook for Automatic Computation,
-		//    Volume II, Linear Algebra, Part 2,
-		//    Springer, 1971,
-		//    ISBN: 0387054146,
-		//    LC: QA251.W67.
-		//
-		//    Brian Smith, James Boyle, Jack Dongarra, Burton Garbow,
-		//    Yasuhiko Ikebe, Virginia Klema, Cleve Moler,
-		//    Matrix Eigensystem Routines, EISPACK Guide,
-		//    Lecture Notes in Computer Science, Volume 6,
-		//    Springer Verlag, 1976,
-		//    ISBN13: 978-3540075462,
-		//    LC: QA193.M37.
-		//
-		//  Parameters:
-		//
-		//    Input, int N, the order of the matrix.
-		//
-		//    Input, int MB, the half band width of the matrix,
-		//    defined as the number of adjacent diagonals, including the principal
-		//    diagonal, required to specify the non-zero portion of the lower triangle
-		//    of the matrix.
-		//
-		//    Input, double A[N*MB], contains the lower triangle of the real
-		//    symmetric band matrix.  Its lowest subdiagonal is stored in the last N+1-MB
-		//    positions of the first column, its next subdiagonal in the last
-		//    N+2-MB positions of the second column, further subdiagonals similarly,
-		//    and finally its principal diagonal in the N positions of the last
-		//    column.  Contents of storages not part of the matrix are arbitrary.
-		//
-		//    Input, int MATZ, is zero if only eigenvalues are desired,
-		//    and nonzero if both eigenvalues and eigenvectors are desired.
-		//
-		//    Output, double W[N], the eigenvalues in ascending order.
-		//
-		//    Output, double Z[N*N], contains the eigenvectors, if MATZ
-		//    is nonzero.
-		//
-		//    Output, int BANDR, is set to an error
-		//    completion code described in the documentation for TQLRAT and TQL2.
-		//    The normal completion code is zero.
-		//
 		ierr = 12 * n
 		return ierr
 	}
@@ -1605,6 +1345,80 @@ func rsb(n int, mb int, a []float64, w []float64, matz int, z []float64) int {
 
 // tql2 - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/Eispack/eispack.c:1858
 //
+//
+//
+//  Purpose:
+//
+//    TQL2 computes all eigenvalues/vectors, real symmetric tridiagonal matrix.
+//
+//  Discussion:
+//
+//    This subroutine finds the eigenvalues and eigenvectors of a symmetric
+//    tridiagonal matrix by the QL method.  The eigenvectors of a full
+//    symmetric matrix can also be found if TRED2 has been used to reduce this
+//    full matrix to tridiagonal form.
+//
+//  Licensing:
+//
+//    This code is distributed under the GNU LGPL license.
+//
+//  Modified:
+//
+//    08 November 2012
+//
+//  Author:
+//
+//    Original FORTRAN77 version by Smith, Boyle, Dongarra, Garbow, Ikebe,
+//    Klema, Moler.
+//    C version by John Burkardt.
+//
+//  Reference:
+//
+//    Bowdler, Martin, Reinsch, Wilkinson,
+//    TQL2,
+//    Numerische Mathematik,
+//    Volume 11, pages 293-306, 1968.
+//
+//    James Wilkinson, Christian Reinsch,
+//    Handbook for Automatic Computation,
+//    Volume II, Linear Algebra, Part 2,
+//    Springer, 1971,
+//    ISBN: 0387054146,
+//    LC: QA251.W67.
+//
+//    Brian Smith, James Boyle, Jack Dongarra, Burton Garbow,
+//    Yasuhiko Ikebe, Virginia Klema, Cleve Moler,
+//    Matrix Eigensystem Routines, EISPACK Guide,
+//    Lecture Notes in Computer Science, Volume 6,
+//    Springer Verlag, 1976,
+//    ISBN13: 978-3540075462,
+//    LC: QA193.M37.
+//
+//  Parameters:
+//
+//    Input, int N, the order of the matrix.
+//
+//    Input/output, double D[N].  On input, the diagonal elements of
+//    the matrix.  On output, the eigenvalues in ascending order.  If an error
+//    exit is made, the eigenvalues are correct but unordered for indices
+//    1,2,...,IERR-1.
+//
+//    Input/output, double E[N].  On input, E(2:N) contains the
+//    subdiagonal elements of the input matrix, and E(1) is arbitrary.
+//    On output, E has been destroyed.
+//
+//    Input, double Z[N*N].  On input, the transformation matrix
+//    produced in the reduction by TRED2, if performed.  If the eigenvectors of
+//    the tridiagonal matrix are desired, Z must contain the identity matrix.
+//    On output, Z contains the orthonormal eigenvectors of the symmetric
+//    tridiagonal (or full) matrix.  If an error exit is made, Z contains
+//    the eigenvectors associated with the stored eigenvalues.
+//
+//    Output, int TQL2, error flag.
+//    0, normal return,
+//    J, if the J-th eigenvalue has not been determined after
+//    30 iterations.
+//
 func tql2(n int, d []float64, e []float64, z []float64) int {
 	var c float64
 	var c2 float64
@@ -1631,80 +1445,6 @@ func tql2(n int, d []float64, e []float64, z []float64) int {
 	var t float64
 	var tst1 float64
 	var tst2 float64
-	//
-	//
-	//  Purpose:
-	//
-	//    TQL2 computes all eigenvalues/vectors, real symmetric tridiagonal matrix.
-	//
-	//  Discussion:
-	//
-	//    This subroutine finds the eigenvalues and eigenvectors of a symmetric
-	//    tridiagonal matrix by the QL method.  The eigenvectors of a full
-	//    symmetric matrix can also be found if TRED2 has been used to reduce this
-	//    full matrix to tridiagonal form.
-	//
-	//  Licensing:
-	//
-	//    This code is distributed under the GNU LGPL license.
-	//
-	//  Modified:
-	//
-	//    08 November 2012
-	//
-	//  Author:
-	//
-	//    Original FORTRAN77 version by Smith, Boyle, Dongarra, Garbow, Ikebe,
-	//    Klema, Moler.
-	//    C version by John Burkardt.
-	//
-	//  Reference:
-	//
-	//    Bowdler, Martin, Reinsch, Wilkinson,
-	//    TQL2,
-	//    Numerische Mathematik,
-	//    Volume 11, pages 293-306, 1968.
-	//
-	//    James Wilkinson, Christian Reinsch,
-	//    Handbook for Automatic Computation,
-	//    Volume II, Linear Algebra, Part 2,
-	//    Springer, 1971,
-	//    ISBN: 0387054146,
-	//    LC: QA251.W67.
-	//
-	//    Brian Smith, James Boyle, Jack Dongarra, Burton Garbow,
-	//    Yasuhiko Ikebe, Virginia Klema, Cleve Moler,
-	//    Matrix Eigensystem Routines, EISPACK Guide,
-	//    Lecture Notes in Computer Science, Volume 6,
-	//    Springer Verlag, 1976,
-	//    ISBN13: 978-3540075462,
-	//    LC: QA193.M37.
-	//
-	//  Parameters:
-	//
-	//    Input, int N, the order of the matrix.
-	//
-	//    Input/output, double D[N].  On input, the diagonal elements of
-	//    the matrix.  On output, the eigenvalues in ascending order.  If an error
-	//    exit is made, the eigenvalues are correct but unordered for indices
-	//    1,2,...,IERR-1.
-	//
-	//    Input/output, double E[N].  On input, E(2:N) contains the
-	//    subdiagonal elements of the input matrix, and E(1) is arbitrary.
-	//    On output, E has been destroyed.
-	//
-	//    Input, double Z[N*N].  On input, the transformation matrix
-	//    produced in the reduction by TRED2, if performed.  If the eigenvectors of
-	//    the tridiagonal matrix are desired, Z must contain the identity matrix.
-	//    On output, Z contains the orthonormal eigenvectors of the symmetric
-	//    tridiagonal (or full) matrix.  If an error exit is made, Z contains
-	//    the eigenvectors associated with the stored eigenvalues.
-	//
-	//    Output, int TQL2, error flag.
-	//    0, normal return,
-	//    J, if the J-th eigenvalue has not been determined after
-	//    30 iterations.
-	//
 	ierr = 0
 	if n == 1 {
 		return ierr
@@ -1827,6 +1567,71 @@ func tql2(n int, d []float64, e []float64, z []float64) int {
 
 // tqlrat - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/Eispack/eispack.c:2102
 //
+//
+//
+//  Purpose:
+//
+//    TQLRAT computes all eigenvalues of a real symmetric tridiagonal matrix.
+//
+//  Discussion:
+//
+//    This subroutine finds the eigenvalues of a symmetric
+//    tridiagonal matrix by the rational QL method.
+//
+//  Licensing:
+//
+//    This code is distributed under the GNU LGPL license.
+//
+//  Modified:
+//
+//    08 November 2012
+//
+//  Author:
+//
+//    Original FORTRAN77 version by Smith, Boyle, Dongarra, Garbow, Ikebe,
+//    Klema, Moler.
+//    C version by John Burkardt.
+//
+//  Reference:
+//
+//    Christian Reinsch,
+//    Algorithm 464, TQLRAT,
+//    Communications of the ACM,
+//    Volume 16, page 689, 1973.
+//
+//    James Wilkinson, Christian Reinsch,
+//    Handbook for Automatic Computation,
+//    Volume II, Linear Algebra, Part 2,
+//    Springer, 1971,
+//    ISBN: 0387054146,
+//    LC: QA251.W67.
+//
+//    Brian Smith, James Boyle, Jack Dongarra, Burton Garbow,
+//    Yasuhiko Ikebe, Virginia Klema, Cleve Moler,
+//    Matrix Eigensystem Routines, EISPACK Guide,
+//    Lecture Notes in Computer Science, Volume 6,
+//    Springer Verlag, 1976,
+//    ISBN13: 978-3540075462,
+//    LC: QA193.M37.
+//
+//  Parameters:
+//
+//    Input, int N, the order of the matrix.
+//
+//    Input/output, double D[N].  On input, D contains the diagonal
+//    elements of the matrix.  On output, D contains the eigenvalues in ascending
+//    order.  If an error exit was made, then the eigenvalues are correct
+//    in positions 1 through IERR-1, but may not be the smallest eigenvalues.
+//
+//    Input/output, double E2[N], contains in positions 2 through N
+//    the squares of the subdiagonal elements of the matrix.  E2(1) is
+//    arbitrary.  On output, E2 has been overwritten by workspace
+//    information.
+//
+//    Output, int TQLRAT, error flag.
+//    0, for no error,
+//    J, if the J-th eigenvalue could not be determined after 30 iterations.
+//
 func tqlrat(n int, d []float64, e2 []float64) int {
 	var b float64
 	var c float64
@@ -1845,71 +1650,6 @@ func tqlrat(n int, d []float64, e2 []float64) int {
 	var r float64
 	var s float64
 	var t float64
-	//
-	//
-	//  Purpose:
-	//
-	//    TQLRAT computes all eigenvalues of a real symmetric tridiagonal matrix.
-	//
-	//  Discussion:
-	//
-	//    This subroutine finds the eigenvalues of a symmetric
-	//    tridiagonal matrix by the rational QL method.
-	//
-	//  Licensing:
-	//
-	//    This code is distributed under the GNU LGPL license.
-	//
-	//  Modified:
-	//
-	//    08 November 2012
-	//
-	//  Author:
-	//
-	//    Original FORTRAN77 version by Smith, Boyle, Dongarra, Garbow, Ikebe,
-	//    Klema, Moler.
-	//    C version by John Burkardt.
-	//
-	//  Reference:
-	//
-	//    Christian Reinsch,
-	//    Algorithm 464, TQLRAT,
-	//    Communications of the ACM,
-	//    Volume 16, page 689, 1973.
-	//
-	//    James Wilkinson, Christian Reinsch,
-	//    Handbook for Automatic Computation,
-	//    Volume II, Linear Algebra, Part 2,
-	//    Springer, 1971,
-	//    ISBN: 0387054146,
-	//    LC: QA251.W67.
-	//
-	//    Brian Smith, James Boyle, Jack Dongarra, Burton Garbow,
-	//    Yasuhiko Ikebe, Virginia Klema, Cleve Moler,
-	//    Matrix Eigensystem Routines, EISPACK Guide,
-	//    Lecture Notes in Computer Science, Volume 6,
-	//    Springer Verlag, 1976,
-	//    ISBN13: 978-3540075462,
-	//    LC: QA193.M37.
-	//
-	//  Parameters:
-	//
-	//    Input, int N, the order of the matrix.
-	//
-	//    Input/output, double D[N].  On input, D contains the diagonal
-	//    elements of the matrix.  On output, D contains the eigenvalues in ascending
-	//    order.  If an error exit was made, then the eigenvalues are correct
-	//    in positions 1 through IERR-1, but may not be the smallest eigenvalues.
-	//
-	//    Input/output, double E2[N], contains in positions 2 through N
-	//    the squares of the subdiagonal elements of the matrix.  E2(1) is
-	//    arbitrary.  On output, E2 has been overwritten by workspace
-	//    information.
-	//
-	//    Output, int TQLRAT, error flag.
-	//    0, for no error,
-	//    J, if the J-th eigenvalue could not be determined after 30 iterations.
-	//
 	ierr = 0
 	if n == 1 {
 		return ierr

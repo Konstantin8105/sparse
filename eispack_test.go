@@ -7,6 +7,264 @@ import (
 	"testing"
 )
 
+// r8mat_print - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/Eispack/eispack.c:1307
+//
+func r8mat_print(m int, n int, a []float64, title string) {
+	//
+	//
+	//  Purpose:
+	//
+	//    R8MAT_PRINT prints an R8MAT.
+	//
+	//  Discussion:
+	//
+	//    An R8MAT is a doubly dimensioned array of R8's, which
+	//    may be stored as a vector in column-major order.
+	//
+	//    Entry A(I,J) is stored as A[I+J*M]
+	//
+	//  Licensing:
+	//
+	//    This code is distributed under the GNU LGPL license.
+	//
+	//  Modified:
+	//
+	//    28 May 2008
+	//
+	//  Author:
+	//
+	//    John Burkardt
+	//
+	//  Parameters:
+	//
+	//    Input, int M, the number of rows in A.
+	//
+	//    Input, int N, the number of columns in A.
+	//
+	//    Input, double A[M*N], the M by N matrix.
+	//
+	//    Input, char *TITLE, a title.
+	//
+	r8mat_print_some(m, n, a, 1, 1, m, n, title)
+}
+
+// r8mat_print_some - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/Eispack/eispack.c:1351
+//
+func r8mat_print_some(m int, n int, a []float64, ilo int, jlo int, ihi int, jhi int, title string) {
+	var i int
+	var i2hi int
+	var i2lo int
+	var j int
+	var j2hi int
+	var j2lo int
+	//
+	//
+	//  Purpose:
+	//
+	//    R8MAT_PRINT_SOME prints some of an R8MAT.
+	//
+	//  Discussion:
+	//
+	//    An R8MAT is a doubly dimensioned array of R8's, which
+	//    may be stored as a vector in column-major order.
+	//
+	//  Licensing:
+	//
+	//    This code is distributed under the GNU LGPL license.
+	//
+	//  Modified:
+	//
+	//    20 August 2010
+	//
+	//  Author:
+	//
+	//    John Burkardt
+	//
+	//  Parameters:
+	//
+	//    Input, int M, the number of rows of the matrix.
+	//    M must be positive.
+	//
+	//    Input, int N, the number of columns of the matrix.
+	//    N must be positive.
+	//
+	//    Input, double A[M*N], the matrix.
+	//
+	//    Input, int ILO, JLO, IHI, JHI, designate the first row and
+	//    column, and the last row and column to be printed.
+	//
+	//    Input, char *TITLE, a title.
+	//
+	fmt.Fprintf(os.Stdout, "\n")
+	fmt.Fprintf(os.Stdout, "%s\n", title)
+	if m <= 0 || n <= 0 {
+		fmt.Fprintf(os.Stdout, "\n")
+		fmt.Fprintf(os.Stdout, "  (None)\n")
+		return
+	}
+	{
+		//
+		//  Print the columns of the matrix, in strips of 5.
+		//
+		for j2lo = jlo; j2lo <= jhi; j2lo = j2lo + 5 {
+			j2hi = j2lo + 5 - 1
+			j2hi = i4_min(j2hi, n)
+			j2hi = i4_min(j2hi, jhi)
+			fmt.Fprintf(os.Stdout, "\n")
+			//
+			//  For each column J in the current range...
+			//
+			//  Write the header.
+			//
+			fmt.Fprintf(os.Stdout, "  Col:  ")
+			for j = j2lo; j <= j2hi; j++ {
+				fmt.Fprintf(os.Stdout, "  %7d     ", j-1)
+			}
+			fmt.Fprintf(os.Stdout, "\n")
+			fmt.Fprintf(os.Stdout, "  Row\n")
+			fmt.Fprintf(os.Stdout, "\n")
+			//
+			//  Determine the range of the rows in this strip.
+			//
+			i2lo = i4_max(ilo, 1)
+			i2hi = i4_min(ihi, m)
+			for i = i2lo; i <= i2hi; i++ {
+				//
+				//  Print out (up to) 5 entries in row I, that lie in the current strip.
+				//
+				fmt.Fprintf(os.Stdout, "%5d:", i-1)
+				for j = j2lo; j <= j2hi; j++ {
+					fmt.Fprintf(os.Stdout, "  %14f", a[i-1+(j-1)*m])
+				}
+				fmt.Fprintf(os.Stdout, "\n")
+			}
+		}
+	}
+}
+
+// r8mat_uniform_01_new - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/Eispack/eispack.c:1459
+//
+func r8mat_uniform_01_new(m int, n int, seed *int) []float64 {
+	var i int
+	var j int
+	var k int
+	var r []float64
+	//
+	//
+	//  Purpose:
+	//
+	//    R8MAT_UNIFORM_01_NEW fills an R8MAT with pseudorandom values scaled to [0,1].
+	//
+	//  Discussion:
+	//
+	//    An R8MAT is a doubly dimensioned array of R8 values, stored as a vector
+	//    in column-major order.
+	//
+	//    This routine implements the recursion
+	//
+	//      seed = 16807 * seed mod ( 2^31 - 1 )
+	//      unif = seed / ( 2^31 - 1 )
+	//
+	//    The integer arithmetic never requires more than 32 bits,
+	//    including a sign bit.
+	//
+	//  Licensing:
+	//
+	//    This code is distributed under the GNU LGPL license.
+	//
+	//  Modified:
+	//
+	//    30 June 2009
+	//
+	//  Author:
+	//
+	//    John Burkardt
+	//
+	//  Reference:
+	//
+	//    Paul Bratley, Bennett Fox, Linus Schrage,
+	//    A Guide to Simulation,
+	//    Springer Verlag, pages 201-202, 1983.
+	//
+	//    Bennett Fox,
+	//    Algorithm 647:
+	//    Implementation and Relative Efficiency of Quasirandom
+	//    Sequence Generators,
+	//    ACM Transactions on Mathematical Software,
+	//    Volume 12, Number 4, pages 362-376, 1986.
+	//
+	//    Philip Lewis, Allen Goodman, James Miller,
+	//    A Pseudo-Random Number Generator for the System/360,
+	//    IBM Systems Journal,
+	//    Volume 8, pages 136-143, 1969.
+	//
+	//  Parameters:
+	//
+	//    Input, int M, N, the number of rows and columns.
+	//
+	//    Input/output, int *SEED, the "seed" value.  Normally, this
+	//    value should not be 0, otherwise the output value of SEED
+	//    will still be 0, and R8_UNIFORM will be 0.  On output, SEED has
+	//    been updated.
+	//
+	//    Output, double R8MAT_UNIFORM_01_NEW[M*N], a matrix of pseudorandom values.
+	//
+	r = make([]float64, uint32(m*n)*8*1/8)
+	for j = 0; j < n; j++ {
+		for i = 0; i < m; i++ {
+			k = *seed / 127773
+			*seed = 16807*(*seed-k*127773) - k*2836
+			if *seed < 0 {
+				*seed = *seed + 2147483647
+			}
+			r[i+j*m] = float64(*seed) * 4.656612875e-10
+		}
+	}
+	return r
+}
+
+// r8vec_print - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/Eispack/eispack.c:1549
+//
+func r8vec_print(n int, a []float64, title string) {
+	var i int
+	//
+	//
+	//  Purpose:
+	//
+	//    R8VEC_PRINT prints an R8VEC.
+	//
+	//  Discussion:
+	//
+	//    An R8VEC is a vector of R8's.
+	//
+	//  Licensing:
+	//
+	//    This code is distributed under the GNU LGPL license.
+	//
+	//  Modified:
+	//
+	//    08 April 2009
+	//
+	//  Author:
+	//
+	//    John Burkardt
+	//
+	//  Parameters:
+	//
+	//    Input, int N, the number of components of the vector.
+	//
+	//    Input, double A[N], the vector to be printed.
+	//
+	//    Input, char *TITLE, a title.
+	//
+	fmt.Fprintf(os.Stdout, "\n")
+	fmt.Fprintf(os.Stdout, "%s\n", title)
+	fmt.Fprintf(os.Stdout, "\n")
+	for i = 0; i < n; i++ {
+		fmt.Fprintf(os.Stdout, "  %8d: %14f\n", i, a[i])
+	}
+}
+
 // transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/Eispack/eispack_prb1.c:28
 //
 //  Purpose:
