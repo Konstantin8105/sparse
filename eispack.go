@@ -948,12 +948,9 @@ func r8_sign(x float64) float64 {
 //    Output, double A[N*N], the N by N identity matrix.
 //
 func r8mat_identity(n int, a []float64) {
-	var i int
-	var j int
-	var k int
-	k = 0
-	for j = 0; j < n; j++ {
-		for i = 0; i < n; i++ {
+	k := 0
+	for j := 0; j < n; j++ {
+		for i := 0; i < n; i++ {
 			if i == j {
 				a[k] = 1
 			} else {
