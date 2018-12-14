@@ -1886,39 +1886,30 @@ func tred1(n int, a []float64, d []float64, e []float64, e2 []float64) {
 //    produced in the reduction.
 //
 func tred2(n int, a []float64, d []float64, e []float64, z []float64) {
-	var f float64
-	var g float64
-	var h float64
-	var hh float64
-	var i int
-	// var ii int
-	var j int
-	var k int
-	var l int
-	var scale float64
 
-	for j = 0; j < n; j++ {
-		for i = j; i < n; i++ {
+	for j := 0; j < n; j++ {
+		for i := j; i < n; i++ {
 			z[i+j*n] = a[i+j*n]
 		}
 	}
 
-	for j = 0; j < n; j++ {
+	for j := 0; j < n; j++ {
 		d[j] = a[n-1+j*n]
 	}
-	for i = n - 1; 1 <= i; i-- {
-		l = i - 1
-		h = 0
+
+	for i := n - 1; 1 <= i; i-- {
+		l := i - 1
+		h := 0.0
 		//
 		//  Scale row.
 		//
-		scale = 0
-		for k = 0; k <= l; k++ {
+		scale := 0.0
+		for k := 0; k <= l; k++ {
 			scale = scale + math.Abs(d[k])
 		}
 		if scale == 0 {
 			e[i] = d[l]
-			for j = 0; j <= l; j++ {
+			for j := 0; j <= l; j++ {
 				d[j] = z[l+j*n]
 				z[i+j*n] = 0
 				z[j+i*n] = 0
@@ -1926,15 +1917,15 @@ func tred2(n int, a []float64, d []float64, e []float64, z []float64) {
 			d[i] = 0
 			continue
 		}
-		for k = 0; k <= l; k++ {
+		for k := 0; k <= l; k++ {
 			d[k] = d[k] / scale
 		}
 		h = 0
-		for k = 0; k <= l; k++ {
+		for k := 0; k <= l; k++ {
 			h = h + d[k]*d[k]
 		}
-		f = d[l]
-		g = -math.Sqrt(h) * r8_sign(f)
+		f := d[l]
+		g := -math.Sqrt(h) * r8_sign(f)
 		e[i] = scale * g
 		h = h - f*g
 		d[l] = f - g
@@ -1942,15 +1933,15 @@ func tred2(n int, a []float64, d []float64, e []float64, z []float64) {
 		//
 		//  Form A*U.
 		//
-		for k = 0; k <= l; k++ {
+		for k := 0; k <= l; k++ {
 			e[k] = 0
 		}
 
-		for j = 0; j <= l; j++ {
+		for j := 0; j <= l; j++ {
 			f = d[j]
 			z[j+i*n] = f
 			g = e[j] + z[j+j*n]*f
-			for k = j + 1; k <= l; k++ {
+			for k := j + 1; k <= l; k++ {
 				g = g + z[k+j*n]*d[k]
 				e[k] = e[k] + z[k+j*n]*f
 			}
@@ -1960,30 +1951,30 @@ func tred2(n int, a []float64, d []float64, e []float64, z []float64) {
 		//
 		//  Form P.
 		//
-		for k = 0; k <= l; k++ {
+		for k := 0; k <= l; k++ {
 			e[k] = e[k] / h
 		}
 
 		f = 0
-		for k = 0; k <= l; k++ {
+		for k := 0; k <= l; k++ {
 			f = f + e[k]*d[k]
 		}
-		hh = 0.5 * f / h
+		hh := 0.5 * f / h
 
 		//
 		//  Form Q.
 		//
-		for k = 0; k <= l; k++ {
+		for k := 0; k <= l; k++ {
 			e[k] = e[k] - hh*d[k]
 		}
 
 		//
 		//  Form reduced A.
 		//
-		for j = 0; j <= l; j++ {
+		for j := 0; j <= l; j++ {
 			f = d[j]
 			g = e[j]
-			for k = j; k <= l; k++ {
+			for k := j; k <= l; k++ {
 				z[k+j*n] = z[k+j*n] - f*e[k] - g*d[k]
 			}
 			d[j] = z[l+j*n]
@@ -1996,36 +1987,38 @@ func tred2(n int, a []float64, d []float64, e []float64, z []float64) {
 	//
 	//  Accumulation of transformation matrices.
 	//
-	for i = 1; i < n; i++ {
-		l = i - 1
+	for i := 1; i < n; i++ {
+		l := i - 1
 		z[n-1+l*n] = z[l+l*n]
 		z[l+l*n] = 1
-		h = d[i]
+		h := d[i]
 		if h != 0 {
-			for k = 0; k <= l; k++ {
+			for k := 0; k <= l; k++ {
 				d[k] = z[k+i*n] / h
 			}
-			for j = 0; j <= l; j++ {
-				g = 0
-				for k = 0; k <= l; k++ {
+			for j := 0; j <= l; j++ {
+				g := 0.0
+				for k := 0; k <= l; k++ {
 					g = g + z[k+i*n]*z[k+j*n]
 				}
-				for k = 0; k <= l; k++ {
+				for k := 0; k <= l; k++ {
 					z[k+j*n] = z[k+j*n] - g*d[k]
 				}
 			}
 		}
-		for k = 0; k <= l; k++ {
+		for k := 0; k <= l; k++ {
 			z[k+i*n] = 0
 		}
 	}
 
-	for j = 0; j < n; j++ {
+	for j := 0; j < n; j++ {
 		d[j] = z[n-1+j*n]
 	}
-	for j = 0; j < n-1; j++ {
+
+	for j := 0; j < n-1; j++ {
 		z[n-1+j*n] = 0
 	}
+
 	z[n-1+(n-1)*n] = 1
 	e[0] = 0
 }
