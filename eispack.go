@@ -1824,11 +1824,11 @@ func tred1(n int, a []float64, d []float64, e []float64, e2 []float64) {
 	var k int
 	var l int
 	var scale float64
-	{
-		for j = 0; j < n; j++ {
-			d[j] = a[n-1+j*n]
-		}
+
+	for j = 0; j < n; j++ {
+		d[j] = a[n-1+j*n]
 	}
+
 	for i = 0; i < n; i++ {
 		a[n-1+i*n] = a[i+i*n]
 	}
@@ -1865,14 +1865,14 @@ func tred1(n int, a []float64, d []float64, e []float64, e2 []float64) {
 		h = h - f*g
 		d[l] = f - g
 		if 0 <= l {
-			{
-				//
-				//  Form A * U.
-				//
-				for k = 0; k <= l; k++ {
-					e[k] = 0
-				}
+
+			//
+			//  Form A * U.
+			//
+			for k = 0; k <= l; k++ {
+				e[k] = 0
 			}
+
 			for j = 0; j <= l; j++ {
 				f = d[j]
 				g = e[j] + a[j+j*n]*f
@@ -1891,26 +1891,25 @@ func tred1(n int, a []float64, d []float64, e []float64, e2 []float64) {
 				f = f + e[j]*d[j]
 			}
 			h = f / (h + h)
-			{
-				//
-				//  Form Q.
-				//
-				for j = 0; j <= l; j++ {
-					e[j] = e[j] - h*d[j]
+
+			//
+			//  Form Q.
+			//
+			for j = 0; j <= l; j++ {
+				e[j] = e[j] - h*d[j]
+			}
+
+			//
+			//  Form reduced A.
+			//
+			for j = 0; j <= l; j++ {
+				f = d[j]
+				g = e[j]
+				for k = j; k <= l; k++ {
+					a[k+j*n] = a[k+j*n] - f*e[k] - g*d[k]
 				}
 			}
-			{
-				//
-				//  Form reduced A.
-				//
-				for j = 0; j <= l; j++ {
-					f = d[j]
-					g = e[j]
-					for k = j; k <= l; k++ {
-						a[k+j*n] = a[k+j*n] - f*e[k] - g*d[k]
-					}
-				}
-			}
+
 		}
 		for j = 0; j <= l; j++ {
 			f = d[j]
