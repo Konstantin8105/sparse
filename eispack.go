@@ -819,7 +819,7 @@ func pythag(a float64, b float64) float64 {
 	var u float64
 	p = r8_max(math.Abs(a), math.Abs(b))
 	if p != 0 {
-		r = r8_min(math.Abs(a), math.Abs(b)) / p
+		r = math.Min(math.Abs(a), math.Abs(b)) / p
 		r = r * r
 		for {
 			t = 4 + r
@@ -912,40 +912,7 @@ func r8_max(x float64, y float64) float64 {
 }
 
 // r8_min - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/Eispack/eispack.c:1109
-//
-//
-//
-//  Purpose:
-//
-//    R8_MIN returns the minimum of two R8's.
-//
-//  Licensing:
-//
-//    This code is distributed under the GNU LGPL license.
-//
-//  Modified:
-//
-//    07 May 2006
-//
-//  Author:
-//
-//    John Burkardt
-//
-//  Parameters:
-//
-//    Input, double X, Y, the quantities to compare.
-//
-//    Output, double R8_MIN, the minimum of X and Y.
-//
-func r8_min(x float64, y float64) float64 {
-	var value float64
-	if y < x {
-		value = y
-	} else {
-		value = x
-	}
-	return value
-}
+// removed
 
 // r8_sign - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/Eispack/eispack.c:1150
 //
