@@ -30,10 +30,10 @@ import (
 //
 func TestEispack(t *testing.T) {
 	// timestamp()
-	fmt.Printf("\n")
-	fmt.Printf("EISPACK_PRB\n")
-	fmt.Printf("  C version.\n")
-	fmt.Printf("  Test the EISPACK library.\n")
+	fmt.Fprintf(os.Stdout, "\n")
+	fmt.Fprintf(os.Stdout, "EISPACK_PRB\n")
+	fmt.Fprintf(os.Stdout, "  C version.\n")
+	fmt.Fprintf(os.Stdout, "  Test the EISPACK library.\n")
 	//
 	//  test01 ( );
 	//  test02 ( );
@@ -59,10 +59,10 @@ func TestEispack(t *testing.T) {
 	//
 	//  Terminate.
 	//
-	fmt.Printf("\n")
-	fmt.Printf("EISPACK_PRB1\n")
-	fmt.Printf("  Normal end of execution.\n")
-	fmt.Printf("\n")
+	fmt.Fprintf(os.Stdout, "\n")
+	fmt.Fprintf(os.Stdout, "EISPACK_PRB1\n")
+	fmt.Fprintf(os.Stdout, "  Normal end of execution.\n")
+	fmt.Fprintf(os.Stdout, "\n")
 	// timestamp()
 	return
 }
@@ -109,19 +109,19 @@ func test06() {
 			}
 		}
 	}
-	fmt.Printf("\n")
-	fmt.Printf("TEST06\n")
-	fmt.Printf("  RS computes the eigenvalues and eigenvectors\n")
-	fmt.Printf("  of a real symmetric matrix.\n")
-	fmt.Printf("\n")
-	fmt.Printf("  Matrix order = %d\n", n)
+	fmt.Fprintf(os.Stdout, "\n")
+	fmt.Fprintf(os.Stdout, "TEST06\n")
+	fmt.Fprintf(os.Stdout, "  RS computes the eigenvalues and eigenvectors\n")
+	fmt.Fprintf(os.Stdout, "  of a real symmetric matrix.\n")
+	fmt.Fprintf(os.Stdout, "\n")
+	fmt.Fprintf(os.Stdout, "  Matrix order = %d\n", n)
 	r8mat_print(n, n, a, "  The matrix A:")
 	matz = 1
 	ierr = rs(n, a, w, matz, x)
 	if ierr != 0 {
-		fmt.Printf("\n")
-		fmt.Printf("TEST06 - Warning!\n")
-		fmt.Printf("  The error return flag IERR = %d\n", ierr)
+		fmt.Fprintf(os.Stdout, "\n")
+		fmt.Fprintf(os.Stdout, "TEST06 - Warning!\n")
+		fmt.Fprintf(os.Stdout, "  The error return flag IERR = %d\n", ierr)
 		return
 	}
 	r8vec_print(n, w, "  The eigenvalues Lambda:")
@@ -172,12 +172,12 @@ func test065() {
 	//
 	//    John Burkardt
 	//
-	fmt.Printf("\n")
-	fmt.Printf("TEST065\n")
-	fmt.Printf("  RS computes the eigenvalues and eigenvectors\n")
-	fmt.Printf("  of a real symmetric matrix.\n")
-	fmt.Printf("\n")
-	fmt.Printf("  Matrix order = %d\n", n)
+	fmt.Fprintf(os.Stdout, "\n")
+	fmt.Fprintf(os.Stdout, "TEST065\n")
+	fmt.Fprintf(os.Stdout, "  RS computes the eigenvalues and eigenvectors\n")
+	fmt.Fprintf(os.Stdout, "  of a real symmetric matrix.\n")
+	fmt.Fprintf(os.Stdout, "\n")
+	fmt.Fprintf(os.Stdout, "  Matrix order = %d\n", n)
 	seed = 123456789
 	a = r8mat_uniform_01_new(n, n, &seed)
 	for i = 0; i < n-1; i++ {
@@ -201,9 +201,9 @@ func test065() {
 	matz = 1
 	ierr = rs(n, a, w, matz, x)
 	if ierr != 0 {
-		fmt.Printf("\n")
-		fmt.Printf("TEST065 - Warning!\n")
-		fmt.Printf("  The error return flag IERR = %d\n", ierr)
+		fmt.Fprintf(os.Stdout, "\n")
+		fmt.Fprintf(os.Stdout, "TEST065 - Warning!\n")
+		fmt.Fprintf(os.Stdout, "  The error return flag IERR = %d\n", ierr)
 		return
 	}
 	r8vec_print(n, w, "  The eigenvalues Lambda:")
@@ -279,21 +279,21 @@ func test07() {
 			}
 		}
 	}
-	fmt.Printf("\n")
-	fmt.Printf("TEST07\n")
-	fmt.Printf("  RSB computes the eigenvalues and eigenvectors\n")
-	fmt.Printf("  of a real symmetric band matrix.\n")
-	fmt.Printf("\n")
-	fmt.Printf("  Matrix order = %d\n", n)
+	fmt.Fprintf(os.Stdout, "\n")
+	fmt.Fprintf(os.Stdout, "TEST07\n")
+	fmt.Fprintf(os.Stdout, "  RSB computes the eigenvalues and eigenvectors\n")
+	fmt.Fprintf(os.Stdout, "  of a real symmetric band matrix.\n")
+	fmt.Fprintf(os.Stdout, "\n")
+	fmt.Fprintf(os.Stdout, "  Matrix order = %d\n", n)
 	r8mat_print(n, n, a2, "  The matrix A:")
 	w = make([]float64, uint32(n)*8*1/8)
 	x = make([]float64, uint32(n*n)*8*1/8)
 	matz = 1
 	ierr = rsb(n, mb, a, w, matz, x)
 	if ierr != 0 {
-		fmt.Printf("\n")
-		fmt.Printf("TEST07 - Warning!\n")
-		fmt.Printf("  The error return flag IERR = %d\n", ierr)
+		fmt.Fprintf(os.Stdout, "\n")
+		fmt.Fprintf(os.Stdout, "TEST07 - Warning!\n")
+		fmt.Fprintf(os.Stdout, "  The error return flag IERR = %d\n", ierr)
 		return
 	}
 	r8vec_print(n, w, "  The eigenvalues Lambda:")
