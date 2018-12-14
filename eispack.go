@@ -821,7 +821,7 @@ func pythag(a float64, b float64) float64 {
 	if p != 0 {
 		r = r8_min(r8_abs(a), r8_abs(b)) / p
 		r = r * r
-		for 1 != 0 {
+		for {
 			t = 4 + r
 			if t == 4 {
 				break
