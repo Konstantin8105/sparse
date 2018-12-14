@@ -1099,16 +1099,12 @@ func r8mat_identity(n int, a []float64) {
 //
 //    Output, double R8MAT_MM[N1*N3], the product matrix C = A * B.
 //
-func r8mat_mm_new(n1 int, n2 int, n3 int, a []float64, b []float64) []float64 {
-	var c []float64
-	var i int
-	var j int
-	var k int
-	c = make([]float64, n1*n3)
-	for i = 0; i < n1; i++ {
-		for j = 0; j < n3; j++ {
-			c[i+j*n1] = 0
-			for k = 0; k < n2; k++ {
+func r8mat_mm_new(n1, n2, n3 int, a, b []float64) []float64 {
+	c := make([]float64, n1*n3)
+	for i := 0; i < n1; i++ {
+		for j := 0; j < n3; j++ {
+			c[i+j*n1] = 0.0
+			for k := 0; k < n2; k++ {
 				c[i+j*n1] = c[i+j*n1] + a[i+k*n1]*b[k+j*n2]
 			}
 		}
