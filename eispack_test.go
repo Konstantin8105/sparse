@@ -11,7 +11,7 @@ import (
 	"testing"
 )
 
-func TestEispack(t *testing.T) {
+func runEispack(source string, t *testing.T) string {
 	{
 		// compile eispack
 		//
@@ -20,7 +20,7 @@ func TestEispack(t *testing.T) {
 		// clang -o eispack eispack_prb1.c eispack.c eispack.h -lm
 		var args []string
 		args = append(args, []string{
-			"Eispack/eispack_prb1.c",
+			source,
 			"Eispack/eispack.c",
 		}...)
 		args = append(args, "-lm")
@@ -58,43 +58,66 @@ func TestEispack(t *testing.T) {
 		}
 		out += stdout.String()
 	}
-	// remove first and last line
-	{
-		lines := strings.Split(out, "\n")
-		out = strings.Join(lines[1:len(lines)-2], "\n")
-		out = strings.TrimSpace(out)
+
+	return out
+}
+
+func TestEispack(t *testing.T) {
+	tcs := []struct {
+		source string
+		f      func()
+	}{
+		{
+			source: "Eispack/eispack_prb1.c",
+			f:      intenalEispack,
+		},
+		{
+			source: "Eispack/eispack_prb2.c",
+			f:      intenalEispack2,
+		},
 	}
 
-	// generate output
-	tmpfile, err := ioutil.TempFile("", "demo2")
-	if err != nil {
-		t.Fatal(err)
-	}
-	old := osStdout
-	osStdout = tmpfile
-	defer func() {
-		osStdout = old
-	}()
+	for i := range tcs {
+		out := runEispack(tcs[i].source, t)
 
-	// run transpiled code
-	intenalEispack()
+		// remove first and last line
+		{
+			lines := strings.Split(out, "\n")
+			out = strings.Join(lines[1:len(lines)-2], "\n")
+			out = strings.TrimSpace(out)
+		}
 
-	// compare output
-	filename := tmpfile.Name()
-	defer func() { _ = os.Remove(filename) }()
-	err = tmpfile.Close()
-	if err != nil {
-		t.Fatal(err)
-	}
-	cb2, err := ioutil.ReadFile(filename)
-	if err != nil {
-		t.Fatal(err)
-	}
-	out2 := string(cb2)
-	out2 = strings.TrimSpace(out2)
+		// generate output
+		tmpfile, err := ioutil.TempFile("", "demo2")
+		if err != nil {
+			t.Fatal(err)
+		}
+		old := osStdout
+		osStdout = tmpfile
+		defer func() {
+			osStdout = old
+		}()
 
-	if out != out2 {
-		t.Fatal(ShowDiff(out, out2))
+		// run transpiled code
+		tcs[i].f()
+
+		// compare output
+		filename := tmpfile.Name()
+		defer func() { _ = os.Remove(filename) }()
+		err = tmpfile.Close()
+		if err != nil {
+			t.Fatal(err)
+		}
+		cb2, err := ioutil.ReadFile(filename)
+		if err != nil {
+			t.Fatal(err)
+		}
+		out2 := string(cb2)
+		out2 = strings.TrimSpace(out2)
+
+		if out != out2 {
+			t.Fatal(ShowDiff(out, out2))
+		}
 	}
 }
 
@@ -415,6 +438,39 @@ func intenalEispack() {
 	fmt.Fprintf(osStdout, "\n")
 	// timestamp()
 	return
+}
+
+func intenalEispack2() {
+	var a []float64 = []float64{5, 4, 1, 1, 4, 5, 1, 1, 1, 1, 4, 2, 1, 1, 2, 4}
+	var a2 []float64 = make([]float64, 16)
+	var i int
+	var ierr int
+	var j int
+	var matz int
+	var n int = 4
+	var w []float64 = make([]float64, 4)
+	var x []float64 = make([]float64, 16)
+	for j = 0; j < n; j++ {
+		for i = 0; i < n; i++ {
+			a2[i+j*n] = a[i+j*n]
+		}
+	}
+	fmt.Fprintf(osStdout, "\n")
+	fmt.Fprintf(osStdout, "TEST06 (KI)\n")
+	fmt.Fprintf(osStdout, "  RS computes the eigenvalues and eigenvectors\n")
+	fmt.Fprintf(osStdout, "  of a real symmetric matrix.\n")
+	fmt.Fprintf(osStdout, "\n")
+	fmt.Fprintf(osStdout, "  Matrix order = %d\n", n)
+	r8mat_print(n, n, a, "  The matrix A:")
+	matz = 0
+	ierr = rs(n, a, w, matz, x)
+	if ierr != 0 {
+		fmt.Fprintf(osStdout, "\n")
+		fmt.Fprintf(osStdout, "TEST06 - Warning!\n")
+		fmt.Fprintf(osStdout, "  The error return flag IERR = %d\n", ierr)
+		return
+	}
+	r8vec_print(n, w, "  The eigenvalues Lambda:")
 }
 
 // test06 - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/Eispack/eispack_prb1.c:95

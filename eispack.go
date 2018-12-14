@@ -1180,24 +1180,18 @@ func r8mat_mm_new(n1 int, n2 int, n3 int, a []float64, b []float64) []float64 {
 //    completion code described in the documentation for TQLRAT and TQL2.
 //    The normal completion code is zero.
 //
-func rs(n int, a []float64, w []float64, matz int, z []float64) int {
-	var fv1 []float64
-	var fv2 []float64
-	var ierr int
+func rs(n int, a []float64, w []float64, matz int, z []float64) (ierr int) {
 	if matz == 0 {
-		fv1 = make([]float64, uint32(n)*8*1/8)
-		fv2 = make([]float64, uint32(n)*8*1/8)
+		fv1 := make([]float64, n)
+		fv2 := make([]float64, n)
 		tred1(n, a, w, fv1, fv2)
 		ierr = tqlrat(n, w, fv2)
-		_ = fv1
-		_ = fv2
 	} else {
-		fv1 = make([]float64, uint32(n)*8*1/8)
+		fv1 := make([]float64, n)
 		tred2(n, a, w, fv1, z)
 		ierr = tql2(n, w, fv1, z)
-		_ = fv1
 	}
-	return ierr
+	return
 }
 
 // rsb - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/Eispack/eispack.c:1690
