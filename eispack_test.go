@@ -3,6 +3,7 @@ package sparse
 import (
 	"fmt"
 	"math"
+	"os"
 	"testing"
 )
 
