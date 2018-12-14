@@ -2000,13 +2000,13 @@ func tred2(n int, a []float64, d []float64, e []float64, z []float64) {
 	var k int
 	var l int
 	var scale float64
-	{
-		for j = 0; j < n; j++ {
-			for i = j; i < n; i++ {
-				z[i+j*n] = a[i+j*n]
-			}
+
+	for j = 0; j < n; j++ {
+		for i = j; i < n; i++ {
+			z[i+j*n] = a[i+j*n]
 		}
 	}
+
 	for j = 0; j < n; j++ {
 		d[j] = a[n-1+j*n]
 	}
@@ -2042,14 +2042,14 @@ func tred2(n int, a []float64, d []float64, e []float64, z []float64) {
 		e[i] = scale * g
 		h = h - f*g
 		d[l] = f - g
-		{
-			//
-			//  Form A*U.
-			//
-			for k = 0; k <= l; k++ {
-				e[k] = 0
-			}
+
+		//
+		//  Form A*U.
+		//
+		for k = 0; k <= l; k++ {
+			e[k] = 0
 		}
+
 		for j = 0; j <= l; j++ {
 			f = d[j]
 			z[j+i*n] = f
@@ -2060,71 +2060,70 @@ func tred2(n int, a []float64, d []float64, e []float64, z []float64) {
 			}
 			e[j] = g
 		}
-		{
-			//
-			//  Form P.
-			//
-			for k = 0; k <= l; k++ {
-				e[k] = e[k] / h
-			}
+
+		//
+		//  Form P.
+		//
+		for k = 0; k <= l; k++ {
+			e[k] = e[k] / h
 		}
+
 		f = 0
 		for k = 0; k <= l; k++ {
 			f = f + e[k]*d[k]
 		}
 		hh = 0.5 * f / h
-		{
-			//
-			//  Form Q.
-			//
-			for k = 0; k <= l; k++ {
-				e[k] = e[k] - hh*d[k]
-			}
+
+		//
+		//  Form Q.
+		//
+		for k = 0; k <= l; k++ {
+			e[k] = e[k] - hh*d[k]
 		}
-		{
-			//
-			//  Form reduced A.
-			//
-			for j = 0; j <= l; j++ {
-				f = d[j]
-				g = e[j]
-				for k = j; k <= l; k++ {
-					z[k+j*n] = z[k+j*n] - f*e[k] - g*d[k]
-				}
-				d[j] = z[l+j*n]
-				z[i+j*n] = 0
+
+		//
+		//  Form reduced A.
+		//
+		for j = 0; j <= l; j++ {
+			f = d[j]
+			g = e[j]
+			for k = j; k <= l; k++ {
+				z[k+j*n] = z[k+j*n] - f*e[k] - g*d[k]
 			}
+			d[j] = z[l+j*n]
+			z[i+j*n] = 0
 		}
+
 		d[i] = h
 	}
-	{
-		//
-		//  Accumulation of transformation matrices.
-		//
-		for i = 1; i < n; i++ {
-			l = i - 1
-			z[n-1+l*n] = z[l+l*n]
-			z[l+l*n] = 1
-			h = d[i]
-			if h != 0 {
-				for k = 0; k <= l; k++ {
-					d[k] = z[k+i*n] / h
-				}
-				for j = 0; j <= l; j++ {
-					g = 0
-					for k = 0; k <= l; k++ {
-						g = g + z[k+i*n]*z[k+j*n]
-					}
-					for k = 0; k <= l; k++ {
-						z[k+j*n] = z[k+j*n] - g*d[k]
-					}
-				}
-			}
+
+	//
+	//  Accumulation of transformation matrices.
+	//
+	for i = 1; i < n; i++ {
+		l = i - 1
+		z[n-1+l*n] = z[l+l*n]
+		z[l+l*n] = 1
+		h = d[i]
+		if h != 0 {
 			for k = 0; k <= l; k++ {
-				z[k+i*n] = 0
+				d[k] = z[k+i*n] / h
+			}
+			for j = 0; j <= l; j++ {
+				g = 0
+				for k = 0; k <= l; k++ {
+					g = g + z[k+i*n]*z[k+j*n]
+				}
+				for k = 0; k <= l; k++ {
+					z[k+j*n] = z[k+j*n] - g*d[k]
+				}
 			}
 		}
+		for k = 0; k <= l; k++ {
+			z[k+i*n] = 0
+		}
 	}
+
 	for j = 0; j < n; j++ {
 		d[j] = z[n-1+j*n]
 	}
