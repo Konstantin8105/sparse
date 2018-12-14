@@ -1,46 +1,34 @@
-//
-//	Package main - transpiled by c4go
-//
-//	If you have found any issues, please raise an issue at:
-//	https://github.com/Konstantin8105/c4go/
-//
-
 package sparse
 
 import (
 	"fmt"
+	"math"
 	"testing"
-	"unsafe"
-
-	"github.com/Konstantin8105/c4go/noarch"
 )
 
-// main - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/Eispack/eispack_prb1.c:28
+// transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/Eispack/eispack_prb1.c:28
+//
+//  Purpose:
+//
+//    MAIN is the main program for EISPACK_PRB1.
+//
+//  Discussion:
+//
+//    EISPACK_PRB1 calls the EISPACK sample programs.
+//
+//  Licensing:
+//
+//    This code is distributed under the GNU LGPL license.
+//
+//  Modified:
+//
+//    11 November 2012
+//
+//  Author:
+//
+//    John Burkardt
 //
 func TestEispack(t *testing.T) {
-	defer noarch.AtexitRun()
-	//
-	//
-	//  Purpose:
-	//
-	//    MAIN is the main program for EISPACK_PRB1.
-	//
-	//  Discussion:
-	//
-	//    EISPACK_PRB1 calls the EISPACK sample programs.
-	//
-	//  Licensing:
-	//
-	//    This code is distributed under the GNU LGPL license.
-	//
-	//  Modified:
-	//
-	//    11 November 2012
-	//
-	//  Author:
-	//
-	//    John Burkardt
-	//
 	// timestamp()
 	fmt.Printf("\n")
 	fmt.Printf("EISPACK_PRB\n")
@@ -126,26 +114,26 @@ func test06() {
 	fmt.Printf("  RS computes the eigenvalues and eigenvectors\n")
 	fmt.Printf("  of a real symmetric matrix.\n")
 	fmt.Printf("\n")
-	noarch.Printf([]byte("  Matrix order = %d\n\x00"), n)
-	r8mat_print(n, n, a, []byte("  The matrix A:\x00"))
+	fmt.Printf("  Matrix order = %d\n", n)
+	r8mat_print(n, n, a, "  The matrix A:")
 	matz = 1
 	ierr = rs(n, a, w, matz, x)
 	if ierr != 0 {
 		fmt.Printf("\n")
 		fmt.Printf("TEST06 - Warning!\n")
-		noarch.Printf([]byte("  The error return flag IERR = %d\n\x00"), ierr)
+		fmt.Printf("  The error return flag IERR = %d\n", ierr)
 		return
 	}
-	r8vec_print(n, w, []byte("  The eigenvalues Lambda:\x00"))
+	r8vec_print(n, w, "  The eigenvalues Lambda:")
 	if matz != 0 {
-		r8mat_print(n, n, x, []byte("  The eigenvector matrix:\x00"))
+		r8mat_print(n, n, x, "  The eigenvector matrix:")
 		r = r8mat_mm_new(n, n, n, a2, x)
 		for j = 0; j < n; j++ {
 			for i = 0; i < n; i++ {
 				r[i+j*n] = r[i+j*n] - w[j]*x[i+j*n]
 			}
 		}
-		r8mat_print(n, n, r, []byte("  The residual (A-Lambda*I)*X:\x00"))
+		r8mat_print(n, n, r, "  The residual (A-Lambda*I)*X:")
 	}
 	_ = r
 }
@@ -189,9 +177,9 @@ func test065() {
 	fmt.Printf("  RS computes the eigenvalues and eigenvectors\n")
 	fmt.Printf("  of a real symmetric matrix.\n")
 	fmt.Printf("\n")
-	noarch.Printf([]byte("  Matrix order = %d\n\x00"), n)
+	fmt.Printf("  Matrix order = %d\n", n)
 	seed = 123456789
-	a = r8mat_uniform_01_new(n, n, (*[100000000]int)(unsafe.Pointer(&seed))[:])
+	a = r8mat_uniform_01_new(n, n, &seed)
 	for i = 0; i < n-1; i++ {
 		for j = i + 1; j < n; j++ {
 			t = 0.5 * (a[i+j*n] + a[j+i*n])
@@ -209,25 +197,25 @@ func test065() {
 			}
 		}
 	}
-	r8mat_print(n, n, a, []byte("  The matrix A:\x00"))
+	r8mat_print(n, n, a, "  The matrix A:")
 	matz = 1
 	ierr = rs(n, a, w, matz, x)
 	if ierr != 0 {
 		fmt.Printf("\n")
 		fmt.Printf("TEST065 - Warning!\n")
-		noarch.Printf([]byte("  The error return flag IERR = %d\n\x00"), ierr)
+		fmt.Printf("  The error return flag IERR = %d\n", ierr)
 		return
 	}
-	r8vec_print(n, w, []byte("  The eigenvalues Lambda:\x00"))
+	r8vec_print(n, w, "  The eigenvalues Lambda:")
 	if matz != 0 {
-		r8mat_print(n, n, x, []byte("  The eigenvector matrix:\x00"))
+		r8mat_print(n, n, x, "  The eigenvector matrix:")
 		r = r8mat_mm_new(n, n, n, a2, x)
 		for j = 0; j < n; j++ {
 			for i = 0; i < n; i++ {
 				r[i+j*n] = r[i+j*n] - w[j]*x[i+j*n]
 			}
 		}
-		r8mat_print(n, n, r, []byte("  The residual (A-Lambda*I)*X:\x00"))
+		r8mat_print(n, n, r, "  The residual (A-Lambda*I)*X:")
 		_ = r
 	}
 	_ = a
@@ -284,7 +272,7 @@ func test07() {
 		for i = 0; i < n; i++ {
 			if i == j {
 				a2[i+j*n] = 2
-			} else if noarch.Abs(i-j) == 1 {
+			} else if int(math.Abs(float64(i-j))) == 1 {
 				a2[i+j*n] = -1
 			} else {
 				a2[i+j*n] = 0
@@ -296,8 +284,8 @@ func test07() {
 	fmt.Printf("  RSB computes the eigenvalues and eigenvectors\n")
 	fmt.Printf("  of a real symmetric band matrix.\n")
 	fmt.Printf("\n")
-	noarch.Printf([]byte("  Matrix order = %d\n\x00"), n)
-	r8mat_print(n, n, a2, []byte("  The matrix A:\x00"))
+	fmt.Printf("  Matrix order = %d\n", n)
+	r8mat_print(n, n, a2, "  The matrix A:")
 	w = make([]float64, uint32(n)*8*1/8)
 	x = make([]float64, uint32(n*n)*8*1/8)
 	matz = 1
@@ -305,19 +293,19 @@ func test07() {
 	if ierr != 0 {
 		fmt.Printf("\n")
 		fmt.Printf("TEST07 - Warning!\n")
-		noarch.Printf([]byte("  The error return flag IERR = %d\n\x00"), ierr)
+		fmt.Printf("  The error return flag IERR = %d\n", ierr)
 		return
 	}
-	r8vec_print(n, w, []byte("  The eigenvalues Lambda:\x00"))
+	r8vec_print(n, w, "  The eigenvalues Lambda:")
 	if matz != 0 {
-		r8mat_print(n, n, x, []byte("  The eigenvector matrix X:\x00"))
+		r8mat_print(n, n, x, "  The eigenvector matrix X:")
 		r = r8mat_mm_new(n, n, n, a2, x)
 		for j = 0; j < n; j++ {
 			for i = 0; i < n; i++ {
 				r[i+j*n] = r[i+j*n] - x[i+j*n]*w[j]
 			}
 		}
-		r8mat_print(n, n, r, []byte("  The residual (A-Lambda*I)*X:\x00"))
+		r8mat_print(n, n, r, "  The residual (A-Lambda*I)*X:")
 		_ = r
 	}
 	_ = a

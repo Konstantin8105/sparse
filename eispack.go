@@ -1126,7 +1126,7 @@ func r8mat_mm_new(n1 int, n2 int, n3 int, a []float64, b []float64) []float64 {
 
 // r8mat_print - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/Eispack/eispack.c:1307
 //
-func r8mat_print(m int, n int, a []float64, title []byte) {
+func r8mat_print(m int, n int, a []float64, title string) {
 	//
 	//
 	//  Purpose:
@@ -1167,7 +1167,7 @@ func r8mat_print(m int, n int, a []float64, title []byte) {
 
 // r8mat_print_some - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/Eispack/eispack.c:1351
 //
-func r8mat_print_some(m int, n int, a []float64, ilo int, jlo int, ihi int, jhi int, title []byte) {
+func r8mat_print_some(m int, n int, a []float64, ilo int, jlo int, ihi int, jhi int, title string) {
 	var i int
 	var i2hi int
 	var i2lo int
@@ -1261,7 +1261,7 @@ func r8mat_print_some(m int, n int, a []float64, ilo int, jlo int, ihi int, jhi 
 
 // r8mat_uniform_01_new - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/Eispack/eispack.c:1459
 //
-func r8mat_uniform_01_new(m int, n int, seed []int) []float64 {
+func r8mat_uniform_01_new(m int, n int, seed *int) []float64 {
 	var i int
 	var j int
 	var k int
@@ -1329,12 +1329,12 @@ func r8mat_uniform_01_new(m int, n int, seed []int) []float64 {
 	r = make([]float64, uint32(m*n)*8*1/8)
 	for j = 0; j < n; j++ {
 		for i = 0; i < m; i++ {
-			k = seed[0] / 127773
-			seed[0] = 16807*(seed[0]-k*127773) - k*2836
-			if seed[0] < 0 {
-				seed[0] = seed[0] + 2147483647
+			k = *seed / 127773
+			*seed = 16807*(*seed-k*127773) - k*2836
+			if *seed < 0 {
+				*seed = *seed + 2147483647
 			}
-			r[i+j*m] = float64((seed[0])) * 4.656612875e-10
+			r[i+j*m] = float64(*seed) * 4.656612875e-10
 		}
 	}
 	return r
@@ -1342,7 +1342,7 @@ func r8mat_uniform_01_new(m int, n int, seed []int) []float64 {
 
 // r8vec_print - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/Eispack/eispack.c:1549
 //
-func r8vec_print(n int, a []float64, title []byte) {
+func r8vec_print(n int, a []float64, title string) {
 	var i int
 	//
 	//
