@@ -1104,7 +1104,7 @@ func r8mat_mm_new(n1 int, n2 int, n3 int, a []float64, b []float64) []float64 {
 	var i int
 	var j int
 	var k int
-	c = make([]float64, uint32(n1*n3)*8*1/8)
+	c = make([]float64, n1*n3)
 	for i = 0; i < n1; i++ {
 		for j = 0; j < n3; j++ {
 			c[i+j*n1] = 0
@@ -1282,15 +1282,15 @@ func rsb(n int, mb int, a []float64, w []float64, matz int, z []float64) int {
 		return ierr
 	}
 	if matz == 0 {
-		fv1 = make([]float64, uint32(n)*8*1/8)
-		fv2 = make([]float64, uint32(n)*8*1/8)
+		fv1 = make([]float64, n)
+		fv2 = make([]float64, n)
 		tf = 0
 		bandr(n, mb, a, w, fv1, fv2, tf, z)
 		ierr = tqlrat(n, w, fv2)
 		_ = fv1
 		_ = fv2
 	} else {
-		fv1 = make([]float64, uint32(n)*8*1/8)
+		fv1 = make([]float64, n)
 		tf = 1
 		bandr(n, mb, a, w, fv1, fv1, tf, z)
 		ierr = tql2(n, w, fv1, z)
