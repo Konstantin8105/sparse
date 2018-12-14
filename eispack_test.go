@@ -79,6 +79,10 @@ func TestEispack(t *testing.T) {
 			source: "Eispack/eispack_prb3.c",
 			f:      intenalEispack3,
 		},
+		{
+			source: "Eispack/eispack_prb4.c",
+			f:      intenalEispack4,
+		},
 	}
 
 	for i := range tcs {
@@ -123,6 +127,7 @@ func TestEispack(t *testing.T) {
 			if out != out2 {
 				t.Fatal(ShowDiff(out, out2))
 			}
+
 			// t.Log(out2)
 		})
 	}
@@ -531,6 +536,39 @@ func intenalEispack3() {
 	if ierr != 0 {
 		fmt.Fprintf(osStdout, "\n")
 		fmt.Fprintf(osStdout, "TEST07 - Warning!\n")
+		fmt.Fprintf(osStdout, "  The error return flag IERR = %d\n", ierr)
+		return
+	}
+	r8vec_print(n, w, "  The eigenvalues Lambda:")
+}
+
+func intenalEispack4() {
+	var a []float64 = []float64{15, 4, 1, 115, 4, 5, 5, 1, 1, 1, 4, 2, 1, 1, 2, 4}
+	var a2 []float64 = make([]float64, 16)
+	var i int
+	var ierr int
+	var j int
+	var matz int
+	var n int = 4
+	var w []float64 = make([]float64, 4)
+	var x []float64 = make([]float64, 16)
+	for j = 0; j < n; j++ {
+		for i = 0; i < n; i++ {
+			a2[i+j*n] = a[i+j*n]
+		}
+	}
+	fmt.Fprintf(osStdout, "\n")
+	fmt.Fprintf(osStdout, "TEST06 (KI: not symmetrical)\n")
+	fmt.Fprintf(osStdout, "  RS computes the eigenvalues and eigenvectors\n")
+	fmt.Fprintf(osStdout, "  of a real not symmetric matrix.\n")
+	fmt.Fprintf(osStdout, "\n")
+	fmt.Fprintf(osStdout, "  Matrix order = %d\n", n)
+	r8mat_print(n, n, a, "  The matrix A:")
+	matz = 0
+	ierr = rs(n, a, w, matz, x)
+	if ierr != 0 {
+		fmt.Fprintf(osStdout, "\n")
+		fmt.Fprintf(osStdout, "TEST06 - Warning!\n")
 		fmt.Fprintf(osStdout, "  The error return flag IERR = %d\n", ierr)
 		return
 	}
