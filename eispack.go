@@ -1266,11 +1266,7 @@ func rs(n int, a []float64, w []float64, matz int, z []float64) (ierr int) {
 //    completion code described in the documentation for TQLRAT and TQL2.
 //    The normal completion code is zero.
 //
-func rsb(n int, mb int, a []float64, w []float64, matz int, z []float64) int {
-	var fv1 []float64
-	var fv2 []float64
-	var ierr int
-	var tf int
+func rsb(n, mb int, a, w []float64, matz int, z []float64) (ierr int) {
 	if mb <= 0 {
 		ierr = 12 * n
 		return ierr
@@ -1280,20 +1276,19 @@ func rsb(n int, mb int, a []float64, w []float64, matz int, z []float64) int {
 		return ierr
 	}
 	if matz == 0 {
-		fv1 = make([]float64, n)
-		fv2 = make([]float64, n)
-		tf = 0
+		fv1 := make([]float64, n)
+		fv2 := make([]float64, n)
+		tf := 0
 		bandr(n, mb, a, w, fv1, fv2, tf, z)
 		ierr = tqlrat(n, w, fv2)
-		_ = fv1
-		_ = fv2
-	} else {
-		fv1 = make([]float64, n)
-		tf = 1
-		bandr(n, mb, a, w, fv1, fv1, tf, z)
-		ierr = tql2(n, w, fv1, z)
-		_ = fv1
+		return
 	}
+
+	fv1 := make([]float64, n)
+	tf := 1
+	bandr(n, mb, a, w, fv1, fv1, tf, z)
+	ierr = tql2(n, w, fv1, z)
+
 	return ierr
 }
 
