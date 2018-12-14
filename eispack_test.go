@@ -5,15 +5,19 @@
 //	https://github.com/Konstantin8105/c4go/
 //
 
-package sparse_test
+package sparse
 
-import "unsafe"
-import "github.com/Konstantin8105/c4go/noarch"
-import "fmt"
+import (
+	"fmt"
+	"testing"
+	"unsafe"
+
+	"github.com/Konstantin8105/c4go/noarch"
+)
 
 // main - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/Eispack/eispack_prb1.c:28
 //
-func main() {
+func TestEispack(t *testing.T) {
 	defer noarch.AtexitRun()
 	//
 	//
@@ -37,7 +41,7 @@ func main() {
 	//
 	//    John Burkardt
 	//
-	timestamp()
+	// timestamp()
 	fmt.Printf("\n")
 	fmt.Printf("EISPACK_PRB\n")
 	fmt.Printf("  C version.\n")
@@ -71,7 +75,7 @@ func main() {
 	fmt.Printf("EISPACK_PRB1\n")
 	fmt.Printf("  Normal end of execution.\n")
 	fmt.Printf("\n")
-	timestamp()
+	// timestamp()
 	return
 }
 
@@ -83,7 +87,7 @@ func test06() {
 	var i int
 	var ierr int
 	var j int
-	var k int
+	// var k int
 	var matz int
 	var n int = 4
 	var r []float64
@@ -154,7 +158,7 @@ func test065() {
 	var i int
 	var ierr int
 	var j int
-	var k int
+	// var k int
 	var matz int
 	var n int = 3
 	var r []float64

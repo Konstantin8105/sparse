@@ -7,9 +7,10 @@
 
 package sparse
 
-import "unsafe"
-import "github.com/Konstantin8105/c4go/noarch"
-import "math"
+import (
+	"github.com/Konstantin8105/c4go/noarch"
+	"math"
+)
 
 // bakvec - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/Eispack/eispack.c:10
 //
@@ -116,76 +117,75 @@ func bakvec(n int, t []float64, e []float64, m int, z []float64) int {
 
 // balbak - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/Eispack/eispack.c:129
 //
+//
+//  Purpose:
+//
+//    BALBAK determines eigenvectors by undoing the BALANC transformation.
+//
+//  Discussion:
+//
+//    This subroutine forms the eigenvectors of a real general matrix by
+//    back transforming those of the corresponding balanced matrix
+//    determined by BALANC.
+//
+//  Licensing:
+//
+//    This code is distributed under the GNU LGPL license.
+//
+//  Modified:
+//
+//    15 July 2013
+//
+//  Author:
+//
+//    Original FORTRAN77 version by Smith, Boyle, Dongarra, Garbow, Ikebe,
+//    Klema, Moler.
+//    C version by John Burkardt.
+//
+//  Reference:
+//
+//    Parlett and Reinsch,
+//    Numerische Mathematik,
+//    Volume 13, pages 293-304, 1969.
+//
+//    James Wilkinson, Christian Reinsch,
+//    Handbook for Automatic Computation,
+//    Volume II, Linear Algebra, Part 2,
+//    Springer, 1971,
+//    ISBN: 0387054146,
+//    LC: QA251.W67.
+//
+//    Brian Smith, James Boyle, Jack Dongarra, Burton Garbow,
+//    Yasuhiko Ikebe, Virginia Klema, Cleve Moler,
+//    Matrix Eigensystem Routines, EISPACK Guide,
+//    Lecture Notes in Computer Science, Volume 6,
+//    Springer Verlag, 1976,
+//    ISBN13: 978-3540075462,
+//    LC: QA193.M37.
+//
+//  Parameters:
+//
+//    Input, int N, the order of the matrix.
+//
+//    Input, int LOW, IGH, column indices determined by BALANC.
+//
+//    Input, double SCALE[N], contains information determining
+//    the permutations and scaling factors used by BALANC.
+//
+//    Input, int M, the number of columns of Z to be
+//    back-transformed.
+//
+//    Input/output, double Z[N*M], contains the real and imaginary
+//    parts of the eigenvectors, which, on return, have been back-transformed.
+//
 func balbak(n int, low int, igh int, scale []float64, m int, z []float64) {
 	var i int
 	var ii int
 	var j int
 	var k int
-	var s float64
+	// var s float64
 	var t float64
 	if m <= 0 {
-		//
-		//
-		//  Purpose:
-		//
-		//    BALBAK determines eigenvectors by undoing the BALANC transformation.
-		//
-		//  Discussion:
-		//
-		//    This subroutine forms the eigenvectors of a real general matrix by
-		//    back transforming those of the corresponding balanced matrix
-		//    determined by BALANC.
-		//
-		//  Licensing:
-		//
-		//    This code is distributed under the GNU LGPL license.
-		//
-		//  Modified:
-		//
-		//    15 July 2013
-		//
-		//  Author:
-		//
-		//    Original FORTRAN77 version by Smith, Boyle, Dongarra, Garbow, Ikebe,
-		//    Klema, Moler.
-		//    C version by John Burkardt.
-		//
-		//  Reference:
-		//
-		//    Parlett and Reinsch,
-		//    Numerische Mathematik,
-		//    Volume 13, pages 293-304, 1969.
-		//
-		//    James Wilkinson, Christian Reinsch,
-		//    Handbook for Automatic Computation,
-		//    Volume II, Linear Algebra, Part 2,
-		//    Springer, 1971,
-		//    ISBN: 0387054146,
-		//    LC: QA251.W67.
-		//
-		//    Brian Smith, James Boyle, Jack Dongarra, Burton Garbow,
-		//    Yasuhiko Ikebe, Virginia Klema, Cleve Moler,
-		//    Matrix Eigensystem Routines, EISPACK Guide,
-		//    Lecture Notes in Computer Science, Volume 6,
-		//    Springer Verlag, 1976,
-		//    ISBN13: 978-3540075462,
-		//    LC: QA193.M37.
-		//
-		//  Parameters:
-		//
-		//    Input, int N, the order of the matrix.
-		//
-		//    Input, int LOW, IGH, column indices determined by BALANC.
-		//
-		//    Input, double SCALE[N], contains information determining
-		//    the permutations and scaling factors used by BALANC.
-		//
-		//    Input, int M, the number of columns of Z to be
-		//    back-transformed.
-		//
-		//    Input/output, double Z[N*M], contains the real and imaginary
-		//    parts of the eigenvectors, which, on return, have been back-transformed.
-		//
 		return
 	}
 	if igh != low {
@@ -845,38 +845,34 @@ func pythag(a float64, b float64) float64 {
 
 // r8_abs - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/Eispack/eispack.c:988
 //
+//
+//  Purpose:
+//
+//    R8_ABS returns the absolute value of an R8.
+//
+//  Licensing:
+//
+//    This code is distributed under the GNU LGPL license.
+//
+//  Modified:
+//
+//    07 May 2006
+//
+//  Author:
+//
+//    John Burkardt
+//
+//  Parameters:
+//
+//    Input, double X, the quantity whose absolute value is desired.
+//
+//    Output, double R8_ABS, the absolute value of X.
+//
+//
 func r8_abs(x float64) float64 {
 	var value float64
 	if 0 <= x {
-		//
-		//
-		//  Purpose:
-		//
-		//    R8_ABS returns the absolute value of an R8.
-		//
-		//  Licensing:
-		//
-		//    This code is distributed under the GNU LGPL license.
-		//
-		//  Modified:
-		//
-		//    07 May 2006
-		//
-		//  Author:
-		//
-		//    John Burkardt
-		//
-		//  Parameters:
-		//
-		//    Input, double X, the quantity whose absolute value is desired.
-		//
-		//    Output, double R8_ABS, the absolute value of X.
-		//
-		value = func() float64 {
-			tempVar := &x
-			x
-			return *tempVar
-		}()
+		value = +x
 	} else {
 		value = -x
 	}
@@ -1575,44 +1571,43 @@ func rsb(n int, mb int, a []float64, w []float64, matz int, z []float64) int {
 	return ierr
 }
 
-// timestamp - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/Eispack/eispack.c:1810
-//
-func timestamp() {
-	var time_buffer []byte = make([]byte, 40)
-	var tm []noarch.Tm
-	var len uint
-	var now noarch.TimeT
-	//
-	//
-	//  Purpose:
-	//
-	//    TIMESTAMP prints the current YMDHMS date as a time stamp.
-	//
-	//  Example:
-	//
-	//    31 May 2001 09:45:54 AM
-	//
-	//  Licensing:
-	//
-	//    This code is distributed under the GNU LGPL license.
-	//
-	//  Modified:
-	//
-	//    24 September 2003
-	//
-	//  Author:
-	//
-	//    John Burkardt
-	//
-	//  Parameters:
-	//
-	//    None
-	//
-	now = noarch.Time(nil)
-	tm = noarch.LocalTime((*[100000000]noarch.TimeT)(unsafe.Pointer(&now))[:])
-	len = strftime(time_buffer, 40, []byte("%d %B %Y %I:%M:%S %p\x00"), tm)
-	noarch.Fprintf(noarch.Stdout, []byte("%s\n\x00"), time_buffer)
-}
+//  // timestamp - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/Eispack/eispack.c:1810
+// 	//
+// 	//
+// 	//  Purpose:
+// 	//
+// 	//    TIMESTAMP prints the current YMDHMS date as a time stamp.
+// 	//
+// 	//  Example:
+// 	//
+// 	//    31 May 2001 09:45:54 AM
+// 	//
+// 	//  Licensing:
+// 	//
+// 	//    This code is distributed under the GNU LGPL license.
+// 	//
+// 	//  Modified:
+// 	//
+// 	//    24 September 2003
+// 	//
+// 	//  Author:
+// 	//
+// 	//    John Burkardt
+// 	//
+// 	//  Parameters:
+// 	//
+// 	//    None
+// 	//
+// func timestamp() {
+// 	var time_buffer []byte = make([]byte, 40)
+// 	var tm []noarch.Tm
+// 	var len uint
+// 	var now noarch.TimeT
+// 	now = noarch.Time(nil)
+// 	tm = noarch.LocalTime((*[100000000]noarch.TimeT)(unsafe.Pointer(&now))[:])
+// 	len = strftime(time_buffer, 40, []byte("%d %B %Y %I:%M:%S %p\x00"), tm)
+// 	noarch.Fprintf(noarch.Stdout, []byte("%s\n\x00"), time_buffer)
+// }
 
 // tql2 - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/Eispack/eispack.c:1858
 //
@@ -2032,83 +2027,83 @@ func tqlrat(n int, d []float64, e2 []float64) int {
 
 // tred1 - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/Eispack/eispack.c:2328
 //
+//
+//
+//  Purpose:
+//
+//    TRED1 transforms a real symmetric matrix to symmetric tridiagonal form.
+//
+//  Discussion:
+//
+//    The routine reduces a real symmetric matrix to a symmetric
+//    tridiagonal matrix using orthogonal similarity transformations.
+//
+//  Licensing:
+//
+//    This code is distributed under the GNU LGPL license.
+//
+//  Modified:
+//
+//    08 November 2012
+//
+//  Author:
+//
+//    Original FORTRAN77 version by Smith, Boyle, Dongarra, Garbow, Ikebe,
+//    Klema, Moler.
+//    C version by John Burkardt.
+//
+//  Reference:
+//
+//    Martin, Reinsch, Wilkinson,
+//    TRED1,
+//    Numerische Mathematik,
+//    Volume 11, pages 181-195, 1968.
+//
+//    James Wilkinson, Christian Reinsch,
+//    Handbook for Automatic Computation,
+//    Volume II, Linear Algebra, Part 2,
+//    Springer, 1971,
+//    ISBN: 0387054146,
+//    LC: QA251.W67.
+//
+//    Brian Smith, James Boyle, Jack Dongarra, Burton Garbow,
+//    Yasuhiko Ikebe, Virginia Klema, Cleve Moler,
+//    Matrix Eigensystem Routines, EISPACK Guide,
+//    Lecture Notes in Computer Science, Volume 6,
+//    Springer Verlag, 1976,
+//    ISBN13: 978-3540075462,
+//    LC: QA193.M37.
+//
+//  Parameters:
+//
+//    Input, int N, the order of the matrix A.
+//
+//    Input/output, double A[N*N], on input, contains the real
+//    symmetric matrix.  Only the lower triangle of the matrix need be supplied.
+//    On output, A contains information about the orthogonal transformations
+//    used in the reduction in its strict lower triangle.
+//    The full upper triangle of A is unaltered.
+//
+//    Output, double D[N], contains the diagonal elements of the
+//    tridiagonal matrix.
+//
+//    Output, double E[N], contains the subdiagonal elements of the
+//    tridiagonal matrix in its last N-1 positions.  E(1) is set to zero.
+//
+//    Output, double E2[N], contains the squares of the corresponding
+//    elements of E.  E2 may coincide with E if the squares are not needed.
+//
 func tred1(n int, a []float64, d []float64, e []float64, e2 []float64) {
 	var f float64
 	var g float64
 	var h float64
 	var i int
-	var ii int
+	// var ii int
 	var j int
 	var k int
 	var l int
 	var scale float64
 	{
-		//
-		//
-		//  Purpose:
-		//
-		//    TRED1 transforms a real symmetric matrix to symmetric tridiagonal form.
-		//
-		//  Discussion:
-		//
-		//    The routine reduces a real symmetric matrix to a symmetric
-		//    tridiagonal matrix using orthogonal similarity transformations.
-		//
-		//  Licensing:
-		//
-		//    This code is distributed under the GNU LGPL license.
-		//
-		//  Modified:
-		//
-		//    08 November 2012
-		//
-		//  Author:
-		//
-		//    Original FORTRAN77 version by Smith, Boyle, Dongarra, Garbow, Ikebe,
-		//    Klema, Moler.
-		//    C version by John Burkardt.
-		//
-		//  Reference:
-		//
-		//    Martin, Reinsch, Wilkinson,
-		//    TRED1,
-		//    Numerische Mathematik,
-		//    Volume 11, pages 181-195, 1968.
-		//
-		//    James Wilkinson, Christian Reinsch,
-		//    Handbook for Automatic Computation,
-		//    Volume II, Linear Algebra, Part 2,
-		//    Springer, 1971,
-		//    ISBN: 0387054146,
-		//    LC: QA251.W67.
-		//
-		//    Brian Smith, James Boyle, Jack Dongarra, Burton Garbow,
-		//    Yasuhiko Ikebe, Virginia Klema, Cleve Moler,
-		//    Matrix Eigensystem Routines, EISPACK Guide,
-		//    Lecture Notes in Computer Science, Volume 6,
-		//    Springer Verlag, 1976,
-		//    ISBN13: 978-3540075462,
-		//    LC: QA193.M37.
-		//
-		//  Parameters:
-		//
-		//    Input, int N, the order of the matrix A.
-		//
-		//    Input/output, double A[N*N], on input, contains the real
-		//    symmetric matrix.  Only the lower triangle of the matrix need be supplied.
-		//    On output, A contains information about the orthogonal transformations
-		//    used in the reduction in its strict lower triangle.
-		//    The full upper triangle of A is unaltered.
-		//
-		//    Output, double D[N], contains the diagonal elements of the
-		//    tridiagonal matrix.
-		//
-		//    Output, double E[N], contains the subdiagonal elements of the
-		//    tridiagonal matrix in its last N-1 positions.  E(1) is set to zero.
-		//
-		//    Output, double E2[N], contains the squares of the corresponding
-		//    elements of E.  E2 may coincide with E if the squares are not needed.
-		//
 		for j = 0; j < n; j++ {
 			d[j] = a[n-1+j*n]
 		}
@@ -2207,85 +2202,85 @@ func tred1(n int, a []float64, d []float64, e []float64, e2 []float64) {
 
 // tred2 - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/Eispack/eispack.c:2527
 //
+//
+//
+//  Purpose:
+//
+//    TRED2 transforms a real symmetric matrix to symmetric tridiagonal form.
+//
+//  Discussion:
+//
+//    This subroutine reduces a real symmetric matrix to a
+//    symmetric tridiagonal matrix using and accumulating
+//    orthogonal similarity transformations.
+//
+//    A and Z may coincide, in which case a single storage area is used
+//    for the input of A and the output of Z.
+//
+//  Licensing:
+//
+//    This code is distributed under the GNU LGPL license.
+//
+//  Modified:
+//
+//    03 November 2012
+//
+//  Author:
+//
+//    Original FORTRAN77 version by Smith, Boyle, Dongarra, Garbow, Ikebe,
+//    Klema, Moler.
+//    C version by John Burkardt.
+//
+//  Reference:
+//
+//    Martin, Reinsch, Wilkinson,
+//    TRED2,
+//    Numerische Mathematik,
+//    Volume 11, pages 181-195, 1968.
+//
+//    James Wilkinson, Christian Reinsch,
+//    Handbook for Automatic Computation,
+//    Volume II, Linear Algebra, Part 2,
+//    Springer, 1971,
+//    ISBN: 0387054146,
+//    LC: QA251.W67.
+//
+//    Brian Smith, James Boyle, Jack Dongarra, Burton Garbow,
+//    Yasuhiko Ikebe, Virginia Klema, Cleve Moler,
+//    Matrix Eigensystem Routines, EISPACK Guide,
+//    Lecture Notes in Computer Science, Volume 6,
+//    Springer Verlag, 1976,
+//    ISBN13: 978-3540075462,
+//    LC: QA193.M37.
+//
+//  Parameters:
+//
+//    Input, int N, the order of the matrix.
+//
+//    Input, double A[N*N], the real symmetric input matrix.  Only the
+//    lower triangle of the matrix need be supplied.
+//
+//    Output, double D[N], the diagonal elements of the tridiagonal
+//    matrix.
+//
+//    Output, double E[N], contains the subdiagonal elements of the
+//    tridiagonal matrix in E(2:N).  E(1) is set to zero.
+//
+//    Output, double Z[N*N], the orthogonal transformation matrix
+//    produced in the reduction.
+//
 func tred2(n int, a []float64, d []float64, e []float64, z []float64) {
 	var f float64
 	var g float64
 	var h float64
 	var hh float64
 	var i int
-	var ii int
+	// var ii int
 	var j int
 	var k int
 	var l int
 	var scale float64
 	{
-		//
-		//
-		//  Purpose:
-		//
-		//    TRED2 transforms a real symmetric matrix to symmetric tridiagonal form.
-		//
-		//  Discussion:
-		//
-		//    This subroutine reduces a real symmetric matrix to a
-		//    symmetric tridiagonal matrix using and accumulating
-		//    orthogonal similarity transformations.
-		//
-		//    A and Z may coincide, in which case a single storage area is used
-		//    for the input of A and the output of Z.
-		//
-		//  Licensing:
-		//
-		//    This code is distributed under the GNU LGPL license.
-		//
-		//  Modified:
-		//
-		//    03 November 2012
-		//
-		//  Author:
-		//
-		//    Original FORTRAN77 version by Smith, Boyle, Dongarra, Garbow, Ikebe,
-		//    Klema, Moler.
-		//    C version by John Burkardt.
-		//
-		//  Reference:
-		//
-		//    Martin, Reinsch, Wilkinson,
-		//    TRED2,
-		//    Numerische Mathematik,
-		//    Volume 11, pages 181-195, 1968.
-		//
-		//    James Wilkinson, Christian Reinsch,
-		//    Handbook for Automatic Computation,
-		//    Volume II, Linear Algebra, Part 2,
-		//    Springer, 1971,
-		//    ISBN: 0387054146,
-		//    LC: QA251.W67.
-		//
-		//    Brian Smith, James Boyle, Jack Dongarra, Burton Garbow,
-		//    Yasuhiko Ikebe, Virginia Klema, Cleve Moler,
-		//    Matrix Eigensystem Routines, EISPACK Guide,
-		//    Lecture Notes in Computer Science, Volume 6,
-		//    Springer Verlag, 1976,
-		//    ISBN13: 978-3540075462,
-		//    LC: QA193.M37.
-		//
-		//  Parameters:
-		//
-		//    Input, int N, the order of the matrix.
-		//
-		//    Input, double A[N*N], the real symmetric input matrix.  Only the
-		//    lower triangle of the matrix need be supplied.
-		//
-		//    Output, double D[N], the diagonal elements of the tridiagonal
-		//    matrix.
-		//
-		//    Output, double E[N], contains the subdiagonal elements of the
-		//    tridiagonal matrix in E(2:N).  E(1) is set to zero.
-		//
-		//    Output, double Z[N*N], the orthogonal transformation matrix
-		//    produced in the reduction.
-		//
 		for j = 0; j < n; j++ {
 			for i = j; i < n; i++ {
 				z[i+j*n] = a[i+j*n]
