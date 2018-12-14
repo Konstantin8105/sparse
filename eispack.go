@@ -817,7 +817,7 @@ func pythag(a float64, b float64) float64 {
 	var s float64
 	var t float64
 	var u float64
-	p = r8_max(math.Abs(a), math.Abs(b))
+	p = math.Max(math.Abs(a), math.Abs(b))
 	if p != 0 {
 		r = math.Min(math.Abs(a), math.Abs(b)) / p
 		r = r * r
@@ -876,40 +876,7 @@ func r8_epsilon() float64 {
 }
 
 // r8_max - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/Eispack/eispack.c:1068
-//
-//
-//
-//  Purpose:
-//
-//    R8_MAX returns the maximum of two R8's.
-//
-//  Licensing:
-//
-//    This code is distributed under the GNU LGPL license.
-//
-//  Modified:
-//
-//    07 May 2006
-//
-//  Author:
-//
-//    John Burkardt
-//
-//  Parameters:
-//
-//    Input, double X, Y, the quantities to compare.
-//
-//    Output, double R8_MAX, the maximum of X and Y.
-//
-func r8_max(x float64, y float64) float64 {
-	var value float64
-	if y < x {
-		value = x
-	} else {
-		value = y
-	}
-	return value
-}
+// removed
 
 // r8_min - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/Eispack/eispack.c:1109
 // removed
@@ -1379,7 +1346,7 @@ func tql2(n int, d []float64, e []float64, z []float64) int {
 	for l = 0; l < n; l++ {
 		j = 0
 		h = math.Abs(d[l]) + math.Abs(e[l])
-		tst1 = r8_max(tst1, h)
+		tst1 = math.Max(tst1, h)
 
 		//
 		//  Look for a small sub-diagonal element.
