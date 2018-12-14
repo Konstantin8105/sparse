@@ -1,23 +1,101 @@
 package sparse
 
 import (
+	"bytes"
 	"fmt"
+	"io/ioutil"
 	"math"
 	"os"
+	"os/exec"
+	"strings"
 	"testing"
 )
 
 func TestEispack(t *testing.T) {
-	// compile eispack
+	{
+		// compile eispack
+		//
+		// build testdata application :
+		//
+		// clang -o eispack eispack_prb1.c eispack.c eispack.h -lm
+		var args []string
+		args = append(args, []string{
+			"Eispack/eispack_prb1.c",
+			"Eispack/eispack.c",
+		}...)
+		args = append(args, "-lm")
+		args = append(args, "-o")
+		args = append(args, "Eispack/eispack")
 
-	// gcc -o eispack eispack_prb1.c eispack.c eispack.h -lm
-	// ./eispack
+		cmd := exec.Command("clang", args...)
+		var stdout, stderr bytes.Buffer
+		cmd.Stdout = &stdout
+		cmd.Stderr = &stderr
+		err := cmd.Run()
+		if err != nil {
+			t.Fatalf("cmd.Run() failed with %s.\n%s\n%s\n",
+				err,
+				stderr.String(),
+				stdout.String(),
+			)
+		}
+	}
+
+	var out string
+	{
+		// ./eispack
+		cmd := exec.Command("./Eispack/eispack")
+		var stdout, stderr bytes.Buffer
+		cmd.Stdout = &stdout
+		cmd.Stderr = &stderr
+		err := cmd.Run()
+		if err != nil {
+			t.Fatalf("cmd.Run() failed with %s.\n%s\n%s\n",
+				err,
+				stderr.String(),
+				stdout.String(),
+			)
+		}
+		out += stdout.String()
+	}
+	// remove first and last line
+	{
+		lines := strings.Split(out, "\n")
+		out = strings.Join(lines[1:len(lines)-2], "\n")
+		out = strings.TrimSpace(out)
+	}
 
 	// generate output
+	tmpfile, err := ioutil.TempFile("", "demo2")
+	if err != nil {
+		t.Fatal(err)
+	}
+	old := os.Stdout
+	os.Stdout = tmpfile
+	defer func() {
+		os.Stdout = old
+	}()
 
 	// run transpiled code
+	intenalEispack()
 
 	// compare output
+	filename := tmpfile.Name()
+	defer func() { _ = os.Remove(filename) }()
+	err = tmpfile.Close()
+	if err != nil {
+		t.Fatal(err)
+	}
+	cb2, err := ioutil.ReadFile(filename)
+	if err != nil {
+		t.Fatal(err)
+	}
+	out2 := string(cb2)
+	out2 = strings.TrimSpace(out2)
+
+	if out != out2 {
+		t.Fatal(ShowDiff(out, out2))
+	}
 }
 
 // r8mat_print - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/Eispack/eispack.c:1307
@@ -300,7 +378,7 @@ func r8vec_print(n int, a []float64, title string) {
 //
 //    John Burkardt
 //
-func intenalEispackTest(t *testing.T) {
+func intenalEispack() {
 	// timestamp()
 	fmt.Fprintf(os.Stdout, "\n")
 	fmt.Fprintf(os.Stdout, "EISPACK_PRB\n")
