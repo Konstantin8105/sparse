@@ -871,8 +871,7 @@ func pythag(a float64, b float64) float64 {
 //    Output, double R8_EPSILON, the R8 round-off unit.
 //
 func r8_epsilon() float64 {
-	var value float64 = 2.220446049250313e-16
-	return value
+	return 2.220446049250313e-16
 }
 
 // r8_max - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/Eispack/eispack.c:1068
