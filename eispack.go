@@ -5,7 +5,7 @@
 //	https://github.com/Konstantin8105/c4go/
 //
 
-package main
+package sparse
 
 import "unsafe"
 import "github.com/Konstantin8105/c4go/noarch"
