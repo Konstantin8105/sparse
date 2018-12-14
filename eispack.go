@@ -658,12 +658,11 @@ func cbabk2(n int, low int, igh int, scale []float64, m int, zr []float64, zi []
 //    square root.
 //
 func csroot(xr float64, xi float64, yr []float64, yi []float64) {
-	var s float64
-	var ti float64
-	var tr float64
-	tr = xr
-	ti = xi
-	s = math.Sqrt(0.5 * (pythag(tr, ti) + math.Abs(tr)))
+	var (
+		tr = xr
+		ti = xi
+		s  = math.Sqrt(0.5 * (pythag(tr, ti) + math.Abs(tr)))
+	)
 	if 0 <= tr {
 		yr[0] = s
 	}
