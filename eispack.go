@@ -76,36 +76,36 @@ import (
 //    to the original matrix, and the eigenvectors
 //    cannot be found by this program.
 //
-func bakvec(n int, t []float64, e []float64, m int, z []float64) int {
-	var i int
-	var ierr int
-	var j int
-	ierr = 0
-	if m == 0 {
-		return ierr
-	}
-	e[0] = 1
-	if n == 1 {
-		return ierr
-	}
-	for i = 1; i < n; i++ {
-		if e[i] == 0 {
-			if t[i+0*3] != 0 || t[i-1+2*3] != 0 {
-				ierr = 2*n + (i + 1)
-				return ierr
-			}
-			e[i] = 1
-		} else {
-			e[i] = e[i-1] * e[i] / t[i-1+2*3]
-		}
-	}
-	for j = 0; j < m; j++ {
-		for i = 1; i < n; i++ {
-			z[i+j*n] = z[i+j*n] * e[i]
-		}
-	}
-	return ierr
-}
+// func bakvec(n int, t []float64, e []float64, m int, z []float64) int {
+// 	var i int
+// 	var ierr int
+// 	var j int
+// 	ierr = 0
+// 	if m == 0 {
+// 		return ierr
+// 	}
+// 	e[0] = 1
+// 	if n == 1 {
+// 		return ierr
+// 	}
+// 	for i = 1; i < n; i++ {
+// 		if e[i] == 0 {
+// 			if t[i+0*3] != 0 || t[i-1+2*3] != 0 {
+// 				ierr = 2*n + (i + 1)
+// 				return ierr
+// 			}
+// 			e[i] = 1
+// 		} else {
+// 			e[i] = e[i-1] * e[i] / t[i-1+2*3]
+// 		}
+// 	}
+// 	for j = 0; j < m; j++ {
+// 		for i = 1; i < n; i++ {
+// 			z[i+j*n] = z[i+j*n] * e[i]
+// 		}
+// 	}
+// 	return ierr
+// }
 
 // balbak - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/Eispack/eispack.c:129
 //
@@ -170,40 +170,40 @@ func bakvec(n int, t []float64, e []float64, m int, z []float64) int {
 //    Input/output, double Z[N*M], contains the real and imaginary
 //    parts of the eigenvectors, which, on return, have been back-transformed.
 //
-func balbak(n int, low int, igh int, scale []float64, m int, z []float64) {
-	var i int
-	var ii int
-	var j int
-	var k int
-	// var s float64
-	var t float64
-	if m <= 0 {
-		return
-	}
-	if igh != low {
-		for i = low - 1; i <= igh-1; i++ {
-			for j = 0; j < m; j++ {
-				z[i+j*n] = z[i+j*n] * scale[i]
-			}
-		}
-	}
-	for ii = 1; ii <= n; ii++ {
-		i = ii
-		if i < low || igh < i {
-			if i < low {
-				i = low - ii
-			}
-			k = int((scale[i-1]))
-			if k != i {
-				for j = 0; j < m; j++ {
-					t = z[i-1+j*n]
-					z[i-1+j*n] = z[k-1+j*n]
-					z[k-1+j*n] = t
-				}
-			}
-		}
-	}
-}
+// func balbak(n int, low int, igh int, scale []float64, m int, z []float64) {
+// 	var i int
+// 	var ii int
+// 	var j int
+// 	var k int
+// 	// var s float64
+// 	var t float64
+// 	if m <= 0 {
+// 		return
+// 	}
+// 	if igh != low {
+// 		for i = low - 1; i <= igh-1; i++ {
+// 			for j = 0; j < m; j++ {
+// 				z[i+j*n] = z[i+j*n] * scale[i]
+// 			}
+// 		}
+// 	}
+// 	for ii = 1; ii <= n; ii++ {
+// 		i = ii
+// 		if i < low || igh < i {
+// 			if i < low {
+// 				i = low - ii
+// 			}
+// 			k = int((scale[i-1]))
+// 			if k != i {
+// 				for j = 0; j < m; j++ {
+// 					t = z[i-1+j*n]
+// 					z[i-1+j*n] = z[k-1+j*n]
+// 					z[k-1+j*n] = t
+// 				}
+// 			}
+// 		}
+// 	}
+// }
 
 // bandr - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/Eispack/eispack.c:246
 //
@@ -564,44 +564,44 @@ func bandr(n int, mb int, a []float64, d []float64, e []float64, e2 []float64, m
 //    transformed in their first M columns.  On output, the transformed
 //    eigenvectors.
 //
-func cbabk2(n int, low int, igh int, scale []float64, m int, zr []float64, zi []float64) {
-	var i int
-	var ii int
-	var j int
-	var k int
-	var s float64
-	if m == 0 {
-		return
-	}
-	if igh != low {
-		for i = low; i <= igh; i++ {
-			s = scale[i]
-			for j = 0; j < m; j++ {
-				zr[i+j*n] = zr[i+j*n] * s
-				zi[i+j*n] = zi[i+j*n] * s
-			}
-		}
-	}
-	for ii = 0; ii < n; ii++ {
-		i = ii
-		if i < low || igh < i {
-			if i < low {
-				i = low - ii
-			}
-			k = int(scale[i])
-			if k != i {
-				for j = 0; j < m; j++ {
-					s = zr[i+j*n]
-					zr[i+j*n] = zr[k+j*n]
-					zr[k+j*n] = s
-					s = zi[i+j*n]
-					zi[i+j*n] = zi[k+j*n]
-					zi[k+j*n] = s
-				}
-			}
-		}
-	}
-}
+// func cbabk2(n int, low int, igh int, scale []float64, m int, zr []float64, zi []float64) {
+// 	var i int
+// 	var ii int
+// 	var j int
+// 	var k int
+// 	var s float64
+// 	if m == 0 {
+// 		return
+// 	}
+// 	if igh != low {
+// 		for i = low; i <= igh; i++ {
+// 			s = scale[i]
+// 			for j = 0; j < m; j++ {
+// 				zr[i+j*n] = zr[i+j*n] * s
+// 				zi[i+j*n] = zi[i+j*n] * s
+// 			}
+// 		}
+// 	}
+// 	for ii = 0; ii < n; ii++ {
+// 		i = ii
+// 		if i < low || igh < i {
+// 			if i < low {
+// 				i = low - ii
+// 			}
+// 			k = int(scale[i])
+// 			if k != i {
+// 				for j = 0; j < m; j++ {
+// 					s = zr[i+j*n]
+// 					zr[i+j*n] = zr[k+j*n]
+// 					zr[k+j*n] = s
+// 					s = zi[i+j*n]
+// 					zi[i+j*n] = zi[k+j*n]
+// 					zi[k+j*n] = s
+// 				}
+// 			}
+// 		}
+// 	}
+// }
 
 // csroot - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/Eispack/eispack.c:724
 //
@@ -657,27 +657,27 @@ func cbabk2(n int, low int, igh int, scale []float64, m int, zr []float64, zi []
 //    Output, double *YR, *YI, the real and imaginary parts of the
 //    square root.
 //
-func csroot(xr float64, xi float64, yr []float64, yi []float64) {
-	var (
-		tr = xr
-		ti = xi
-		s  = math.Sqrt(0.5 * (pythag(tr, ti) + math.Abs(tr)))
-	)
-	if 0 <= tr {
-		yr[0] = s
-	}
-	if ti < 0 {
-		s = -s
-	}
-	if tr <= 0 {
-		yi[0] = s
-	}
-	if tr < 0 {
-		yr[0] = 0.5 * (ti / yi[0])
-	} else if 0 < tr {
-		yi[0] = 0.5 * (ti / yr[0])
-	}
-}
+// func csroot(xr float64, xi float64, yr []float64, yi []float64) {
+// 	var (
+// 		tr = xr
+// 		ti = xi
+// 		s  = math.Sqrt(0.5 * (pythag(tr, ti) + math.Abs(tr)))
+// 	)
+// 	if 0 <= tr {
+// 		yr[0] = s
+// 	}
+// 	if ti < 0 {
+// 		s = -s
+// 	}
+// 	if tr <= 0 {
+// 		yi[0] = s
+// 	}
+// 	if tr < 0 {
+// 		yr[0] = 0.5 * (ti / yi[0])
+// 	} else if 0 < tr {
+// 		yi[0] = 0.5 * (ti / yr[0])
+// 	}
+// }
 
 // i4_max - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/Eispack/eispack.c:814
 //
