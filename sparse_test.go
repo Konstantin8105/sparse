@@ -396,60 +396,6 @@ func TestNilCheck(t *testing.T) {
 			},
 		},
 		{
-			name: "Zeroize",
-			fs: []error{
-				func() error {
-					err := Zeroize(nil, -1, math.NaN())
-					return err
-				}(),
-				func() error {
-					err := Zeroize(nil, -1, math.Inf(0))
-					return err
-				}(),
-				func() error {
-					var s bytes.Buffer
-					s.WriteString("0 0 1\n0 1 2\n1 0 3\n1 1 4")
-					T, err := Load(&s)
-					if err != nil {
-						panic(err)
-					}
-					// triplet in input
-					err = Zeroize((*Matrix)(T), 0, 0)
-					return err
-				}(),
-				func() error {
-					var s bytes.Buffer
-					// rectangle matrix
-					s.WriteString("0 0 1\n0 1 2\n1 0 3\n1 1 4\n2 1 5")
-					T, err := Load(&s)
-					if err != nil {
-						panic(err)
-					}
-					A, err := Compress(T)
-					if err != nil {
-						panic(err)
-					}
-					err = Zeroize(A, 100, 1)
-					return err
-				}(),
-				func() error {
-					var s bytes.Buffer
-					// rectangle matrix
-					s.WriteString("0 0 1\n2 2 1")
-					T, err := Load(&s)
-					if err != nil {
-						panic(err)
-					}
-					A, err := Compress(T)
-					if err != nil {
-						panic(err)
-					}
-					err = Zeroize(A, 1, 4)
-					return err
-				}(),
-			},
-		},
-		{
 			name: "IsSym",
 			fs: []error{
 				func() error {
@@ -1447,47 +1393,4 @@ func TestAmd(t *testing.T) {
 	for _, a := range []Order{AmdNatural, AmdChol, AmdLU, AmdQR} {
 		t.Logf("%s", a)
 	}
-}
-
-func ExampleZeroize() {
-	var stdin bytes.Buffer
-	stdin.WriteString("0 0 1\n1 0 1\n2 0 1\n2 1 1\n2 2 1\n 1 1 1")
-	T, err := Load(&stdin)
-	if err != nil {
-		panic(err)
-	}
-	A, err := Compress(T)
-	if err != nil {
-		panic(err)
-	}
-	osStdout = os.Stdout // for output in standart stdout
-	A.Print(false)
-
-	err = Zeroize(A, 1, 5)
-	if err != nil {
-		panic(err)
-	}
-	A.Print(false)
-
-	// Output:
-	// Sparse
-	// 3-by-3, nzmax: 6 nnz: 6, 1-norm: 3.000000e+00
-	//     col 0 : locations 0 to 2
-	//       0 : 1.000000e+00
-	//       1 : 1.000000e+00
-	//       2 : 1.000000e+00
-	//     col 1 : locations 3 to 4
-	//       2 : 1.000000e+00
-	//       1 : 1.000000e+00
-	//     col 2 : locations 5 to 5
-	//       2 : 1.000000e+00
-	// Sparse
-	// 3-by-3, nzmax: 4 nnz: 4, 1-norm: 5.000000e+00
-	//     col 0 : locations 0 to 1
-	//       0 : 1.000000e+00
-	//       2 : 1.000000e+00
-	//     col 1 : locations 2 to 2
-	//       1 : 5.000000e+00
-	//     col 2 : locations 3 to 3
-	//       2 : 1.000000e+00
 }
