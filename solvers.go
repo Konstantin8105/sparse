@@ -67,7 +67,9 @@ func (lu *LU) Factorize(A *Matrix, ignore ...int) error {
 			_ = et.Add(fmt.Errorf("ignore list have index less zero: %d", ignore[0]))
 		}
 		if ignore[len(ignore)-1] >= A.m || ignore[len(ignore)-1] >= A.n {
-			_ = et.Add(fmt.Errorf("ignore list have index outside matrix"))
+			_ = et.Add(fmt.Errorf("ignore list have index outside matrix # %d : [%d,%d]",
+				ignore[len(ignore)-1], A.m, A.n,
+			))
 		}
 	}
 
