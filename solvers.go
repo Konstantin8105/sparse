@@ -161,6 +161,12 @@ func (lu *LU) Factorize(A *Matrix, ignore ...int) error {
 	if lu.n == nil {
 		return fmt.Errorf("matrix N in LU decomposition is nil")
 	}
+	if lu.n.U == nil {
+		return fmt.Errorf("matrix N.U in LU decomposition is nil")
+	}
+	if lu.n.L == nil {
+		return fmt.Errorf("matrix N.L in LU decomposition is nil")
+	}
 
 	return nil
 }
