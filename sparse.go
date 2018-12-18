@@ -1757,15 +1757,6 @@ func cs_droptol(A *Matrix, tol float64) (int, error) {
 	})
 }
 
-// cs_dropzeros
-func cs_dropzeros(A *Matrix) (int, error) {
-	// keep all nonzero entries
-	return Fkeep(A, func(i, j int, aij float64) bool {
-		// cs_nonzero
-		return aij != 0
-	})
-}
-
 // Dupl - remove duplicate entries from A
 //
 // Name function in CSparse: cs_dupl
