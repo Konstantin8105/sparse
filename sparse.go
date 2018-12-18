@@ -1875,6 +1875,19 @@ func Entry(T *Triplet, i, j int, x float64) error {
 		return et
 	}
 
+	// calculate amount rows and columns
+	if T.m < i+1 {
+		T.m = i + 1
+	}
+	if T.n < j+1 {
+		T.n = j + 1
+	}
+
+	// do not add zero entry
+	if T.x != nil && x == 0.0 {
+		return nil
+	}
+
 	// add value at the end of vectors
 	if T.x != nil {
 		T.x[T.nz] = x
@@ -1883,13 +1896,6 @@ func Entry(T *Triplet, i, j int, x float64) error {
 	T.p[T.nz] = j
 	T.nz++
 
-	// calculate amount rows and columns
-	if T.m < i+1 {
-		T.m = i + 1
-	}
-	if T.n < j+1 {
-		T.n = j + 1
-	}
 	return nil
 }
 
