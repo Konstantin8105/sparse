@@ -83,6 +83,14 @@ func TestEispack(t *testing.T) {
 			source: "Eispack/eispack_prb4.c",
 			f:      intenalEispack4,
 		},
+		{
+			source: "Eispack/eispack_prb5.c",
+			f:      intenalEispack5,
+		},
+		{
+			source: "Eispack/eispack_prb6.c",
+			f:      intenalEispack6,
+		},
 	}
 
 	for i := range tcs {
@@ -569,6 +577,120 @@ func intenalEispack4() {
 	if ierr != 0 {
 		fmt.Fprintf(osStdout, "\n")
 		fmt.Fprintf(osStdout, "TEST06 - Warning!\n")
+		fmt.Fprintf(osStdout, "  The error return flag IERR = %d\n", ierr)
+		return
+	}
+	r8vec_print(n, w, "  The eigenvalues Lambda:")
+}
+
+func intenalEispack5() {
+	var a []float64
+	var a2 []float64
+	var i int
+	var ierr int
+	var j int
+	var matz int
+	var mb int = 1
+	var n int = 5
+	var w []float64
+	var x []float64
+	a = make([]float64, n*mb)
+	for j = 0; j < mb; j++ {
+		for i = 0; i < n; i++ {
+			a[i+j*n] = 0
+		}
+	}
+	j = mb - 1
+	for i = 0; i < n; i++ {
+		a[i+j*n] = 2
+	}
+	j = 0
+	for i = 1; i < n; i++ {
+		a[i+j*n] = -1
+	}
+	a2 = make([]float64, uint32(n*n)*8*1/8)
+	for j = 0; j < n; j++ {
+		for i = 0; i < n; i++ {
+			if i == j {
+				a2[i+j*n] = 2
+			} else if int(math.Abs(float64(i-j))) == 1 {
+				a2[i+j*n] = -1
+			} else {
+				a2[i+j*n] = 0
+			}
+		}
+	}
+	fmt.Fprintf(osStdout, "\n")
+	fmt.Fprintf(osStdout, "TEST07 (KI)\n")
+	fmt.Fprintf(osStdout, "  RSB computes the eigenvalues and eigenvectors\n")
+	fmt.Fprintf(osStdout, "  of a real symmetric band matrix.\n")
+	fmt.Fprintf(osStdout, "\n")
+	fmt.Fprintf(osStdout, "  Matrix order = %d\n", n)
+	r8mat_print(n, n, a2, "  The matrix A:")
+	w = make([]float64, uint32(n)*8*1/8)
+	x = make([]float64, uint32(n*n)*8*1/8)
+	matz = 0
+	ierr = rsb(n, mb, a, w, matz, x)
+	if ierr != 0 {
+		fmt.Fprintf(osStdout, "\n")
+		fmt.Fprintf(osStdout, "TEST07 - Warning!\n")
+		fmt.Fprintf(osStdout, "  The error return flag IERR = %d\n", ierr)
+		return
+	}
+	r8vec_print(n, w, "  The eigenvalues Lambda:")
+}
+
+func intenalEispack6() {
+	var a []float64
+	var a2 []float64
+	var i int
+	var ierr int
+	var j int
+	var matz int
+	var mb int = 6
+	var n int = 50
+	var w []float64
+	var x []float64
+	a = make([]float64, n*mb)
+	for j = 0; j < mb; j++ {
+		for i = 0; i < n; i++ {
+			a[i+j*n] = 0
+		}
+	}
+	j = mb - 1
+	for i = 0; i < n; i++ {
+		a[i+j*n] = 2
+	}
+	j = 0
+	for i = 1; i < n; i++ {
+		a[i+j*n] = -1
+	}
+	a2 = make([]float64, uint32(n*n)*8*1/8)
+	for j = 0; j < n; j++ {
+		for i = 0; i < n; i++ {
+			if i == j {
+				a2[i+j*n] = 2
+			} else if int(math.Abs(float64(i-j))) == 1 {
+				a2[i+j*n] = -1
+			} else {
+				a2[i+j*n] = 0
+			}
+		}
+	}
+	fmt.Fprintf(osStdout, "\n")
+	fmt.Fprintf(osStdout, "TEST07 (KI)\n")
+	fmt.Fprintf(osStdout, "  RSB computes the eigenvalues and eigenvectors\n")
+	fmt.Fprintf(osStdout, "  of a real symmetric band matrix.\n")
+	fmt.Fprintf(osStdout, "\n")
+	fmt.Fprintf(osStdout, "  Matrix order = %d\n", n)
+	r8mat_print(n, n, a2, "  The matrix A:")
+	w = make([]float64, uint32(n)*8*1/8)
+	x = make([]float64, uint32(n*n)*8*1/8)
+	matz = 0
+	ierr = rsb(n, mb, a, w, matz, x)
+	if ierr != 0 {
+		fmt.Fprintf(osStdout, "\n")
+		fmt.Fprintf(osStdout, "TEST07 - Warning!\n")
 		fmt.Fprintf(osStdout, "  The error return flag IERR = %d\n", ierr)
 		return
 	}
