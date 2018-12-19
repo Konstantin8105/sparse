@@ -1362,8 +1362,7 @@ func tql2(n int, d []float64, e []float64, z []float64) (ierr int) {
 					s2  = 0.0
 					c3  = 0.0
 				)
-				mml := m - l
-				for ii := 1; ii <= mml; ii++ {
+				for ii := 1; ii <= m-l; ii++ {
 					c3 = c2
 					c2 = c
 					s2 = s
@@ -1395,7 +1394,7 @@ func tql2(n int, d []float64, e []float64, z []float64) (ierr int) {
 				}
 			}
 		}
-		d[l] = d[l] + f
+		d[l] += f
 	}
 
 	//
