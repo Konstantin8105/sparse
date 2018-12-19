@@ -810,23 +810,18 @@ func i4_min(i1 int, i2 int) int {
 //
 //    Output, double PYTHAG, the length of the hypotenuse.
 //
-func pythag(a float64, b float64) float64 {
-	var p float64
-	var r float64
-	var s float64
-	var t float64
-	var u float64
+func pythag(a float64, b float64) (p float64) {
 	p = math.Max(math.Abs(a), math.Abs(b))
 	if p != 0 {
-		r = math.Min(math.Abs(a), math.Abs(b)) / p
+		r := math.Min(math.Abs(a), math.Abs(b)) / p
 		r = r * r
 		for {
-			t = 4 + r
+			t := 4 + r
 			if t == 4 {
 				break
 			}
-			s = r / t
-			u = 1 + 2*s
+			s := r / t
+			u := 1 + 2*s
 			p = u * p
 			r = s / u * (s / u) * r
 		}
