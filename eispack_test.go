@@ -91,6 +91,14 @@ func TestEispack(t *testing.T) {
 			source: "Eispack/eispack_prb6.c",
 			f:      intenalEispack6,
 		},
+		{
+			source: "Eispack/eispack_prb7.c",
+			f:      intenalEispack7,
+		},
+		{
+			source: "Eispack/eispack_prb8.c",
+			f:      intenalEispack8,
+		},
 	}
 
 	for i := range tcs {
@@ -343,7 +351,7 @@ func r8mat_uniform_01_new(m int, n int, seed *int) []float64 {
 	var j int
 	var k int
 	var r []float64
-	r = make([]float64, uint32(m*n)*8*1/8)
+	r = make([]float64, m*n)
 	for j = 0; j < n; j++ {
 		for i = 0; i < m; i++ {
 			k = *seed / 127773
@@ -504,7 +512,7 @@ func intenalEispack3() {
 	var n int = 5
 	var w []float64
 	var x []float64
-	a = make([]float64, uint32(n*mb)*8*1/8)
+	a = make([]float64, n*mb)
 	for j = 0; j < mb; j++ {
 		for i = 0; i < n; i++ {
 			a[i+j*n] = 0
@@ -518,7 +526,7 @@ func intenalEispack3() {
 	for i = 1; i < n; i++ {
 		a[i+j*n] = -1
 	}
-	a2 = make([]float64, uint32(n*n)*8*1/8)
+	a2 = make([]float64, n*n)
 	for j = 0; j < n; j++ {
 		for i = 0; i < n; i++ {
 			if i == j {
@@ -537,8 +545,8 @@ func intenalEispack3() {
 	fmt.Fprintf(osStdout, "\n")
 	fmt.Fprintf(osStdout, "  Matrix order = %d\n", n)
 	r8mat_print(n, n, a2, "  The matrix A:")
-	w = make([]float64, uint32(n)*8*1/8)
-	x = make([]float64, uint32(n*n)*8*1/8)
+	w = make([]float64, n)
+	x = make([]float64, n*n)
 	matz = 0
 	ierr = rsb(n, mb, a, w, matz, x)
 	if ierr != 0 {
@@ -608,7 +616,7 @@ func intenalEispack5() {
 	for i = 1; i < n; i++ {
 		a[i+j*n] = -1
 	}
-	a2 = make([]float64, uint32(n*n)*8*1/8)
+	a2 = make([]float64, n*n)
 	for j = 0; j < n; j++ {
 		for i = 0; i < n; i++ {
 			if i == j {
@@ -627,8 +635,8 @@ func intenalEispack5() {
 	fmt.Fprintf(osStdout, "\n")
 	fmt.Fprintf(osStdout, "  Matrix order = %d\n", n)
 	r8mat_print(n, n, a2, "  The matrix A:")
-	w = make([]float64, uint32(n)*8*1/8)
-	x = make([]float64, uint32(n*n)*8*1/8)
+	w = make([]float64, n)
+	x = make([]float64, n*n)
 	matz = 0
 	ierr = rsb(n, mb, a, w, matz, x)
 	if ierr != 0 {
@@ -648,7 +656,7 @@ func intenalEispack6() {
 	var j int
 	var matz int
 	var mb int = 6
-	var n int = 50
+	var n int = 100
 	var w []float64
 	var x []float64
 	a = make([]float64, n*mb)
@@ -665,7 +673,7 @@ func intenalEispack6() {
 	for i = 1; i < n; i++ {
 		a[i+j*n] = -1
 	}
-	a2 = make([]float64, uint32(n*n)*8*1/8)
+	a2 = make([]float64, n*n)
 	for j = 0; j < n; j++ {
 		for i = 0; i < n; i++ {
 			if i == j {
@@ -684,9 +692,123 @@ func intenalEispack6() {
 	fmt.Fprintf(osStdout, "\n")
 	fmt.Fprintf(osStdout, "  Matrix order = %d\n", n)
 	r8mat_print(n, n, a2, "  The matrix A:")
-	w = make([]float64, uint32(n)*8*1/8)
-	x = make([]float64, uint32(n*n)*8*1/8)
+	w = make([]float64, n)
+	x = make([]float64, n*n)
 	matz = 0
+	ierr = rsb(n, mb, a, w, matz, x)
+	if ierr != 0 {
+		fmt.Fprintf(osStdout, "\n")
+		fmt.Fprintf(osStdout, "TEST07 - Warning!\n")
+		fmt.Fprintf(osStdout, "  The error return flag IERR = %d\n", ierr)
+		return
+	}
+	r8vec_print(n, w, "  The eigenvalues Lambda:")
+}
+
+func intenalEispack7() {
+	var a []float64
+	var a2 []float64
+	var i int
+	var ierr int
+	var j int
+	var matz int
+	var mb int = 6
+	var n int = 100
+	var w []float64
+	var x []float64
+	a = make([]float64, n*mb)
+	for j = 0; j < mb; j++ {
+		for i = 0; i < n; i++ {
+			a[i+j*n] = 0
+		}
+	}
+	j = mb - 1
+	for i = 0; i < n; i++ {
+		a[i+j*n] = 2
+	}
+	j = 0
+	for i = 1; i < n; i++ {
+		a[i+j*n] = -1
+	}
+	a2 = make([]float64, n*n)
+	for j = 0; j < n; j++ {
+		for i = 0; i < n; i++ {
+			if i == j {
+				a2[i+j*n] = 2
+			} else if int(math.Abs(float64(i-j))) == 1 {
+				a2[i+j*n] = -1
+			} else {
+				a2[i+j*n] = 0
+			}
+		}
+	}
+	fmt.Fprintf(osStdout, "\n")
+	fmt.Fprintf(osStdout, "TEST07 (KI)\n")
+	fmt.Fprintf(osStdout, "  RSB computes the eigenvalues and eigenvectors\n")
+	fmt.Fprintf(osStdout, "  of a real symmetric band matrix.\n")
+	fmt.Fprintf(osStdout, "\n")
+	fmt.Fprintf(osStdout, "  Matrix order = %d\n", n)
+	r8mat_print(n, n, a2, "  The matrix A:")
+	w = make([]float64, n)
+	x = make([]float64, n*n)
+	matz = 1
+	ierr = rsb(n, mb, a, w, matz, x)
+	if ierr != 0 {
+		fmt.Fprintf(osStdout, "\n")
+		fmt.Fprintf(osStdout, "TEST07 - Warning!\n")
+		fmt.Fprintf(osStdout, "  The error return flag IERR = %d\n", ierr)
+		return
+	}
+	r8vec_print(n, w, "  The eigenvalues Lambda:")
+}
+
+func intenalEispack8() {
+	var a []float64
+	var a2 []float64
+	var i int
+	var ierr int
+	var j int
+	var matz int
+	var mb int = 6
+	var n int = 200
+	var w []float64
+	var x []float64
+	a = make([]float64, n*mb)
+	for j = 0; j < mb; j++ {
+		for i = 0; i < n; i++ {
+			a[i+j*n] = 0
+		}
+	}
+	j = mb - 1
+	for i = 0; i < n; i++ {
+		a[i+j*n] = 2
+	}
+	j = 0
+	for i = 1; i < n; i++ {
+		a[i+j*n] = -1
+	}
+	a2 = make([]float64, n*n)
+	for j = 0; j < n; j++ {
+		for i = 0; i < n; i++ {
+			if i == j {
+				a2[i+j*n] = 2
+			} else if int(math.Abs(float64(i-j))) == 1 {
+				a2[i+j*n] = -1
+			} else {
+				a2[i+j*n] = 0
+			}
+		}
+	}
+	fmt.Fprintf(osStdout, "\n")
+	fmt.Fprintf(osStdout, "TEST07 (KI)\n")
+	fmt.Fprintf(osStdout, "  RSB computes the eigenvalues and eigenvectors\n")
+	fmt.Fprintf(osStdout, "  of a real symmetric band matrix.\n")
+	fmt.Fprintf(osStdout, "\n")
+	fmt.Fprintf(osStdout, "  Matrix order = %d\n", n)
+	r8mat_print(n, n, a2, "  The matrix A:")
+	w = make([]float64, n)
+	x = make([]float64, n*n)
+	matz = 1
 	ierr = rsb(n, mb, a, w, matz, x)
 	if ierr != 0 {
 		fmt.Fprintf(osStdout, "\n")
@@ -880,7 +1002,7 @@ func test07() {
 	var r []float64
 	var w []float64
 	var x []float64
-	a = make([]float64, uint32(n*mb)*8*1/8)
+	a = make([]float64, n*mb)
 	for j = 0; j < mb; j++ {
 		for i = 0; i < n; i++ {
 			a[i+j*n] = 0
@@ -894,7 +1016,7 @@ func test07() {
 	for i = 1; i < n; i++ {
 		a[i+j*n] = -1
 	}
-	a2 = make([]float64, uint32(n*n)*8*1/8)
+	a2 = make([]float64, n*n)
 	for j = 0; j < n; j++ {
 		for i = 0; i < n; i++ {
 			if i == j {
@@ -913,8 +1035,8 @@ func test07() {
 	fmt.Fprintf(osStdout, "\n")
 	fmt.Fprintf(osStdout, "  Matrix order = %d\n", n)
 	r8mat_print(n, n, a2, "  The matrix A:")
-	w = make([]float64, uint32(n)*8*1/8)
-	x = make([]float64, uint32(n*n)*8*1/8)
+	w = make([]float64, n)
+	x = make([]float64, n*n)
 	matz = 1
 	ierr = rsb(n, mb, a, w, matz, x)
 	if ierr != 0 {

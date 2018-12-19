@@ -72,7 +72,7 @@ int main()
 
   w = ( double * ) malloc ( n * sizeof ( double ) );
   x = ( double * ) malloc ( n * n * sizeof ( double ) );
-  matz = 0;
+  matz = 2;
 
   ierr = rsb ( n, mb, a, w, matz, x );
 
