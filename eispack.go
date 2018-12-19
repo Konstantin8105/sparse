@@ -394,45 +394,46 @@ func bandr(n int, mb int, a []float64, d []float64, e []float64, e2 []float64, m
 								z[l-1+(j1-1)*n] = u
 							}
 						}
-					} else {
-						u = d[j1-1]
-						d[j1-1] = s2 * d[j-1]
-						d[j-1] = s2 * u
-						f1 = 2 * a[j-1+(m1-1)*n]
-						f2 = b1 * a[j-1+(mb-1)*n]
-						u = b1*(f2-f1) + a[j1-1+(mb-1)*n]
-						a[j-1+(m1-1)*n] = b2*(b1*a[j-1+(m1-1)*n]-a[j1-1+(mb-1)*n]) + f2 - a[j-1+(m1-1)*n]
-						a[j1-1+(mb-1)*n] = b2*(b2*a[j1-1+(mb-1)*n]+f1) + a[j-1+(mb-1)*n]
-						a[j-1+(mb-1)*n] = u
-						for l = ugl; l <= j2; l++ {
-							i2 = mb - j + l
-							u = b2*a[j1-1+i2*n] + a[j-1+(i2-1)*n]
-							a[j-1+(i2-1)*n] = -a[j1-1+i2*n] + b1*a[j-1+(i2-1)*n]
-							a[j1-1+i2*n] = u
+						continue
+					}
+
+					u = d[j1-1]
+					d[j1-1] = s2 * d[j-1]
+					d[j-1] = s2 * u
+					f1 = 2 * a[j-1+(m1-1)*n]
+					f2 = b1 * a[j-1+(mb-1)*n]
+					u = b1*(f2-f1) + a[j1-1+(mb-1)*n]
+					a[j-1+(m1-1)*n] = b2*(b1*a[j-1+(m1-1)*n]-a[j1-1+(mb-1)*n]) + f2 - a[j-1+(m1-1)*n]
+					a[j1-1+(mb-1)*n] = b2*(b2*a[j1-1+(mb-1)*n]+f1) + a[j-1+(mb-1)*n]
+					a[j-1+(mb-1)*n] = u
+					for l = ugl; l <= j2; l++ {
+						i2 = mb - j + l
+						u = b2*a[j1-1+i2*n] + a[j-1+(i2-1)*n]
+						a[j-1+(i2-1)*n] = -a[j1-1+i2*n] + b1*a[j-1+(i2-1)*n]
+						a[j1-1+i2*n] = u
+					}
+					ugl = j
+					a[j1-1+0*n] = b2*a[j1-1+0*n] + g
+					if j != n {
+						maxl = i4_min(m1, n-j1)
+						for l = 2; l <= maxl; l++ {
+							i1 = j1 + l
+							i2 = mb - l
+							u = b2*a[i1-1+(i2-1)*n] + a[i1-1+i2*n]
+							a[i1-1+i2*n] = -a[i1-1+(i2-1)*n] + b1*a[i1-1+i2*n]
+							a[i1-1+(i2-1)*n] = u
 						}
-						ugl = j
-						a[j1-1+0*n] = b2*a[j1-1+0*n] + g
-						if j != n {
-							maxl = i4_min(m1, n-j1)
-							for l = 2; l <= maxl; l++ {
-								i1 = j1 + l
-								i2 = mb - l
-								u = b2*a[i1-1+(i2-1)*n] + a[i1-1+i2*n]
-								a[i1-1+i2*n] = -a[i1-1+(i2-1)*n] + b1*a[i1-1+i2*n]
-								a[i1-1+(i2-1)*n] = u
-							}
-							i1 = j + m1
-							if i1 <= n {
-								g = a[i1-1+0*n]
-								a[i1-1+0*n] = b1 * a[i1-1+0*n]
-							}
+						i1 = j + m1
+						if i1 <= n {
+							g = a[i1-1+0*n]
+							a[i1-1+0*n] = b1 * a[i1-1+0*n]
 						}
-						if matz != 0 {
-							for l = 1; l <= n; l++ {
-								u = b2*z[l-1+(j1-1)*n] + z[l-1+(j-1)*n]
-								z[l-1+(j-1)*n] = -z[l-1+(j1-1)*n] + b1*z[l-1+(j-1)*n]
-								z[l-1+(j1-1)*n] = u
-							}
+					}
+					if matz != 0 {
+						for l = 1; l <= n; l++ {
+							u = b2*z[l-1+(j1-1)*n] + z[l-1+(j-1)*n]
+							z[l-1+(j-1)*n] = -z[l-1+(j1-1)*n] + b1*z[l-1+(j-1)*n]
+							z[l-1+(j1-1)*n] = u
 						}
 					}
 				}
@@ -442,27 +443,29 @@ func bandr(n int, mb int, a []float64, d []float64, e []float64, e2 []float64, m
 				//  Rescale to avoid underflow or overflow.
 				//
 				for j = k; j <= n; j++ {
-					if d[j-1] < dmin {
-						maxl = i4_max(1, mb+1-j)
-						for jj = maxl; jj <= m1; jj++ {
-							a[j-1+(jj-1)*n] = dminrt * a[j-1+(jj-1)*n]
-						}
-						if j != n {
-							maxl = i4_min(m1, n-j)
-							for l = 1; l <= maxl; l++ {
-								i1 = j + l
-								i2 = mb - l
-								a[i1-1+(i2-1)*n] = dminrt * a[i1-1+(i2-1)*n]
-							}
-						}
-						if matz != 0 {
-							for i = 1; i <= n; i++ {
-								z[i-1+(j-1)*n] = dminrt * z[i-1+(j-1)*n]
-							}
-						}
-						a[j-1+(mb-1)*n] = dmin * a[j-1+(mb-1)*n]
-						d[j-1] = d[j-1] / dmin
+					if d[j-1] >= dmin {
+						continue
 					}
+
+					maxl = i4_max(1, mb+1-j)
+					for jj = maxl; jj <= m1; jj++ {
+						a[j-1+(jj-1)*n] = dminrt * a[j-1+(jj-1)*n]
+					}
+					if j != n {
+						maxl = i4_min(m1, n-j)
+						for l = 1; l <= maxl; l++ {
+							i1 = j + l
+							i2 = mb - l
+							a[i1-1+(i2-1)*n] = dminrt * a[i1-1+(i2-1)*n]
+						}
+					}
+					if matz != 0 {
+						for i = 1; i <= n; i++ {
+							z[i-1+(j-1)*n] = dminrt * z[i-1+(j-1)*n]
+						}
+					}
+					a[j-1+(mb-1)*n] = dmin * a[j-1+(mb-1)*n]
+					d[j-1] = d[j-1] / dmin
 				}
 			}
 		}
