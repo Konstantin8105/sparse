@@ -1302,52 +1302,31 @@ func rsb(n, mb int, a, w []float64, matz int, z []float64) (ierr int) {
 //    J, if the J-th eigenvalue has not been determined after
 //    30 iterations.
 //
-func tql2(n int, d []float64, e []float64, z []float64) int {
-	var c float64
-	var c2 float64
-	var c3 float64
-	var dl1 float64
-	var el1 float64
-	var f float64
-	var g float64
-	var h float64
-	var i int
-	var ierr int
-	var ii int
-	var j int
-	var k int
-	var l int
-	var l1 int
-	var l2 int
-	var m int
-	var mml int
-	var p float64
-	var r float64
-	var s float64
-	var s2 float64
-	var t float64
-	var tst1 float64
-	var tst2 float64
-	ierr = 0
+func tql2(n int, d []float64, e []float64, z []float64) (ierr int) {
 	if n == 1 {
 		return ierr
 	}
-	for i = 1; i < n; i++ {
+
+	for i := 1; i < n; i++ {
 		e[i-1] = e[i]
 	}
-	f = 0
-	tst1 = 0
+
+	var (
+		f    = 0.0
+		tst1 = 0.0
+	)
 	e[n-1] = 0
-	for l = 0; l < n; l++ {
-		j = 0
-		h = math.Abs(d[l]) + math.Abs(e[l])
+	for l := 0; l < n; l++ {
+		j := 0
+		h := math.Abs(d[l]) + math.Abs(e[l])
 		tst1 = math.Max(tst1, h)
 
 		//
 		//  Look for a small sub-diagonal element.
 		//
+		var m int
 		for m = l; m < n; m++ {
-			tst2 = tst1 + math.Abs(e[m])
+			tst2 := tst1 + math.Abs(e[m])
 			if tst2 == tst1 {
 				break
 			}
@@ -1363,16 +1342,16 @@ func tql2(n int, d []float64, e []float64, z []float64) int {
 				//
 				//  Form shift.
 				//
-				l1 = l + 1
-				l2 = l1 + 1
-				g = d[l]
-				p = (d[l1] - g) / (2 * e[l])
-				r = pythag(p, 1)
+				l1 := l + 1
+				l2 := l1 + 1
+				g := d[l]
+				p := (d[l1] - g) / (2 * e[l])
+				r := pythag(p, 1)
 				d[l] = e[l] / (p + r8_sign(p)*math.Abs(r))
 				d[l1] = e[l] * (p + r8_sign(p)*math.Abs(r))
-				dl1 = d[l1]
+				dl1 := d[l1]
 				h = g - d[l]
-				for i = l2; i < n; i++ {
+				for i := l2; i < n; i++ {
 					d[i] = d[i] - h
 				}
 				f = f + h
@@ -1380,16 +1359,20 @@ func tql2(n int, d []float64, e []float64, z []float64) int {
 				//  QL transformation.
 				//
 				p = d[m]
-				c = 1
-				c2 = c
-				el1 = e[l1]
-				s = 0
-				mml = m - l
-				for ii = 1; ii <= mml; ii++ {
+				var (
+					c   = 1.0
+					c2  = c
+					el1 = e[l1]
+					s   = 0.0
+					s2  = 0.0
+					c3  = 0.0
+				)
+				mml := m - l
+				for ii := 1; ii <= mml; ii++ {
 					c3 = c2
 					c2 = c
 					s2 = s
-					i = m - ii
+					i := m - ii
 					g = c * e[i]
 					h = c * p
 					r = pythag(p, e[i])
@@ -1402,17 +1385,16 @@ func tql2(n int, d []float64, e []float64, z []float64) int {
 					//
 					//  Form vector.
 					//
-					for k = 0; k < n; k++ {
+					for k := 0; k < n; k++ {
 						h = z[k+(i+1)*n]
 						z[k+(i+1)*n] = s*z[k+i*n] + c*h
 						z[k+i*n] = c*z[k+i*n] - s*h
 					}
-
 				}
 				p = -s * s2 * c3 * el1 * e[l] / dl1
 				e[l] = s * p
 				d[l] = c * p
-				tst2 = tst1 + math.Abs(e[l])
+				tst2 := tst1 + math.Abs(e[l])
 				if tst2 <= tst1 {
 					break
 				}
@@ -1424,11 +1406,11 @@ func tql2(n int, d []float64, e []float64, z []float64) int {
 	//
 	//  Order eigenvalues and eigenvectors.
 	//
-	for ii = 1; ii < n; ii++ {
-		i = ii - 1
-		k = i
-		p = d[i]
-		for j = ii; j < n; j++ {
+	for ii := 1; ii < n; ii++ {
+		i := ii - 1
+		k := i
+		p := d[i]
+		for j := ii; j < n; j++ {
 			if d[j] < p {
 				k = j
 				p = d[j]
@@ -1437,10 +1419,9 @@ func tql2(n int, d []float64, e []float64, z []float64) int {
 		if k != i {
 			d[k] = d[i]
 			d[i] = p
-			for j = 0; j < n; j++ {
-				t = z[j+i*n]
-				z[j+i*n] = z[j+k*n]
-				z[j+k*n] = t
+			for j := 0; j < n; j++ {
+				// swap
+				z[j+i*n], z[j+k*n] = z[j+k*n], z[j+i*n]
 			}
 		}
 	}
