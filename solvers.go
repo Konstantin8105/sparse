@@ -67,7 +67,9 @@ func (lu *LU) Factorize(A *Matrix, ignore ...int) error {
 			_ = et.Add(fmt.Errorf("ignore list have index less zero: %d", ignore[0]))
 		}
 		if ignore[len(ignore)-1] >= A.m || ignore[len(ignore)-1] >= A.n {
-			_ = et.Add(fmt.Errorf("ignore list have index outside matrix"))
+			_ = et.Add(fmt.Errorf("ignore list have index outside matrix # %d : [%d,%d]",
+				ignore[len(ignore)-1], A.m, A.n,
+			))
 		}
 	}
 
@@ -160,6 +162,12 @@ func (lu *LU) Factorize(A *Matrix, ignore ...int) error {
 	lu.n = cs_lu(C, lu.s, tol)
 	if lu.n == nil {
 		return fmt.Errorf("matrix N in LU decomposition is nil")
+	}
+	if lu.n.U == nil {
+		return fmt.Errorf("matrix N.U in LU decomposition is nil")
+	}
+	if lu.n.L == nil {
+		return fmt.Errorf("matrix N.L in LU decomposition is nil")
 	}
 
 	return nil
