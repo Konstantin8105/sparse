@@ -314,27 +314,23 @@ func bandr(n int, mb int, a []float64, d []float64, e []float64, e2 []float64, m
 	var ugl int
 	dmin = r8_epsilon()
 	dminrt = math.Sqrt(dmin)
-	{
-		//
-		//  Initialize the diagonal scaling matrix.
-		//
-		for i = 0; i < n; i++ {
-			d[i] = 1
-		}
+	//
+	//  Initialize the diagonal scaling matrix.
+	//
+	for i = 0; i < n; i++ {
+		d[i] = 1
 	}
 	if matz != 0 {
 		r8mat_identity(n, z)
 	}
 	if mb == 1 {
-		{
-			//
-			//  Is input matrix diagonal?
-			//
-			for i = 0; i < n; i++ {
-				d[i] = a[i+(mb-1)*n]
-				e[i] = 0
-				e2[i] = 0
-			}
+		//
+		//  Is input matrix diagonal?
+		//
+		for i = 0; i < n; i++ {
+			d[i] = a[i+(mb-1)*n]
+			e[i] = 0
+			e2[i] = 0
 		}
 		return
 	}
@@ -442,45 +438,43 @@ func bandr(n int, mb int, a []float64, d []float64, e []float64, e2 []float64, m
 				}
 			}
 			if k%64 == 0 {
-				{
-					//
-					//  Rescale to avoid underflow or overflow.
-					//
-					for j = k; j <= n; j++ {
-						if d[j-1] < dmin {
-							maxl = i4_max(1, mb+1-j)
-							for jj = maxl; jj <= m1; jj++ {
-								a[j-1+(jj-1)*n] = dminrt * a[j-1+(jj-1)*n]
-							}
-							if j != n {
-								maxl = i4_min(m1, n-j)
-								for l = 1; l <= maxl; l++ {
-									i1 = j + l
-									i2 = mb - l
-									a[i1-1+(i2-1)*n] = dminrt * a[i1-1+(i2-1)*n]
-								}
-							}
-							if matz != 0 {
-								for i = 1; i <= n; i++ {
-									z[i-1+(j-1)*n] = dminrt * z[i-1+(j-1)*n]
-								}
-							}
-							a[j-1+(mb-1)*n] = dmin * a[j-1+(mb-1)*n]
-							d[j-1] = d[j-1] / dmin
+				//
+				//  Rescale to avoid underflow or overflow.
+				//
+				for j = k; j <= n; j++ {
+					if d[j-1] < dmin {
+						maxl = i4_max(1, mb+1-j)
+						for jj = maxl; jj <= m1; jj++ {
+							a[j-1+(jj-1)*n] = dminrt * a[j-1+(jj-1)*n]
 						}
+						if j != n {
+							maxl = i4_min(m1, n-j)
+							for l = 1; l <= maxl; l++ {
+								i1 = j + l
+								i2 = mb - l
+								a[i1-1+(i2-1)*n] = dminrt * a[i1-1+(i2-1)*n]
+							}
+						}
+						if matz != 0 {
+							for i = 1; i <= n; i++ {
+								z[i-1+(j-1)*n] = dminrt * z[i-1+(j-1)*n]
+							}
+						}
+						a[j-1+(mb-1)*n] = dmin * a[j-1+(mb-1)*n]
+						d[j-1] = d[j-1] / dmin
 					}
 				}
 			}
 		}
 	}
-	{
-		//
-		//  Form square root of scaling matrix.
-		//
-		for i = 1; i < n; i++ {
-			e[i] = math.Sqrt(d[i])
-		}
+
+	//
+	//  Form square root of scaling matrix.
+	//
+	for i = 1; i < n; i++ {
+		e[i] = math.Sqrt(d[i])
 	}
+
 	if matz != 0 {
 		for j = 1; j < n; j++ {
 			for i = 0; i < n; i++ {
