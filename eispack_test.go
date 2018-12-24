@@ -1110,3 +1110,15 @@ func BenchmarkWithOrWithoutEigenVector(b *testing.B) {
 		}
 	})
 }
+
+func TestPythag(t *testing.T) {
+	a := -30.0e300
+	b := 40.0e300
+	p, err := pythag(a, b)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if math.Abs(p-50.0e300)/p >= 1e-8 || math.IsNaN(p) || math.IsInf(p, 0) {
+		t.Fatalf("precision error : %v", p)
+	}
+}
