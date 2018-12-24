@@ -1068,6 +1068,8 @@ func BenchmarkWithOrWithoutEigenVector(b *testing.B) {
 	var w []float64 = make([]float64, 4)
 	var x []float64 = make([]float64, 16)
 
+	a2 := make([]float64, 16)
+
 	b.Run("with eigenvector", func(b *testing.B) {
 		matz := 1
 		for i := 0; i < n; i++ {
@@ -1078,7 +1080,10 @@ func BenchmarkWithOrWithoutEigenVector(b *testing.B) {
 		}
 		b.ResetTimer()
 		for i := 0; i < b.N; i++ {
-			ierr := rs(n, a, w, matz, x)
+			for i := 0; i < n*n; i++ {
+				a2[i] = a[i]
+			}
+			ierr := rs(n, a2, w, matz, x)
 			if ierr != nil {
 				panic(fmt.Errorf("ierr = %v", ierr))
 			}
@@ -1095,7 +1100,10 @@ func BenchmarkWithOrWithoutEigenVector(b *testing.B) {
 		}
 		b.ResetTimer()
 		for i := 0; i < b.N; i++ {
-			ierr := rs(n, a, w, matz, x)
+			for i := 0; i < n*n; i++ {
+				a2[i] = a[i]
+			}
+			ierr := rs(n, a2, w, matz, x)
 			if ierr != nil {
 				panic(fmt.Errorf("ierr = %v", ierr))
 			}
