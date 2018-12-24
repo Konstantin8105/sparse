@@ -494,7 +494,7 @@ func intenalEispack2() {
 	r8mat_print(n, n, a, "  The matrix A:")
 	matz = 0
 	ierr := rs(n, a, w, matz, x)
-	if ierr != nil {
+	if ierr != 0 {
 		fmt.Fprintf(osStdout, "\n")
 		fmt.Fprintf(osStdout, "TEST06 - Warning!\n")
 		fmt.Fprintf(osStdout, "  The error return flag IERR = %d\n", ierr)
@@ -551,7 +551,7 @@ func intenalEispack3() {
 	x = make([]float64, n*n)
 	matz = 0
 	ierr := rsb(n, mb, a, w, matz, x)
-	if ierr != nil {
+	if ierr != 0 {
 		fmt.Fprintf(osStdout, "\n")
 		fmt.Fprintf(osStdout, "TEST07 - Warning!\n")
 		fmt.Fprintf(osStdout, "  The error return flag IERR = %d\n", ierr)
@@ -584,7 +584,7 @@ func intenalEispack4() {
 	r8mat_print(n, n, a, "  The matrix A:")
 	matz = 0
 	ierr := rs(n, a, w, matz, x)
-	if ierr != nil {
+	if ierr != 0 {
 		fmt.Fprintf(osStdout, "\n")
 		fmt.Fprintf(osStdout, "TEST06 - Warning!\n")
 		fmt.Fprintf(osStdout, "  The error return flag IERR = %d\n", ierr)
@@ -641,7 +641,7 @@ func intenalEispack5() {
 	x = make([]float64, n*n)
 	matz = 0
 	ierr := rsb(n, mb, a, w, matz, x)
-	if ierr != nil {
+	if ierr != 0 {
 		fmt.Fprintf(osStdout, "\n")
 		fmt.Fprintf(osStdout, "TEST07 - Warning!\n")
 		fmt.Fprintf(osStdout, "  The error return flag IERR = %d\n", ierr)
@@ -698,7 +698,7 @@ func intenalEispack6() {
 	x = make([]float64, n*n)
 	matz = 0
 	ierr := rsb(n, mb, a, w, matz, x)
-	if ierr != nil {
+	if ierr != 0 {
 		fmt.Fprintf(osStdout, "\n")
 		fmt.Fprintf(osStdout, "TEST07 - Warning!\n")
 		fmt.Fprintf(osStdout, "  The error return flag IERR = %d\n", ierr)
@@ -755,7 +755,7 @@ func intenalEispack7() {
 	x = make([]float64, n*n)
 	matz = 1
 	ierr := rsb(n, mb, a, w, matz, x)
-	if ierr != nil {
+	if ierr != 0 {
 		fmt.Fprintf(osStdout, "\n")
 		fmt.Fprintf(osStdout, "TEST07 - Warning!\n")
 		fmt.Fprintf(osStdout, "  The error return flag IERR = %d\n", ierr)
@@ -812,7 +812,7 @@ func intenalEispack8() {
 	x = make([]float64, n*n)
 	matz = 1
 	ierr := rsb(n, mb, a, w, matz, x)
-	if ierr != nil {
+	if ierr != 0 {
 		fmt.Fprintf(osStdout, "\n")
 		fmt.Fprintf(osStdout, "TEST07 - Warning!\n")
 		fmt.Fprintf(osStdout, "  The error return flag IERR = %d\n", ierr)
@@ -870,7 +870,7 @@ func test06() {
 	r8mat_print(n, n, a, "  The matrix A:")
 	matz = 1
 	ierr := rs(n, a, w, matz, x)
-	if ierr != nil {
+	if ierr != 0 {
 		fmt.Fprintf(osStdout, "\n")
 		fmt.Fprintf(osStdout, "TEST06 - Warning!\n")
 		fmt.Fprintf(osStdout, "  The error return flag IERR = %d\n", ierr)
@@ -951,7 +951,7 @@ func test065() {
 	r8mat_print(n, n, a, "  The matrix A:")
 	matz = 1
 	ierr := rs(n, a, w, matz, x)
-	if ierr != nil {
+	if ierr != 0 {
 		fmt.Fprintf(osStdout, "\n")
 		fmt.Fprintf(osStdout, "TEST065 - Warning!\n")
 		fmt.Fprintf(osStdout, "  The error return flag IERR = %d\n", ierr)
@@ -1041,7 +1041,7 @@ func test07() {
 	x = make([]float64, n*n)
 	matz = 1
 	ierr := rsb(n, mb, a, w, matz, x)
-	if ierr != nil {
+	if ierr != 0 {
 		fmt.Fprintf(osStdout, "\n")
 		fmt.Fprintf(osStdout, "TEST07 - Warning!\n")
 		fmt.Fprintf(osStdout, "  The error return flag IERR = %d\n", ierr)
@@ -1087,7 +1087,7 @@ func BenchmarkWithOrWithoutEigenVector(b *testing.B) {
 				a2[i] = a[i]
 			}
 			ierr := rs(n, a2, w, matz, x)
-			if ierr != nil {
+			if ierr != 0 {
 				panic(fmt.Errorf("ierr = %v", ierr))
 			}
 		}
@@ -1107,7 +1107,7 @@ func BenchmarkWithOrWithoutEigenVector(b *testing.B) {
 				a2[i] = a[i]
 			}
 			ierr := rs(n, a2, w, matz, x)
-			if ierr != nil {
+			if ierr != 0 {
 				panic(fmt.Errorf("ierr = %v", ierr))
 			}
 		}

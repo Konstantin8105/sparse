@@ -150,7 +150,7 @@ void test06 ( )
   matz = 1;
 
   ierr = rs ( n, a, w, matz, x );
-  
+
   if ( ierr != 0 )
   {
     printf ( "\n" );

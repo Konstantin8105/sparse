@@ -1,7 +1,6 @@
 package sparse
 
 import (
-	"fmt"
 	"math"
 )
 
@@ -990,7 +989,7 @@ func r8mat_mm_new(n1, n2, n3 int, a, b []float64) []float64 {
 //    completion code described in the documentation for TQLRAT and TQL2.
 //    The normal completion code is zero.
 //
-func rs(n int, a []float64, w []float64, matz int, z []float64) (ierr error) {
+func rs(n int, a []float64, w []float64, matz int, z []float64) (ierr int) {
 	if matz == 0 {
 		fv1 := make([]float64, n)
 		fv2 := make([]float64, n)
@@ -1080,28 +1079,30 @@ func rs(n int, a []float64, w []float64, matz int, z []float64) (ierr error) {
 //    completion code described in the documentation for TQLRAT and TQL2.
 //    The normal completion code is zero.
 //
-func rsb(n, mb int, a, w []float64, matz int, z []float64) (err error) {
+func rsb(n, mb int, a, w []float64, matz int, z []float64) (ierr int) {
 	if mb <= 0 {
-		return fmt.Errorf("error: mb is less zero : %d", mb)
+		ierr = 12 * n
+		return ierr
 	}
 	if n < mb {
-		return fmt.Errorf("error : n < mb : %d < %d", n, mb)
+		ierr = 12 * n
+		return ierr
 	}
 	if matz == 0 {
 		fv1 := make([]float64, n)
 		fv2 := make([]float64, n)
 		tf := 0
 		bandr(n, mb, a, w, fv1, fv2, tf, z)
-		err = tqlrat(n, w, fv2)
+		ierr = tqlrat(n, w, fv2)
 		return
 	}
 
 	fv1 := make([]float64, n)
 	tf := 1
 	bandr(n, mb, a, w, fv1, fv1, tf, z)
-	err = tql2(n, w, fv1, z)
+	ierr = tql2(n, w, fv1, z)
 
-	return
+	return ierr
 }
 
 //  // timestamp - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/Eispack/eispack.c:1810
@@ -1201,7 +1202,6 @@ func rsb(n, mb int, a, w []float64, matz int, z []float64) (err error) {
 //    the matrix.  On output, the eigenvalues in ascending order.  If an error
 //    exit is made, the eigenvalues are correct but unordered for indices
 //    1,2,...,IERR-1.
-//    IERR = -1 for other cases.
 //
 //    Input/output, double E[N].  On input, E(2:N) contains the
 //    subdiagonal elements of the input matrix, and E(1) is arbitrary.
@@ -1219,7 +1219,7 @@ func rsb(n, mb int, a, w []float64, matz int, z []float64) (err error) {
 //    J, if the J-th eigenvalue has not been determined after
 //    30 iterations.
 //
-func tql2(n int, d []float64, e []float64, z []float64) (ierr error) {
+func tql2(n int, d []float64, e []float64, z []float64) (ierr int) {
 	if n == 1 {
 		return ierr
 	}
@@ -1252,7 +1252,8 @@ func tql2(n int, d []float64, e []float64, z []float64) (ierr error) {
 		if m != l {
 			for {
 				if 30 <= j {
-					return fmt.Errorf("error: iterations is more 30: %d", j)
+					ierr = l + 1
+					return ierr
 				}
 				j = j + 1
 				//
@@ -1401,7 +1402,6 @@ func tql2(n int, d []float64, e []float64, z []float64) (ierr error) {
 //    elements of the matrix.  On output, D contains the eigenvalues in ascending
 //    order.  If an error exit was made, then the eigenvalues are correct
 //    in positions 1 through IERR-1, but may not be the smallest eigenvalues.
-//    IERR = -1 for other case.
 //
 //    Input/output, double E2[N], contains in positions 2 through N
 //    the squares of the subdiagonal elements of the matrix.  E2(1) is
@@ -1412,9 +1412,10 @@ func tql2(n int, d []float64, e []float64, z []float64) (ierr error) {
 //    0, for no error,
 //    J, if the J-th eigenvalue could not be determined after 30 iterations.
 //
-func tqlrat(n int, d []float64, e2 []float64) error {
+func tqlrat(n int, d []float64, e2 []float64) int {
 	var b, c, f, g, h float64
 	var i int
+	var ierr int
 	var ii int
 	var j int
 	var l int
@@ -1425,8 +1426,9 @@ func tqlrat(n int, d []float64, e2 []float64) error {
 	var r float64
 	var s float64
 	var t float64
+	ierr = 0
 	if n == 1 {
-		return fmt.Errorf("Order of the matrix is one")
+		return ierr
 	}
 	for i = 1; i < n; i++ {
 		e2[i-1] = e2[i]
@@ -1455,7 +1457,8 @@ func tqlrat(n int, d []float64, e2 []float64) error {
 		if m != l {
 			for {
 				if 30 <= j {
-					return fmt.Errorf("error: iterations is more 30: %d", j)
+					ierr = l + 1
+					return ierr
 				}
 				j = j + 1
 				//
@@ -1493,11 +1496,7 @@ func tqlrat(n int, d []float64, e2 []float64) error {
 					if g == 0 {
 						g = b
 					}
-					h = g * (p / r)
-					if math.IsNaN(h) {
-						// TODO (KI): check overflow
-						return fmt.Errorf("value `h` is NaN")
-					}
+					h = g * p / r
 				}
 				e2[l] = s * g
 				d[l] = h
@@ -1533,7 +1532,7 @@ func tqlrat(n int, d []float64, e2 []float64) error {
 		}
 	}
 
-	return nil
+	return ierr
 }
 
 // tred1 - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/Eispack/eispack.c:2328
