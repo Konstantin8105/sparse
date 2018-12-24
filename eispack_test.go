@@ -149,6 +149,54 @@ func TestEispack(t *testing.T) {
 	}
 }
 
+// r8mat_mm_new - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/Eispack/eispack.c:1248
+//
+//
+//
+//  Purpose:
+//
+//    R8MAT_MM_NEW multiplies two matrices.
+//
+//  Discussion:
+//
+//    An R8MAT is a doubly dimensioned array of R8 values, stored as a vector
+//    in column-major order.
+//
+//    For this routine, the result is returned as the function value.
+//
+//  Licensing:
+//
+//    This code is distributed under the GNU LGPL license.
+//
+//  Modified:
+//
+//    08 April 2009
+//
+//  Author:
+//
+//    John Burkardt
+//
+//  Parameters:
+//
+//    Input, int N1, N2, N3, the order of the matrices.
+//
+//    Input, double A[N1*N2], double B[N2*N3], the matrices to multiply.
+//
+//    Output, double R8MAT_MM[N1*N3], the product matrix C = A * B.
+//
+func r8mat_mm_new(n1, n2, n3 int, a, b []float64) []float64 {
+	c := make([]float64, n1*n3)
+	for i := 0; i < n1; i++ {
+		for j := 0; j < n3; j++ {
+			c[i+j*n1] = 0.0
+			for k := 0; k < n2; k++ {
+				c[i+j*n1] = c[i+j*n1] + a[i+k*n1]*b[k+j*n2]
+			}
+		}
+	}
+	return c
+}
+
 // r8mat_print - transpiled function from  $GOPATH/src/github.com/Konstantin8105/sparse/Eispack/eispack.c:1307
 //
 //
