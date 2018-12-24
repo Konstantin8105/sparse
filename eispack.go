@@ -1602,6 +1602,7 @@ func tqlrat(n int, d []float64, e2 []float64) error {
 					}
 					h = g * (p / r)
 					if math.IsNaN(h) {
+						// TODO (KI): check overflow
 						return fmt.Errorf("value `h` is NaN")
 					}
 				}
