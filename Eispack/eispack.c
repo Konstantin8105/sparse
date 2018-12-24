@@ -1445,7 +1445,10 @@ void r8mat_print_some ( int m, int n, double a[], int ilo, int jlo, int ihi,
       fprintf ( stdout, "%5d:", i - 1 );
       for ( j = j2lo; j <= j2hi; j++ )
       {
-        fprintf ( stdout, "  %14f", a[i-1+(j-1)*m] );
+		if (fabs( a[i-1+(j-1)*m] ) < 1e-8){
+          a[i-1+(j-1)*m] = 0.0;
+		}
+        fprintf ( stdout, "  %14f",  a[i-1+(j-1)*m] );
       }
       fprintf ( stdout, "\n" );
     }

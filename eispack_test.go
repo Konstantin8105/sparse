@@ -69,7 +69,7 @@ func TestEispack(t *testing.T) {
 	}{
 		{
 			source: "Eispack/eispack_prb1.c",
-			f:      intenalEispack,
+			f:      intenalEispack1,
 		},
 		{
 			source: "Eispack/eispack_prb2.c",
@@ -276,6 +276,9 @@ func r8mat_print_some(m int, n int, a []float64, ilo int, jlo int, ihi int, jhi 
 				//
 				fmt.Fprintf(osStdout, "%5d:", i-1)
 				for j = j2lo; j <= j2hi; j++ {
+					if math.Abs(a[i-1+(j-1)*m]) < 1e-8 {
+						a[i-1+(j-1)*m] = 0.0
+					}
 					fmt.Fprintf(osStdout, "  %14f", a[i-1+(j-1)*m])
 				}
 				fmt.Fprintf(osStdout, "\n")
@@ -429,7 +432,7 @@ func r8vec_print(n int, a []float64, title string) {
 //
 //    John Burkardt
 //
-func intenalEispack() {
+func intenalEispack1() {
 	// timestamp()
 	fmt.Fprintf(osStdout, "\n")
 	fmt.Fprintf(osStdout, "EISPACK_PRB\n")
@@ -1109,27 +1112,4 @@ func BenchmarkWithOrWithoutEigenVector(b *testing.B) {
 			}
 		}
 	})
-}
-
-func TestPythag(t *testing.T) {
-	a := -30.0e300
-	b := 40.0e300
-	p, err := pythag(a, b)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if math.Abs(p-50.0e300)/p >= 1e-8 || math.IsNaN(p) || math.IsInf(p, 0) {
-		t.Fatalf("precision error : %v", p)
-	}
-}
-
-func BenchmarkPythag(b *testing.B) {
-	var a float64 = -30.0e300
-	var c float64 = 40.0e300
-	for i := 0; i < b.N; i++ {
-		_, err := pythag(a, c)
-		if err != nil {
-			panic(err)
-		}
-	}
 }
