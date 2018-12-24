@@ -834,7 +834,7 @@ func pythag(a float64, b float64) (p float64, err error) {
 				return
 			}
 
-			// TODO (KI): SQRT check
+			// TODO (KI): SQRT check, check by benchmark
 			t := 4 + r
 			if t == 4 {
 				break

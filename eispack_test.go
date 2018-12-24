@@ -1122,3 +1122,14 @@ func TestPythag(t *testing.T) {
 		t.Fatalf("precision error : %v", p)
 	}
 }
+
+func BenchmarkPythag(b *testing.B) {
+	var a float64 = -30.0e300
+	var c float64 = 40.0e300
+	for i := 0; i < b.N; i++ {
+		_, err := pythag(a, c)
+		if err != nil {
+			panic(err)
+		}
+	}
+}
