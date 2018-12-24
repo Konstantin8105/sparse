@@ -1070,7 +1070,7 @@ func BenchmarkWithOrWithoutEigenVector(b *testing.B) {
 
 	a2 := make([]float64, 16)
 
-	b.Run("with eigenvector", func(b *testing.B) {
+	b.Run("with    eigenvector", func(b *testing.B) {
 		matz := 1
 		for i := 0; i < n; i++ {
 			w[i] = 0.0
