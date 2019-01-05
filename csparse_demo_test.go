@@ -126,7 +126,15 @@ func print_order(order int, output bool) {
 	case 3:
 		fmt.Fprintf(osStdout, "amd(A'*A)  ")
 	}
+}
 
+// cs_dropzeros
+func cs_dropzeros(A *Matrix) (int, error) {
+	// keep all nonzero entries
+	return Fkeep(A, func(i, j int, aij float64) bool {
+		// cs_nonzero
+		return aij != 0
+	})
 }
 
 // get_problem - read a problem from a file; use %g for integers to avoid csi conflicts */
