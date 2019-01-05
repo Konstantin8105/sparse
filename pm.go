@@ -3,6 +3,7 @@ package sparse
 import (
 	"fmt"
 	"math"
+	"math/rand"
 	"sort"
 
 	"github.com/Konstantin8105/errors"
@@ -258,7 +259,9 @@ func (pm *PM) Next(amount int) (err error) {
 	xNext = xNext[:pm.a.m]
 
 	// initial values
-	x[0] = 1
+	for i := range x {
+		x[i] = rand.Float64() - 0.5
+	}
 	dlast := 1.0
 
 	// iteration value

@@ -111,13 +111,30 @@ func TestPM(t *testing.T) {
 			panic(err)
 		}
 
+		for i := range pm.E {
+			t.Logf("pm.E = %d", i)
+			t.Logf("𝑿 = %v", pm.E[i].𝑿)
+			t.Logf("𝜦 = %v", pm.E[i].𝜦)
+		}
+
 		// result checking
+
+		// lambda = -2
 		xExpect := []float64{1.0, 1.0 / 3.0}
 		if math.Abs(pm.E[0].𝑿[1]-xExpect[0]) > eps {
 			t.Errorf("Not correct : %e != %e", pm.E[0].𝑿[1], xExpect[0])
 		}
 		if math.Abs(pm.E[0].𝑿[3]-xExpect[1]) > eps {
 			t.Errorf("Not correct : %e != %e", pm.E[0].𝑿[3], xExpect[1])
+		}
+
+		// lambda = -1
+		xExpect = []float64{1.0, 1.0 / 4.0}
+		if math.Abs(pm.E[1].𝑿[1]-xExpect[0]) > eps {
+			t.Errorf("Not correct : %e != %e", pm.E[1].𝑿[1], xExpect[0])
+		}
+		if math.Abs(pm.E[1].𝑿[3]-xExpect[1]) > eps {
+			t.Errorf("Not correct : %e != %e", pm.E[1].𝑿[3], xExpect[1])
 		}
 
 		𝛌Expect := []float64{-1, -2}
