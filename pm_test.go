@@ -152,16 +152,14 @@ func TestPM(t *testing.T) {
 		}
 		// storage
 		errs := []error{
-			Entry(T, 0, 0, 1),
-			Entry(T, 0, 1, 2),
+			Entry(T, 0, 0, 2),
+			Entry(T, 0, 1, 3),
 
-			Entry(T, 1, 0, -2),
-			Entry(T, 1, 1, 1),
-			Entry(T, 1, 2, 2),
+			Entry(T, 1, 0, 3),
+			Entry(T, 1, 2, 5),
 
-			Entry(T, 2, 0, 1),
-			Entry(T, 2, 1, 3),
-			Entry(T, 2, 2, 1),
+			Entry(T, 2, 1, 5),
+			Entry(T, 2, 2, 2),
 		}
 		for i := range errs {
 			if errs[i] != nil {
@@ -178,25 +176,28 @@ func TestPM(t *testing.T) {
 		var pm PM
 		err = pm.Factorize(A, &PmConfig{
 			IterationMax: 10000000,
-			Tolerance:    1e-5,
+			Tolerance:    1e-8,
 		})
-
-		eps = 1e-5
 
 		if err != nil {
 			panic(err)
 		}
 
-		err = pm.Next(2)
+		err = pm.Next(3)
+		for i := range pm.E {
+			t.Logf("pm.E = %d", i)
+			t.Logf("𝑿 = %v", pm.E[i].𝑿)
+			t.Logf("𝜦 = %v", pm.E[i].𝜦)
+		}
 		if err != nil {
-			panic(err)
+			t.Fatal(err)
 		}
 
 		// result checking
-		xExpect := []float64{1.0 / 2.0, 1.0 / 2.0, 1.0}
-		for i := range pm.E[0].𝑿 {
-			if math.Abs(pm.E[0].𝑿[i]-xExpect[i]) > eps {
-				t.Errorf("Not correct %d : %e != %e", i, pm.E[0].𝑿[i], xExpect[i])
+		𝛌Expect := []float64{6.9160798, -4.9160798, 2.0}
+		for i := range pm.E {
+			if math.Abs(math.Abs(pm.E[i].𝜦)-math.Abs(𝛌Expect[i])) > eps {
+				t.Errorf("Not correct 𝜦%d: %e != %e", i, pm.E[i].𝜦, 𝛌Expect[i])
 			}
 		}
 	})

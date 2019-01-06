@@ -201,6 +201,22 @@ func (pm *PM) Factorize(A *Matrix, config *PmConfig, ignore ...int) (err error) 
 	pm.a = C
 	pm.config = *config
 
+	// matrix A must have diagonal element
+	for j := 0; j < pm.a.n; j++ {
+		found := false
+		for p := pm.a.p[j]; p < pm.a.p[j+1]; p++ {
+			if j != pm.a.i[p] {
+				continue
+			}
+			// only diagonal element
+			found = true
+		}
+		if !found {
+			// diagonal element is not found in that column
+			pm.a.inject(j, j, 0.0)
+		}
+	}
+
 	return
 }
 
@@ -225,32 +241,35 @@ func (pm *PM) Next(amount int) (err error) {
 	if len(pm.E) > 0 {
 		// Algorithm
 		// A · x(n) = 𝛌(n) · x(n)
+		// 𝛌(n) =  𝛌(n-1) + 𝜦
+		// A · x(n) = (𝛌(n-1) + 𝜦) · x(n)
+		// (A - 𝛌(n-1)) · x(n) = 𝜦 · x(n)
 		// calculate next eigenvalue
 		// A(n) = A - 𝛌(n-1) · E
 		𝛌 := pm.E[len(pm.E)-1].𝜦
 		for j := 0; j < pm.a.n; j++ {
-			found := false
 			for p := pm.a.p[j]; p < pm.a.p[j+1]; p++ {
 				if j != pm.a.i[p] {
 					continue
 				}
 				// only diagonal element
 				pm.a.x[p] -= 𝛌
-				found = true
-			}
-			if !found {
-				// diagonal element is not found in that column
-				pm.a.inject(j, j, -𝛌)
 			}
 		}
 
-		// 𝛌(n) = 𝜦 + 𝛌(n-1)
+		// 𝛌(n) = 𝛌(n-1) + 𝜦
 		defer func() {
 			if err == nil {
 				pm.E[len(pm.E)-1].𝜦 += pm.E[len(pm.E)-2].𝜦
+
+				if math.Abs(pm.E[len(pm.E)-1].𝜦) > math.Abs(pm.E[len(pm.E)-2].𝜦) {
+					err = fmt.Errorf("Any next eigenvalue must be less by absolute value:"+
+						"[%.3e,%.3e]", pm.E[len(pm.E)-1].𝜦, pm.E[len(pm.E)-2].𝜦)
+				}
 			}
 		}()
 	}
+	fmt.Println(">> a --- ", *pm.a)
 
 	// workspace
 	var (
