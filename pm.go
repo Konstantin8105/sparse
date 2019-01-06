@@ -246,7 +246,9 @@ func (pm *PM) Next(amount int) (err error) {
 
 		// 𝛌(n) = 𝜦 + 𝛌(n-1)
 		defer func() {
-			pm.E[len(pm.E)-1].𝜦 += pm.E[len(pm.E)-2].𝜦
+			if err == nil {
+				pm.E[len(pm.E)-1].𝜦 += pm.E[len(pm.E)-2].𝜦
+			}
 		}()
 	}
 
@@ -303,7 +305,6 @@ func (pm *PM) Next(amount int) (err error) {
 		iter++
 	}
 	oneMax(x)
-	oneMax(xNext)
 
 	// compute the Rayleigh quotient
 	// 𝛌 = (Ax · x) / (x · x)
@@ -311,6 +312,11 @@ func (pm *PM) Next(amount int) (err error) {
 	// calculation of Ax is ignore and takes value x(k-1)
 
 	// up : Ax · x
+	zeroize(xNext)
+	if err = Gaxpy(pm.a, x, xNext); err != nil {
+		return
+	}
+
 	var up float64
 	for i := range x {
 		up += x[i] * xNext[i]

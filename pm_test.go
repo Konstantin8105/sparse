@@ -137,7 +137,7 @@ func TestPM(t *testing.T) {
 			t.Errorf("Not correct : %e != %e", pm.E[1].𝑿[3], xExpect[1])
 		}
 
-		𝛌Expect := []float64{-1, -2}
+		𝛌Expect := []float64{-2, -1}
 		if math.Abs(math.Abs(pm.E[0].𝜦)-math.Abs(𝛌Expect[0])) > eps {
 			t.Errorf("Not correct : %e != %e", pm.E[0].𝜦, 𝛌Expect[0])
 		}
@@ -178,8 +178,11 @@ func TestPM(t *testing.T) {
 		var pm PM
 		err = pm.Factorize(A, &PmConfig{
 			IterationMax: 10000000,
-			Tolerance:    1e-8,
+			Tolerance:    1e-5,
 		})
+
+		eps = 1e-5
+
 		if err != nil {
 			panic(err)
 		}
