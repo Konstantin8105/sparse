@@ -66,6 +66,80 @@ func TestPM(t *testing.T) {
 	// tolerance
 	eps := 1e-7
 
+	t.Run("specific2x2", func(t *testing.T) {
+		T, err := NewTriplet()
+		if err != nil {
+			panic(err)
+		}
+		// storage
+		errs := []error{
+			Entry(T, 0, 0, 13),
+			Entry(T, 0, 1, 5),
+
+			Entry(T, 1, 0, 2),
+			Entry(T, 1, 1, 4),
+		}
+		for i := range errs {
+			if errs[i] != nil {
+				panic(errs[i])
+			}
+		}
+
+		// compress
+		A, err := Compress(T)
+		if err != nil {
+			panic(err)
+		}
+
+		var pm PM
+		err = pm.Factorize(A, &PmConfig{
+			IterationMax: 1000,
+			Tolerance:    1e-8,
+		})
+		if err != nil {
+			panic(err)
+		}
+
+		err = pm.Next(2)
+		if err != nil {
+			panic(err)
+		}
+
+		for i := range pm.E {
+			t.Logf("pm.E = %d", i)
+			t.Logf("𝑿 = %v", pm.E[i].𝑿)
+			t.Logf("𝜦 = %v", pm.E[i].𝜦)
+		}
+
+		// result checking
+
+		// lambda = 14
+		xExpect := []float64{1.0, 0.2}
+		if math.Abs(pm.E[0].𝑿[0]-xExpect[0]) > eps {
+			t.Errorf("Not correct : %e != %e", pm.E[0].𝑿[0], xExpect[0])
+		}
+		if math.Abs(pm.E[0].𝑿[1]-xExpect[1]) > eps {
+			t.Errorf("Not correct : %e != %e", pm.E[0].𝑿[1], xExpect[1])
+		}
+
+		// lambda = 3
+		xExpect = []float64{0.55, 1.0}
+		if math.Abs(pm.E[1].𝑿[0]-xExpect[0]) > eps {
+			t.Errorf("Not correct : %e != %e", pm.E[1].𝑿[0], xExpect[0])
+		}
+		if math.Abs(pm.E[1].𝑿[1]-xExpect[1]) > eps {
+			t.Errorf("Not correct : %e != %e", pm.E[1].𝑿[1], xExpect[1])
+		}
+
+		𝛌Expect := []float64{14, 3}
+		if math.Abs(math.Abs(pm.E[0].𝜦)-math.Abs(𝛌Expect[0])) > eps {
+			t.Errorf("Not correct : %e != %e", pm.E[0].𝜦, 𝛌Expect[0])
+		}
+		if math.Abs(math.Abs(pm.E[1].𝜦)-math.Abs(𝛌Expect[1])) > eps {
+			t.Errorf("Not correct : %e != %e", pm.E[1].𝜦, 𝛌Expect[1])
+		}
+	})
+
 	t.Run("2x2", func(t *testing.T) {
 		T, err := NewTriplet()
 		if err != nil {
