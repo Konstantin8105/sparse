@@ -15,6 +15,7 @@ type PmConfig struct {
 	IterationMax uint64
 
 	// Iteration tolerance
+	// TODO (KI) : add comment about for each lambda precasion is lost
 	Tolerance float64
 }
 
@@ -68,6 +69,17 @@ func oneMax(x []float64) {
 	if math.Abs(min) > max {
 		max = min
 	}
+	// if max == 1.0 {
+	// 	return
+	// }
+	//
+	// if max == 66.66 , then max = 100
+	// if max == 0.006 , then max = 0.01
+	// if max > 0 {
+	// 	max = math.Pow(10.0, float64(int(math.Log10(max))))
+	// } else {
+	// 	max = -math.Pow(10.0, float64(int(math.Log10(-max))))
+	// }
 
 	// modification
 	for i := range x {
@@ -220,6 +232,11 @@ func (pm *PM) Factorize(A *Matrix, config *PmConfig, ignore ...int) (err error) 
 	return
 }
 
+// TODO (KI) : add research PM from input values
+// TODO (KI) : [7 4 1; 4 4 4; 1 4 7]
+// TODO (KI) : xo = [1 2 3]T
+// TODO (KI) : xo = [0 1 -1]T
+
 // Next calculate next `amount` eigenvalues
 func (pm *PM) Next(amount int) (err error) {
 	switch {
@@ -236,40 +253,15 @@ func (pm *PM) Next(amount int) (err error) {
 		return nil
 	}
 	// Now `amount = 1`
-
-	// calculate next eigenvalue
-	if len(pm.E) > 0 {
-		// Algorithm
-		// A · x(n) = 𝛌(n) · x(n)
-		// 𝛌(n) =  𝛌(n-1) + 𝜦
-		// A · x(n) = (𝛌(n-1) + 𝜦) · x(n)
-		// (A - 𝛌(n-1)) · x(n) = 𝜦 · x(n)
-		// calculate next eigenvalue
-		// A(n) = A - 𝛌(n-1) · E
-		𝛌 := pm.E[len(pm.E)-1].𝜦
-		for j := 0; j < pm.a.n; j++ {
-			for p := pm.a.p[j]; p < pm.a.p[j+1]; p++ {
-				if j != pm.a.i[p] {
-					continue
-				}
-				// only diagonal element
-				pm.a.x[p] -= 𝛌
-			}
-		}
-
-		// 𝛌(n) = 𝛌(n-1) + 𝜦
-		defer func() {
-			if err == nil {
-				pm.E[len(pm.E)-1].𝜦 += pm.E[len(pm.E)-2].𝜦
-
-				if math.Abs(pm.E[len(pm.E)-1].𝜦) > math.Abs(pm.E[len(pm.E)-2].𝜦) {
-					err = fmt.Errorf("Any next eigenvalue must be less by absolute value:"+
-						"[%.3e,%.3e]", pm.E[len(pm.E)-1].𝜦, pm.E[len(pm.E)-2].𝜦)
-				}
-			}
-		}()
-	}
-	fmt.Println(">> a --- ", *pm.a)
+	// defer func() {
+	// 	if err == nil {
+	// 		// TODO (KI): check that
+	// 		if math.Abs(pm.E[len(pm.E)-1].𝜦) > math.Abs(pm.E[len(pm.E)-2].𝜦) {
+	// 			err = fmt.Errorf("Any next eigenvalue must be less by absolute value:"+
+	// 				"[%.3e,%.3e]", pm.E[len(pm.E)-1].𝜦, pm.E[len(pm.E)-2].𝜦)
+	// 		}
+	// 	}
+	// }()
 
 	// workspace
 	var (
@@ -280,26 +272,100 @@ func (pm *PM) Next(amount int) (err error) {
 	xNext = xNext[:pm.a.m]
 
 	// initial values
+	// if len(pm.E) > 0 {
+	// 	// suppose any next eigenvector is like last
+	// 	copy(x, pm.E[len(pm.E)-1].𝑿)
+	// 	// TODO (KI) : coping without ignore list
+	// } else {
 	for i := range x {
 		x[i] = rand.Float64() - 0.5
 	}
+	// }
 	dlast := 1.0
+	oneMax(x)
 
 	// iteration value
 	var iter uint64
 
+	// main iteration function
+	iteration := func() {
+		// x(k) = A*x(k-1) - (∑(𝛌(j)*[x(j)]*[x(j)Transpose])) * x(k-1),
+		//        |      |   |                                       |
+		//        +------+   +---------------------------------------+
+		//          part1               part 2
+		// where j = 0 ... k-1
+		oneMax(x)
+		zeroize(xNext)
+		// fmt.Println("x = ", x)
+		// fmt.Println("X--- ", x)
+		// part 1
+		// if err = Gaxpy(pm.a, x, xNext); err != nil {
+		// 	return
+		// }
+		_, _ = Fkeep(pm.a, func(i, j int, val float64) bool {
+			xNext[i] += val * x[j]
+			return true
+		})
+		// part 2
+		for i := range pm.E {
+			// value pm.E.X without ignore elements
+			EX := make([]float64, pm.a.m)
+			if len(pm.ignore) == 0 { // ignore list is empty
+				copy(EX, pm.E[i].𝑿)
+			} else {
+				// TODO (KI)
+				panic("TODO")
+			}
+			for row := 0; row < pm.a.m; row++ {
+				for col := 0; col < pm.a.m; col++ {
+					xNext[row] -= pm.E[i].𝜦 * EX[row] * EX[col] * x[col]
+				}
+			}
+
+			// debug
+			// fmt.Println("------------")
+			// T := make([]float64, pm.a.m*pm.a.m)
+			// for row := 0; row < pm.a.m; row++ {
+			// 	for col := 0; col < pm.a.m; col++ {
+			// 		T[row*pm.a.m+col] -= pm.E[i].𝜦 * EX[row] * EX[col]
+			// 	}
+			// }
+			// _, _ = Fkeep(pm.a, func(i, j int, x float64) bool {
+			// 	T[i*pm.a.m+j] += x
+			// 	fmt.Println("A[", i, ",", j, "]=", x)
+			// 	return true
+			// })
+			//
+			// fmt.Println("L  = ", pm.E[i].𝜦)
+			// fmt.Println("EX = ", EX)
+			// for row := 0; row < pm.a.m; row++ {
+			// 	for col := 0; col < pm.a.m; col++ {
+			// 		fmt.Printf("%.4e ", T[row*pm.a.m+col])
+			// 	}
+			// 	fmt.Println("")
+			// }
+			// fmt.Println("------------")
+
+		}
+
+		// fmt.Println("--> x ", xNext)
+		// post work
+		x, xNext = xNext, x
+	}
+
 	// calculation
 	for {
-		// x(k) = A*x(k-1)
-		zeroize(xNext)
+
+		// fmt.Println("iter ", iter)
+
+		// main iteration function
 		oneMax(x)
-		if err = Gaxpy(pm.a, x, xNext); err != nil {
-			return
-		}
-		x, xNext = xNext, x
+		iteration()
 
 		// first norm of vector
 		// link: https://en.wikipedia.org/wiki/Norm_(mathematics)#Taxicab_norm_or_Manhattan_norm
+		oneMax(x)
+		oneMax(xNext)
 		var d float64
 		for i := range x {
 			d += math.Abs(x[i] - xNext[i])
@@ -323,7 +389,6 @@ func (pm *PM) Next(amount int) (err error) {
 		dlast = d
 		iter++
 	}
-	oneMax(x)
 
 	// compute the Rayleigh quotient
 	// 𝛌 = (Ax · x) / (x · x)
@@ -331,10 +396,13 @@ func (pm *PM) Next(amount int) (err error) {
 	// calculation of Ax is ignore and takes value x(k-1)
 
 	// up : Ax · x
-	zeroize(xNext)
-	if err = Gaxpy(pm.a, x, xNext); err != nil {
-		return
-	}
+	// zeroize(xNext)
+	// if err = Gaxpy(pm.a, x, xNext); err != nil {
+	// 	return
+	// }
+	iteration()
+
+	// fmt.Println(">>>>>>>>>>>>>>. ", x, xNext)
 
 	var up float64
 	for i := range x {
@@ -342,6 +410,7 @@ func (pm *PM) Next(amount int) (err error) {
 	}
 
 	// down : x · x
+	oneMax(x)
 	var down float64
 	for i := range x {
 		down += x[i] * x[i]
@@ -353,6 +422,7 @@ func (pm *PM) Next(amount int) (err error) {
 
 	// calculation eigenvalue
 	𝛌 := up / down
+	// fmt.Println("--> ", 𝛌)
 
 	// change workspace with length of ignore list
 	x = append(x, make([]float64, len(pm.ignore))...)
@@ -380,6 +450,8 @@ func (pm *PM) Next(amount int) (err error) {
 			x[i] = x[len(x)-len(pm.ignore)-counter]
 		}
 	}
+
+	oneMax(x)
 
 	pm.E = append(pm.E, &Eigen{
 		// eigenvalue
