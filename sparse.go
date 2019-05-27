@@ -2069,6 +2069,9 @@ func Fkeep(A *Matrix, fkeep func(i int, j int, x float64) bool) (_ int, err erro
 	return nz, nil
 }
 
+// etGaxpy error tree for function Gaxpy
+var etGaxpy = errors.New("Function Gaxpy: check input data")
+
 // Gaxpy - calculate by next formula.
 //
 // Matrix A is sparse matrix in CSC format.
@@ -2078,30 +2081,30 @@ func Fkeep(A *Matrix, fkeep func(i int, j int, x float64) bool) (_ int, err erro
 // Name function in CSparse : cs_gaxpy.
 func Gaxpy(A *Matrix, x []float64, y []float64) error {
 	// check input data
-	et := errors.New("Function Gaxpy: check input data")
+	etGaxpy.Reset() // reset errors
 	if A == nil {
-		_ = et.Add(fmt.Errorf("matrix A is nil"))
+		_ = etGaxpy.Add(fmt.Errorf("matrix A is nil"))
 	}
 	if A != nil && A.nz != -1 {
-		_ = et.Add(fmt.Errorf("matrix A is not CSC(Compressed Sparse Column) format"))
+		_ = etGaxpy.Add(fmt.Errorf("matrix A is not CSC(Compressed Sparse Column) format"))
 	}
 	if x == nil {
-		_ = et.Add(fmt.Errorf("Vector x is nil"))
+		_ = etGaxpy.Add(fmt.Errorf("Vector x is nil"))
 	}
 	if y == nil {
-		_ = et.Add(fmt.Errorf("Vector y is nil"))
+		_ = etGaxpy.Add(fmt.Errorf("Vector y is nil"))
 	}
 	if A != nil {
 		if x != nil && A.n != len(x) {
-			_ = et.Add(fmt.Errorf("Amount of columns in matrix is not equal length of vector x: %d != %d", A.n, len(x)))
+			_ = etGaxpy.Add(fmt.Errorf("Amount of columns in matrix is not equal length of vector x: %d != %d", A.n, len(x)))
 		}
 		if y != nil && A.m != len(y) {
-			_ = et.Add(fmt.Errorf("Amount of rows in matrix is not equal length of vector y: %d != %d", A.m, len(y)))
+			_ = etGaxpy.Add(fmt.Errorf("Amount of rows in matrix is not equal length of vector y: %d != %d", A.m, len(y)))
 		}
 	}
 
-	if et.IsError() {
-		return et
+	if etGaxpy.IsError() {
+		return etGaxpy
 	}
 
 	// initialization
