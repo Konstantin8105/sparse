@@ -2100,7 +2100,7 @@ func Fkeep(A *Matrix, fkeep func(i int, j int, x float64) bool) (_ int, err erro
 	return nz, nil
 }
 
-// Gaxpy error
+// etGaxpy error tree for function Gaxpy
 var etGaxpy = errors.New("Function Gaxpy: check input data")
 
 // Gaxpy - calculate by next formula.

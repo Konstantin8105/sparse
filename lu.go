@@ -228,7 +228,7 @@ func (lu *LU) Solve(b []float64) (x []float64, _ error) {
 	// ignore list
 	if len(lu.ignore) > 0 && len(b) > n {
 		defer func() {
-			// decomperess vector `x`
+			// decompress vector `x`
 			// short x vector: x = [1 2]
 			// ignore list   :     [0 2 4]
 			// result        : x = [0 1 0 2 0]
