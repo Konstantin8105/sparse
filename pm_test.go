@@ -177,12 +177,12 @@ func TestPM(t *testing.T) {
 			Tolerance:    1e-8,
 		}, 0, 4, 2, 0, 2, 4)
 		if err != nil {
-			panic(err)
+			t.Fatal(err)
 		}
 
 		err = pm.Next(2)
 		if err != nil {
-			panic(err)
+			t.Fatal(err)
 		}
 
 		for i := range pm.E {
@@ -272,6 +272,8 @@ func TestPM(t *testing.T) {
 		for i := range pm.E {
 			if math.Abs(math.Abs(pm.E[i].𝜦)-math.Abs(𝛌Expect[i])) > eps {
 				t.Errorf("Not correct 𝜦%d: %e != %e", i, pm.E[i].𝜦, 𝛌Expect[i])
+			} else {
+				t.Logf("𝜦%d = %e is correct", i, pm.E[i].𝜦)
 			}
 		}
 	})

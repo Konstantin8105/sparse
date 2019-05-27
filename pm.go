@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"math"
 	"math/rand"
+	"runtime/debug"
 	"sort"
 
 	"github.com/Konstantin8105/errors"
@@ -135,6 +136,13 @@ func (pm *PM) Factorize(A *Matrix, config *PmConfig, ignore ...int) (err error) 
 		return
 	}
 
+	// panic free. replace to stacktrace
+	defer func() {
+		if r := recover(); r != nil {
+			err = fmt.Errorf("stacktrace from panic: %s\n", debug.Stack())
+		}
+	}()
+
 	// remove duplicate from `ignore` list
 	if len(ignore) > 0 {
 		list := append([]int{}, ignore[0])
@@ -252,6 +260,14 @@ func (pm *PM) Next(amount int) (err error) {
 		}
 		return nil
 	}
+
+	// panic free. replace to stacktrace
+	defer func() {
+		if r := recover(); r != nil {
+			err = fmt.Errorf("stacktrace from panic: %s\n", debug.Stack())
+		}
+	}()
+
 	// Now `amount = 1`
 	// defer func() {
 	// 	if err == nil {
@@ -314,7 +330,7 @@ func (pm *PM) Next(amount int) (err error) {
 				copy(EX, pm.E[i].𝑿)
 			} else {
 				// TODO (KI)
-				panic("TODO")
+				// panic("TODO")
 			}
 			for row := 0; row < pm.a.m; row++ {
 				for col := 0; col < pm.a.m; col++ {
