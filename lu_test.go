@@ -213,7 +213,7 @@ func BenchmarkLU(b *testing.B) {
 				}
 
 				var x mat.Dense
-				err := lu.Solve(&x, false, br)
+				err := lu.SolveTo(&x, false, br)
 				if err != nil {
 					panic(err)
 				}
