@@ -2521,14 +2521,14 @@ func cs_free(p interface{}) {
 		if v == nil || (v != nil && cap(v) == 0) {
 			return
 		}
-		floats.Put(v)
+		// floats.Put(v)
 		// TODO (KI) : fmt.Fprintf(os.Stdout, "Type : %8d %T\n", cap(v), v)
 
 	case []int:
 		if v == nil || (v != nil && cap(v) == 0) {
 			return
 		}
-		ints.Put(v)
+		// ints.Put(v)
 		// TODO (KI) : fmt.Fprintf(os.Stdout, "Type : %8d %T\n", cap(v), v)
 
 	case LU:
@@ -3211,7 +3211,7 @@ func cs_qr(A *Matrix, S *css) *csn {
 	rnz = S.unz
 	leftmost = S.leftmost
 	// get csi workspace
-	w = make([]int, m2+n) // cs_malloc(m2+n, uint(0)).([]int)
+	w = ints.Get(m2 + n) // make([]int, m2+n) // cs_malloc(m2+n, uint(0)).([]int)
 	// get double workspace
 	x = floats.Get(m2) // make([]float64, m2) // cs_malloc(int(m2), uint(8)).([]float64)
 	// allocate result
