@@ -47,9 +47,9 @@ func (A *Matrix) Copy() (*Matrix, error) {
 	C.nzmax = A.nzmax
 	C.m = A.m
 	C.n = A.n
-	C.p = append(ints.get(len(A.p))[:0], A.p...)   // C.p = append([]int{}, A.p...)
-	C.i = append(ints.get(len(A.i))[:0], A.i...)   // C.i = append([]int{}, A.i...)
-	C.x = append(floats.get(len(A.x))[:0], A.x...) // C.x = append([]float64{}, A.x...)
+	C.p = append(ints.Get(len(A.p))[:0], A.p...)   // C.p = append([]int{}, A.p...)
+	C.i = append(ints.Get(len(A.i))[:0], A.i...)   // C.i = append([]int{}, A.i...)
+	C.x = append(floats.Get(len(A.x))[:0], A.x...) // C.x = append([]float64{}, A.x...)
 
 	C.nz = A.nz
 
@@ -163,7 +163,7 @@ func Add(A *Matrix, B *Matrix, α float64, β float64) (*Matrix, error) {
 	var x []float64
 	defer cs_free(x)
 	if values {
-		x = floats.get(m) // make([]float64, m)
+		x = floats.Get(m) // make([]float64, m)
 	}
 
 	// allocate result
@@ -958,7 +958,7 @@ func cs_chol(A *Matrix, S *css) *csn {
 	c := make([]int, 2*n)
 	// get double workspace
 	var (
-		x      = floats.get(n) // make([]float64, n)
+		x      = floats.Get(n) // make([]float64, n)
 		cp     = S.cp
 		pinv   = S.pinv
 		parent = S.parent
@@ -1067,7 +1067,7 @@ func cs_cholsol(order Order, A *Matrix, b []float64) (result bool) {
 	// numeric Cholesky factorization
 	N := cs_chol(A, S)
 	// get workspace
-	x := floats.get(n) // make([]float64, n)
+	x := floats.Get(n) // make([]float64, n)
 	ok := (S != nil && N != nil && x != nil)
 	if ok {
 		// x = P*b
@@ -2333,7 +2333,7 @@ func cs_lu(A *Matrix, S *css, tol float64) *csn {
 	lnz := S.lnz
 	unz := S.unz
 	// get double workspace
-	x := floats.get(n) // make([]float64, n)
+	x := floats.Get(n) // make([]float64, n)
 	// get csi workspace
 	xi := make([]int, 2*n)
 	// allocate result
@@ -2487,7 +2487,7 @@ func cs_lusol(order Order, A *Matrix, b []float64, tol float64) bool {
 	// numeric LU factorization
 	N := cs_lu(A, S, tol)
 	// get workspace
-	x := floats.get(n) // make([]float64, n)
+	x := floats.Get(n) // make([]float64, n)
 	ok := (S != nil && N != nil && x != nil)
 	if ok {
 		// x = b(p)
@@ -2521,14 +2521,14 @@ func cs_free(p interface{}) {
 		if v == nil || (v != nil && cap(v) == 0) {
 			return
 		}
-		floats.put(v)
+		floats.Put(v)
 		// TODO (KI) : fmt.Fprintf(os.Stdout, "Type : %8d %T\n", cap(v), v)
 
 	case []int:
 		if v == nil || (v != nil && cap(v) == 0) {
 			return
 		}
-		ints.put(v)
+		ints.Put(v)
 		// TODO (KI) : fmt.Fprintf(os.Stdout, "Type : %8d %T\n", cap(v), v)
 
 	case LU:
@@ -2584,7 +2584,7 @@ func cs_realloc(p interface{}, n int, ok *bool) interface{} {
 		// }
 		// reallocate memory
 		if 2*n < len(v) || len(v) < n {
-			arr := ints.get(n) // make([]int, n)
+			arr := ints.Get(n) // make([]int, n)
 			copy(arr, v)
 			v, arr = arr, v
 			cs_free(arr)
@@ -2595,7 +2595,7 @@ func cs_realloc(p interface{}, n int, ok *bool) interface{} {
 	case []float64:
 		// reallocate memory
 		if 2*n < len(v) || len(v) < n {
-			arr := floats.get(n) //  make([]float64, n)
+			arr := floats.Get(n) //  make([]float64, n)
 			copy(arr, v)
 			v, arr = arr, v
 			cs_free(arr)
@@ -2893,7 +2893,7 @@ func Multiply(A *Matrix, B *Matrix) (*Matrix, error) {
 	var x []float64
 	defer cs_free(x)
 	if values {
-		x = floats.get(m) // make([]float64, m)
+		x = floats.Get(m) // make([]float64, m)
 	}
 
 	// allocate result
@@ -3213,7 +3213,7 @@ func cs_qr(A *Matrix, S *css) *csn {
 	// get csi workspace
 	w = make([]int, m2+n) // cs_malloc(m2+n, uint(0)).([]int)
 	// get double workspace
-	x = floats.get(m2) // make([]float64, m2) // cs_malloc(int(m2), uint(8)).([]float64)
+	x = floats.Get(m2) // make([]float64, m2) // cs_malloc(int(m2), uint(8)).([]float64)
 	// allocate result
 	N = new(csn) // cs_calloc(1, uint(32)).([]csn)
 	if w == nil || x == nil || N == nil {
@@ -3241,7 +3241,7 @@ func cs_qr(A *Matrix, S *css) *csn {
 	}
 	// allocate result R
 	N.U = R
-	Beta = floats.get(n) // make([]float64, n) // cs_malloc(n, uint(8)).([]float64)
+	Beta = floats.Get(n) // make([]float64, n) // cs_malloc(n, uint(8)).([]float64)
 	// allocate result Beta
 	N.B = Beta
 	if R == nil || V == nil || Beta == nil {
@@ -3394,7 +3394,7 @@ func cs_qrsol(order Order, A *Matrix, b []float64) bool {
 		N = cs_qr(A, S)
 		// get workspace
 		if S != nil {
-			x = floats.get(S.m2) // make([]float64, S.m2)
+			x = floats.Get(S.m2) // make([]float64, S.m2)
 		} else {
 			x = make([]float64, 1)
 		}
@@ -3427,7 +3427,7 @@ func cs_qrsol(order Order, A *Matrix, b []float64) bool {
 		N = cs_qr(AT, S)
 		// get workspace
 		if S != nil {
-			x = floats.get(S.m2) // make([]float64, S.m2)
+			x = floats.Get(S.m2) // make([]float64, S.m2)
 		} else {
 			x = make([]float64, 1)
 		}
@@ -4328,16 +4328,16 @@ func cs_spalloc(m, n, nzmax int, values bool, mf matrixFormat) (*Matrix, error) 
 	// allocate triplet or comp.col
 	switch mf {
 	case tripletFormat:
-		A.p = make([]int, nzmax)
+		A.p = ints.Get(nzmax) // make([]int, nzmax)
 		A.nz = 0
 	case cscFormat:
-		A.p = make([]int, n+1)
+		A.p = ints.Get(n + 1) // make([]int, n+1)
 		A.nz = -1
 	}
-	A.i = ints.get(nzmax) // make([]int, nzmax)
+	A.i = ints.Get(nzmax) // make([]int, nzmax)
 	A.x = nil
 	if values {
-		A.x = floats.get(nzmax) // make([]float64, nzmax)
+		A.x = floats.Get(nzmax) // make([]float64, nzmax)
 	}
 	return A, nil
 }
