@@ -8,6 +8,6 @@ var (
 	ints   = mms.IntsCache{}
 )
 
-// func init() {
-// 	mms.Debug = true
-// }
+func init() {
+	mms.Debug = true
+}
