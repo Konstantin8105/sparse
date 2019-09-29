@@ -3,6 +3,7 @@ sudo: false
 go:
   - tip
 script:
+  - go test -v -run=TestDemo1 -race
   - go test -covermode=count  -coverprofile=coverage.out
 
 after_success:
