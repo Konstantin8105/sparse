@@ -2521,14 +2521,14 @@ func cs_free(p interface{}) {
 		if v == nil || (v != nil && cap(v) == 0) {
 			return
 		}
-		// floats.Put(v)
+		floats.Put(&v)
 		// TODO (KI) : fmt.Fprintf(os.Stdout, "Type : %8d %T\n", cap(v), v)
 
 	case []int:
 		if v == nil || (v != nil && cap(v) == 0) {
 			return
 		}
-		// ints.Put(v)
+		ints.Put(&v)
 		// TODO (KI) : fmt.Fprintf(os.Stdout, "Type : %8d %T\n", cap(v), v)
 
 	case LU:
