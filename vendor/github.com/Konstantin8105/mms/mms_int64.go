@@ -89,6 +89,15 @@ func (c *Int64sCache) Get(size int) []int64 {
 // Put slice into pool
 func (c *Int64sCache) Put(arr *[]int64) {
 
+	if cap(*arr) == 0 {
+		// empty size
+		return
+	}
+	if len(*arr) == 0 {
+		// propably it is a dublicate putting
+		return
+	}
+
 	// lock
 	c.mutex.Lock()
 	defer func() {
@@ -101,22 +110,17 @@ func (c *Int64sCache) Put(arr *[]int64) {
 	)
 
 	if index < 0 {
-		// pool is not exist
 		return
 	}
-	if size == 0 {
-		// empty size
+	if index > len(c.ps) {
 		return
 	}
-	if len(*arr) == 0 {
-		// propably it is a dublicate putting
+	if c.ps[index].size != size {
 		return
 	}
 
-	if !(index < len(c.ps) && c.ps[index].size == size) {
-		return
-	}
 	*arr = (*arr)[:0]
+
 	if Debug {
 		// check if putting same arr
 		for i := range c.putarr {
