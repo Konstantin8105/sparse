@@ -79,7 +79,7 @@ func (c *Float32sCache) Get(size int) []float32 {
 		}
 	}
 
-	for i := range arr {
+	for i, size := 0, cap(arr); i < size; i++ {
 		// initialization of slice
 		arr[i] = 0
 	}
