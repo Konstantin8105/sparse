@@ -2433,8 +2433,8 @@ func cs_lu(A *Matrix, S *css, tol float64) (_ *csn, errGlobal error) {
 		}
 		if ipiv == -1 || a <= 0 {
 			return (cs_ndone(N, nil, xi, x, false)),
-				fmt.Errorf("Problem with ipiv and a: (top %v) (n %v) (pinv %v) (xi %v - len %d)",
-					top, n, pinv, xi, len(xi))
+				fmt.Errorf("Problem with ipiv and a: (k %d) (top %v) (n %v) (pinv %v) (xi %v - len %d)\n",
+					k, top, n, pinv, xi, len(xi))
 		}
 		if pinv[col] < 0 && math.Abs(x[col]) >= a*tol {
 			// tol=1 for  partial pivoting; tol<1 gives preference to diagonal
