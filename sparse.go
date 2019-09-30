@@ -2322,11 +2322,16 @@ func cs_ltsolve(L *Matrix, x []float64) bool {
 }
 
 // cs_lu - [L,U,pinv]=lu(A, [q lnz unz]). lnz and unz can be guess
-func cs_lu(A *Matrix, S *css, tol float64) *csn {
+func cs_lu(A *Matrix, S *css, tol float64) (_ *csn, errGlobal error) {
+	defer func() {
+		if errGlobal != nil {
+			errGlobal = fmt.Errorf("cs_lu: %v", errGlobal)
+		}
+	}()
 	var col int
 	if !(A != nil && A.nz == -1) || S == nil {
 		// check inputs
-		return nil
+		return nil, fmt.Errorf("Matrix A or S is nil")
 	}
 	n := A.n
 	q := S.q
@@ -2339,19 +2344,18 @@ func cs_lu(A *Matrix, S *css, tol float64) *csn {
 	// allocate result
 	N := new(csn)
 	if x == nil || xi == nil || N == nil {
-		return (cs_ndone(N, nil, xi, x, false))
+		return (cs_ndone(N, nil, xi, x, false)),
+			fmt.Errorf("Cannot allocate memory for x, xi, N")
 	}
 	L, err := cs_spalloc(n, n, lnz, true, cscFormat)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, err.Error()) // TODO (KI) error hanling
-		return nil
+		return nil, err
 	}
 	N.L = L
 	// allocate result L
 	U, err := cs_spalloc(n, n, unz, true, cscFormat)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, err.Error()) // TODO (KI) error hanling
-		return nil
+		return nil, err
 	}
 	N.U = U
 	// allocate result U
@@ -2359,7 +2363,8 @@ func cs_lu(A *Matrix, S *css, tol float64) *csn {
 	N.pinv = pinv
 	// allocate result pinv
 	if L == nil || U == nil || pinv == nil {
-		return (cs_ndone(N, nil, xi, x, false))
+		return (cs_ndone(N, nil, xi, x, false)),
+			fmt.Errorf("Cannot allocate memory for L, U, pinv")
 	}
 	Lp, Up := L.p, U.p
 
@@ -2390,7 +2395,8 @@ func cs_lu(A *Matrix, S *css, tol float64) *csn {
 		Up[k] = unz
 		if (lnz+n > L.nzmax && !cs_sprealloc(L, 2*L.nzmax+n)) ||
 			(unz+n > U.nzmax && !cs_sprealloc(U, 2*U.nzmax+n)) {
-			return cs_ndone(N, nil, xi, x, false)
+			return cs_ndone(N, nil, xi, x, false),
+				fmt.Errorf("Cannot sprealloc memory for L, U")
 		}
 		Li, Lx, Ui, Ux := L.i, L.x, U.i, U.x
 
@@ -2423,7 +2429,8 @@ func cs_lu(A *Matrix, S *css, tol float64) *csn {
 			}
 		}
 		if ipiv == -1 || a <= 0 {
-			return (cs_ndone(N, nil, xi, x, false))
+			return (cs_ndone(N, nil, xi, x, false)),
+				fmt.Errorf("Memory problem with ipiv and a")
 		}
 		if pinv[col] < 0 && math.Abs(x[col]) >= a*tol {
 			// tol=1 for  partial pivoting; tol<1 gives preference to diagonal
@@ -2472,20 +2479,28 @@ func cs_lu(A *Matrix, S *css, tol float64) *csn {
 	cs_sprealloc(L, 0)
 	cs_sprealloc(U, 0)
 	// success
-	return (cs_ndone(N, nil, xi, x, true))
+	return (cs_ndone(N, nil, xi, x, true)), nil
 }
 
 // cs_lusol - x=A\b where A is unsymmetric; b overwritten with solution
-func cs_lusol(order Order, A *Matrix, b []float64, tol float64) bool {
+func cs_lusol(order Order, A *Matrix, b []float64, tol float64) (err error) {
+	defer func() {
+		if err != nil {
+			err = fmt.Errorf("cs_lusol: %v", err)
+		}
+	}()
 	if !(A != nil && A.nz == -1) || b == nil {
 		// check inputs
-		return false
+		return fmt.Errorf("Memory is not allocated for A, b")
 	}
 	n := A.n
 	// ordering and symbolic analysis
 	S := cs_sqr(order, A, false)
 	// numeric LU factorization
-	N := cs_lu(A, S, tol)
+	N, err := cs_lu(A, S, tol)
+	if err != nil {
+		return err
+	}
 	// get workspace
 	x := floats.Get(n) // make([]float64, n)
 	ok := (S != nil && N != nil && x != nil)
@@ -2502,7 +2517,7 @@ func cs_lusol(order Order, A *Matrix, b []float64, tol float64) bool {
 	cs_free(x)
 	cs_free(S)
 	cs_free(N)
-	return ok
+	return nil
 }
 
 // cs_free - wrapper for free

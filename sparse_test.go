@@ -609,10 +609,10 @@ func TestNilCheck(t *testing.T) {
 	if r := cs_ltsolve(nil, nil); r == true {
 		t.Errorf("cs_ltsolve: not nil")
 	}
-	if r := cs_lu(nil, nil, -1); r != nil {
+	if r, err := cs_lu(nil, nil, -1); r != nil || err == nil {
 		t.Errorf("cs_lu: not nil")
 	}
-	if r := cs_lusol(100, nil, nil, -1); r == true {
+	if err := cs_lusol(100, nil, nil, -1); err == nil {
 		t.Errorf("cs_lusol: not nil")
 	}
 	// TODO (KI) : no need

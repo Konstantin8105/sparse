@@ -197,7 +197,10 @@ func demo2(Prob *problem, output bool) bool {
 		rhs(x, b, m)
 		t = tic()
 		// solve Ax=b with LU
-		ok = cs_lusol(Order(order), C, x, tol)
+		err := cs_lusol(Order(order), C, x, tol)
+		if err != nil {
+			return false
+		}
 		if output {
 			fmt.Fprintf(osStdout, "time: %8.2f ", toc(t))
 			// print residual
