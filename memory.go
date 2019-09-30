@@ -8,5 +8,5 @@ var (
 )
 
 func init() {
-	mms.Debug = false
+	mms.Debug = true // false
 }

@@ -2406,7 +2406,10 @@ func cs_lu(A *Matrix, S *css, tol float64) (_ *csn, errGlobal error) {
 		}
 
 		// x = L\A(:,col)
-		top := cs_spsolve(L, A, col, xi, x, pinv, true)
+		top, err := cs_spsolve(L, A, col, xi, x, pinv, true)
+		if err != nil {
+			return nil, err
+		}
 		// --- Find pivot ---------------------------------------------------
 		ipiv := -1
 		a := -1.0
@@ -2429,8 +2432,9 @@ func cs_lu(A *Matrix, S *css, tol float64) (_ *csn, errGlobal error) {
 			}
 		}
 		if ipiv == -1 || a <= 0 {
+			fmt.Println(x, top, n)
 			return (cs_ndone(N, nil, xi, x, false)),
-				fmt.Errorf("Memory problem with ipiv and a")
+				fmt.Errorf("Problem with ipiv and a: (top %v) (n %v) (x %v)", top, n, x)
 		}
 		if pinv[col] < 0 && math.Abs(x[col]) >= a*tol {
 			// tol=1 for  partial pivoting; tol<1 gives preference to diagonal
@@ -3699,9 +3703,15 @@ func cs_schol(order Order, A *Matrix) (result *css) {
 }
 
 // cs_spsolve - solve Gx=b(:,k), where G is either upper (lo=0) or lower (lo=1) triangular
-func cs_spsolve(G *Matrix, B *Matrix, k int, xi []int, x []float64, pinv []int, lo bool) int {
+func cs_spsolve(G *Matrix, B *Matrix, k int, xi []int, x []float64, pinv []int, lo bool) (
+	_ int, err error) {
+	defer func() {
+		if err != nil {
+			err = fmt.Errorf("cs_spsolve: %v", err)
+		}
+	}()
 	if !(G != nil && G.nz == -1) || !(B != nil && B.nz == -1) || xi == nil || x == nil {
-		return -1
+		return -1, fmt.Errorf("Memory is not allocated")
 	}
 
 	// initialization
@@ -3755,7 +3765,7 @@ func cs_spsolve(G *Matrix, B *Matrix, k int, xi []int, x []float64, pinv []int, 
 		}
 	}
 	// return top of stack
-	return top
+	return top, nil
 }
 
 // cs_vcount - compute nnz(V) = S->lnz, S->pinv, S->leftmost, S->m2 from A and S->parent

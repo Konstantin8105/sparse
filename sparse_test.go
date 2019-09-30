@@ -673,7 +673,7 @@ func TestNilCheck(t *testing.T) {
 	if r := cs_schol(100, nil); r != nil {
 		t.Errorf("cs_schol: not nil")
 	}
-	if r := cs_spsolve(nil, nil, -1, nil, nil, nil, false); r != -1 {
+	if r, err := cs_spsolve(nil, nil, -1, nil, nil, nil, false); r != -1 || err == nil {
 		t.Errorf("cs_spsolve: not nil")
 	}
 	// TODO
