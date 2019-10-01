@@ -60,24 +60,24 @@ func (c *IntsCache) Get(size int) []int {
 	// pool is found
 	arr := c.ps[index].p.Get().([]int)
 
-	if Debug {
-		if len(arr) != 0 && cap(arr) != size {
-			panic(fmt.Errorf("not valid sizes: %d != %d", len(arr), size))
-		}
+	// if Debug {
+	if len(arr) != 0 && cap(arr) != size {
+		panic(fmt.Errorf("not valid sizes: %d != %d", len(arr), size))
 	}
+	// }
 
 	if len(arr) == 0 {
 		arr = arr[:size]
 	}
 
-	if Debug {
-		if len(arr) < size {
-			panic(fmt.Errorf("not same sizes: %d != %d", len(arr), size))
-		}
-		if len(arr) != cap(arr) {
-			panic(fmt.Errorf("not valid capacity: %d != %d", len(arr), cap(arr)))
-		}
+	// if Debug {
+	if len(arr) < size {
+		panic(fmt.Errorf("not same sizes: %d != %d", len(arr), size))
 	}
+	if len(arr) != cap(arr) {
+		panic(fmt.Errorf("not valid capacity: %d != %d", len(arr), cap(arr)))
+	}
+	// }
 
 	for i, size := 0, cap(arr); i < size; i++ {
 		// initialization of slice
@@ -119,7 +119,7 @@ func (c *IntsCache) Put(arr *[]int) {
 		return
 	}
 
-	// *arr = (*arr)[:0]// Todo
+	*arr = (*arr)[:0]
 
 	if Debug {
 		// check if putting same arr
@@ -140,8 +140,8 @@ func (c *IntsCache) Put(arr *[]int) {
 			line: called(),
 		})
 		// return
-		b := (make([]int, size))
-		arr = &b
+		temp := (make([]int, size))
+		arr = &temp
 	}
 	c.ps[index].p.Put(*arr)
 }

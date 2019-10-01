@@ -6,6 +6,8 @@ github.com/Konstantin8105/mms v0.0.0-20190930141316-7bce96d6bf72 h1:TlV6d8BoSQCg
 github.com/Konstantin8105/mms v0.0.0-20190930141316-7bce96d6bf72/go.mod h1:mu905XG3li74iAZeZEs226B/odcbyQ+FzDLyKG+scxY=
 github.com/Konstantin8105/mms v0.0.0-20190930152048-d2a7326438f0 h1:H2766ikO1X65ijqSdqrptBLRhXm4uXVP+w3HdfaIC6k=
 github.com/Konstantin8105/mms v0.0.0-20190930152048-d2a7326438f0/go.mod h1:mu905XG3li74iAZeZEs226B/odcbyQ+FzDLyKG+scxY=
+github.com/Konstantin8105/mms v0.0.0-20191001140609-6c27cc725ecb h1:kopZ5xdv0Niu4FAUrvYP6Cr0syich1WypASk8+QrEhw=
+github.com/Konstantin8105/mms v0.0.0-20191001140609-6c27cc725ecb/go.mod h1:mu905XG3li74iAZeZEs226B/odcbyQ+FzDLyKG+scxY=
 github.com/Konstantin8105/mms v0.0.0-20191001142221-b4a6bed3fb5a h1:SShZpNi/4cX+pKmMa519BdQP+8A1wrOAHC0+S90sskY=
 github.com/Konstantin8105/mms v0.0.0-20191001142221-b4a6bed3fb5a/go.mod h1:mu905XG3li74iAZeZEs226B/odcbyQ+FzDLyKG+scxY=
 github.com/Konstantin8105/mms v0.0.0-20191001144621-e15584af7f10 h1:d9OGbuV5LXYtwKv5wtkE4Qwr7z8ecmT1FV1gTXAuvfA=

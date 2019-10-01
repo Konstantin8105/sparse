@@ -2639,6 +2639,10 @@ func cs_realloc(p interface{}, n int, ok *bool) interface{} {
 		}
 		*ok = true
 		return v
+
+		// 	default:
+		// 		// Possible nil
+		// 		panic(p)
 	}
 
 	return nil
