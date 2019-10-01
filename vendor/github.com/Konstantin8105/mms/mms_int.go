@@ -119,7 +119,7 @@ func (c *IntsCache) Put(arr *[]int) {
 		return
 	}
 
-	*arr = (*arr)[:0]
+	// *arr = (*arr)[:0]// Todo
 
 	if Debug {
 		// check if putting same arr

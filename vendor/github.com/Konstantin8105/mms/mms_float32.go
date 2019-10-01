@@ -119,7 +119,7 @@ func (c *Float32sCache) Put(arr *[]float32) {
 		return
 	}
 
-	*arr = (*arr)[:0]
+	// *arr = (*arr)[:0]// Todo
 
 	if Debug {
 		// check if putting same arr

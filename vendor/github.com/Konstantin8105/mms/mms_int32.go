@@ -119,7 +119,7 @@ func (c *Int32sCache) Put(arr *[]int32) {
 		return
 	}
 
-	*arr = (*arr)[:0]
+	// *arr = (*arr)[:0]// Todo
 
 	if Debug {
 		// check if putting same arr
