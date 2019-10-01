@@ -4091,6 +4091,8 @@ func cs_symperm(A *Matrix, pinv []int, values bool) *Matrix {
 	return (cs_done(C, w, nil, true))
 }
 
+var CDCDCDCDebug bool = false
+
 // cs_tdfs - depth-first search and postorder of a tree rooted at node j
 func cs_tdfs(j, k int, head []int, next []int, post []int, stack []int) int {
 	if head == nil || next == nil || post == nil || stack == nil {
@@ -4121,7 +4123,9 @@ func cs_tdfs(j, k int, head []int, next []int, post []int, stack []int) int {
 		top++
 		stack[top] = i
 	}
-	fmt.Fprintf(os.Stdout, "len = %d --> %v\n", len(stack), stack)
+	if CDCDCDCDebug {
+		fmt.Fprintf(os.Stdout, "len = %d --> %v\n", len(stack), stack)
+	}
 	return k
 }
 

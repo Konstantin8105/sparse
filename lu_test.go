@@ -647,6 +647,10 @@ func TestLU(t *testing.T) {
 }
 
 func TestMatLU(t *testing.T) {
+	CDCDCDCDebug = true
+	defer func() {
+		CDCDCDCDebug = false
+	}()
 	matrixes, err := filepath.Glob("./testdata/matrix/" + "*.lu")
 	if err != nil {
 		t.Fatal(err)
