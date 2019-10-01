@@ -139,7 +139,9 @@ func (c *IntsCache) Put(arr *[]int) {
 			arr:  arr,
 			line: called(),
 		})
-		return
+		// return
+		b := (make([]int, size))
+		arr = &b
 	}
 	c.ps[index].p.Put(*arr)
 }

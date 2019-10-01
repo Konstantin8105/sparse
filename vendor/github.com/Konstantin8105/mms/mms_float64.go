@@ -139,7 +139,9 @@ func (c *Float64sCache) Put(arr *[]float64) {
 			arr:  arr,
 			line: called(),
 		})
-		return
+		// return
+		b := (make([]float64, size))
+		arr = &b
 	}
 	c.ps[index].p.Put(*arr)
 }

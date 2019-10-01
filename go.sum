@@ -6,6 +6,8 @@ github.com/Konstantin8105/mms v0.0.0-20190930141316-7bce96d6bf72 h1:TlV6d8BoSQCg
 github.com/Konstantin8105/mms v0.0.0-20190930141316-7bce96d6bf72/go.mod h1:mu905XG3li74iAZeZEs226B/odcbyQ+FzDLyKG+scxY=
 github.com/Konstantin8105/mms v0.0.0-20190930152048-d2a7326438f0 h1:H2766ikO1X65ijqSdqrptBLRhXm4uXVP+w3HdfaIC6k=
 github.com/Konstantin8105/mms v0.0.0-20190930152048-d2a7326438f0/go.mod h1:mu905XG3li74iAZeZEs226B/odcbyQ+FzDLyKG+scxY=
+github.com/Konstantin8105/mms v0.0.0-20191001142221-b4a6bed3fb5a h1:SShZpNi/4cX+pKmMa519BdQP+8A1wrOAHC0+S90sskY=
+github.com/Konstantin8105/mms v0.0.0-20191001142221-b4a6bed3fb5a/go.mod h1:mu905XG3li74iAZeZEs226B/odcbyQ+FzDLyKG+scxY=
 github.com/Konstantin8105/tree v0.0.0-20190515202740-8a8e3df34a3b h1:FjXnLahgYDqBm8FeELONQ6+AoL/VYUQJOcexWqeAPM8=
 github.com/Konstantin8105/tree v0.0.0-20190515202740-8a8e3df34a3b/go.mod h1:iuUpRQi7E+GDKbY/a5HBliYk4j+cW1Nmv1hXoCSwuVU=
 github.com/ajstarks/svgo v0.0.0-20180226025133-644b8db467af/go.mod h1:K08gAheRH3/J6wwsYMMT4xOr94bZjxIelGM0+d/wbFw=
