@@ -47,9 +47,27 @@ func (A *Matrix) Copy() (*Matrix, error) {
 	C.nzmax = A.nzmax
 	C.m = A.m
 	C.n = A.n
-	C.p = append(ints.Get(len(A.p))[:0], A.p...)   // C.p = append([]int{}, A.p...)
-	C.i = append(ints.Get(len(A.i))[:0], A.i...)   // C.i = append([]int{}, A.i...)
-	C.x = append(floats.Get(len(A.x))[:0], A.x...) // C.x = append([]float64{}, A.x...)
+	{
+		// C.p = append([]int{}, A.p...)
+		C.p = ints.Get(len(A.p))
+		for i := range A.p {
+			C.p[i] = A.p[i]
+		}
+	}
+	{
+		// C.i = append([]int{}, A.i...)
+		C.i = ints.Get(len(A.i))
+		for i := range A.i {
+			C.i[i] = A.i[i]
+		}
+	}
+	{
+		// C.x = append([]float64{}, A.x...)
+		C.x = floats.Get(len(A.x))
+		for i := range A.x {
+			C.x[i] = A.x[i]
+		}
+	}
 
 	C.nz = A.nz
 
