@@ -2,7 +2,6 @@ language: go
 sudo: false
 go:
   - tip
-  - 1.13.x
 script:
   - go test -v -run=TestDemo1 -race
   - go test -covermode=count  -coverprofile=coverage.out

@@ -4121,6 +4121,7 @@ func cs_tdfs(j, k int, head []int, next []int, post []int, stack []int) int {
 		top++
 		stack[top] = i
 	}
+	fmt.Fprintf(os.Stdout, "len = %d --> %v\n", len(stack), stack)
 	return k
 }
 
