@@ -647,10 +647,6 @@ func TestLU(t *testing.T) {
 }
 
 func TestMatLU(t *testing.T) {
-	sparse.CDCDCDCDebug = true
-	defer func() {
-		sparse.CDCDCDCDebug = false
-	}()
 	matrixes, err := filepath.Glob("./testdata/matrix/" + "*.lu")
 	if err != nil {
 		t.Fatal(err)
