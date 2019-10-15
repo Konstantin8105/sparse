@@ -6,7 +6,7 @@
 [![GitHub license](https://img.shields.io/badge/license-LGPL%20v2.1-blue.svg)](https://github.com/Konstantin8105/sparse/blob/master/LICENSE)
 [![GoDoc](https://godoc.org/github.com/Konstantin8105/sparse?status.svg)](https://godoc.org/github.com/Konstantin8105/sparse)
 
-**This package based on program CSparse from [SuiteSparse 5.3.0](http://faculty.cse.tamu.edu/davis/SuiteSparse/)**
+**This package based on program CSparse from [SuiteSparse 5.4.0](http://faculty.cse.tamu.edu/davis/SuiteSparse/)**
 
 ### Comparation with `gonum.mat.LU`
 
