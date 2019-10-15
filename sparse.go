@@ -8,9 +8,19 @@ import (
 	"runtime/debug"
 
 	"github.com/Konstantin8105/errors"
+	"github.com/Konstantin8105/mms"
 
 	"math/rand"
 )
+
+var (
+	floats = mms.Float64sCache{}
+	ints   = mms.IntsCache{}
+)
+
+func init() {
+	mms.Debug = false
+}
 
 var osStdout *os.File = os.Stdout
 
@@ -2521,12 +2531,14 @@ func cs_free(p interface{}) {
 			return
 		}
 		// TODO (KI) : fmt.Fprintf(os.Stdout, "Type : %8d %T\n", cap(v), v)
+		floats.Put(&v)
 
 	case []int:
 		if v == nil || (v != nil && cap(v) == 0) {
 			return
 		}
 		// TODO (KI) : fmt.Fprintf(os.Stdout, "Type : %8d %T\n", cap(v), v)
+		ints.Put(&v)
 
 	case LU:
 		cs_free(v.s)
@@ -4331,10 +4343,10 @@ func cs_spalloc(m, n, nzmax int, values bool, mf matrixFormat) (*Matrix, error) 
 		A.p = make([]int, n+1)
 		A.nz = -1
 	}
-	A.i = make([]int, nzmax)
+	A.i = ints.Get(nzmax) // make([]int, nzmax)
 	A.x = nil
 	if values {
-		A.x = make([]float64, nzmax)
+		A.x = floats.Get(nzmax) // make([]float64, nzmax)
 	}
 	return A, nil
 }
