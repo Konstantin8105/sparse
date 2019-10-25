@@ -8,6 +8,6 @@ var (
 )
 
 // only for debugging
-func init() {
-	mms.Debug = true
-}
+// func init() {
+// 	mms.Debug = true
+// }
