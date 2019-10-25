@@ -79,7 +79,7 @@ func (c *Float64sCache) Get(size int) []float64 {
 		}
 	}
 
-	for i, size := 0, cap(arr); i < size; i++ {
+	for i, size := 0, len(arr); i < size; i++ {
 		// initialization of slice
 		arr[i] = 0
 	}
