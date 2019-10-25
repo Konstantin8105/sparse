@@ -2362,8 +2362,7 @@ func cs_lu(A *Matrix, S *css, tol float64) (_ *csn, errGlobal error) {
 	// allocate result
 	N := new(csn)
 	if x == nil || xi == nil || N == nil {
-		return (cs_ndone(N, nil, xi, x, false)),
-			fmt.Errorf("Cannot allocate memory for x, xi, N")
+		return (cs_ndone(N, nil, xi, x, false)), fmt.Errorf("Cannot allocate memory for x, xi, N")
 	}
 	L, err := cs_spalloc(n, n, lnz, true, cscFormat)
 	if err != nil {
@@ -2381,8 +2380,7 @@ func cs_lu(A *Matrix, S *css, tol float64) (_ *csn, errGlobal error) {
 	N.pinv = pinv
 	// allocate result pinv
 	if L == nil || U == nil || pinv == nil {
-		return (cs_ndone(N, nil, xi, x, false)),
-			fmt.Errorf("Cannot allocate memory for L, U, pinv")
+		return (cs_ndone(N, nil, xi, x, false)), fmt.Errorf("Cannot allocate memory for L, U, pinv")
 	}
 	Lp, Up := L.p, U.p
 
@@ -2413,8 +2411,7 @@ func cs_lu(A *Matrix, S *css, tol float64) (_ *csn, errGlobal error) {
 		Up[k] = unz
 		if (lnz+n > L.nzmax && !cs_sprealloc(L, 2*L.nzmax+n)) ||
 			(unz+n > U.nzmax && !cs_sprealloc(U, 2*U.nzmax+n)) {
-			return cs_ndone(N, nil, xi, x, false),
-				fmt.Errorf("Cannot sprealloc memory for L, U")
+			return cs_ndone(N, nil, xi, x, false), fmt.Errorf("Cannot sprealloc memory for L, U")
 		}
 		Li, Lx, Ui, Ux := L.i, L.x, U.i, U.x
 
@@ -2450,9 +2447,7 @@ func cs_lu(A *Matrix, S *css, tol float64) (_ *csn, errGlobal error) {
 			}
 		}
 		if ipiv == -1 || a <= 0 {
-			return (cs_ndone(N, nil, xi, x, false)),
-				fmt.Errorf("Problem with ipiv and a: (k %d) (top %v) (n %v) (pinv %v) (xi %v - len %d)\n",
-					k, top, n, pinv, xi, len(xi))
+			return (cs_ndone(N, nil, xi, x, false)), fmt.Errorf("Problem with ipiv and a: (k %d) (top %v) (n %v) (pinv %v) (xi %v - len %d)\n", k, top, n, pinv, xi, len(xi))
 		}
 		if pinv[col] < 0 && math.Abs(x[col]) >= a*tol {
 			// tol=1 for  partial pivoting; tol<1 gives preference to diagonal
