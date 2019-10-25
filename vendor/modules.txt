@@ -4,19 +4,19 @@ github.com/Konstantin8105/cs
 github.com/Konstantin8105/errors
 # github.com/Konstantin8105/tree v0.0.0-20190515202740-8a8e3df34a3b
 github.com/Konstantin8105/tree
-# gonum.org/v1/gonum v0.0.0-20190520094443-a5f8f3a4840b
-gonum.org/v1/gonum/mat
+# gonum.org/v1/gonum v0.0.0-20190923210107-40fa6a493b3d
 gonum.org/v1/gonum/blas
 gonum.org/v1/gonum/blas/blas64
 gonum.org/v1/gonum/blas/cblas128
-gonum.org/v1/gonum/floats
-gonum.org/v1/gonum/internal/asm/f64
-gonum.org/v1/gonum/lapack
-gonum.org/v1/gonum/lapack/lapack64
 gonum.org/v1/gonum/blas/gonum
-gonum.org/v1/gonum/lapack/gonum
+gonum.org/v1/gonum/floats
 gonum.org/v1/gonum/internal/asm/c128
 gonum.org/v1/gonum/internal/asm/c64
 gonum.org/v1/gonum/internal/asm/f32
+gonum.org/v1/gonum/internal/asm/f64
 gonum.org/v1/gonum/internal/cmplx64
 gonum.org/v1/gonum/internal/math32
+gonum.org/v1/gonum/lapack
+gonum.org/v1/gonum/lapack/gonum
+gonum.org/v1/gonum/lapack/lapack64
+gonum.org/v1/gonum/mat
