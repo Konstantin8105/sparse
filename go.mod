@@ -1,6 +1,6 @@
 module github.com/Konstantin8105/sparse
 
-go 1.12
+go 1.13
 
 require (
 	github.com/Konstantin8105/cs v0.0.0-20190517091010-c069cc1cee1b
