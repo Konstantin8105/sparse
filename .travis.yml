@@ -4,7 +4,7 @@ go:
   - tip
 script:
   - go test -v -run=TestDemo1 -race
-  - go test -covermode=count  -coverprofile=coverage.out
+  - go test -v -covermode=count  -coverprofile=coverage.out
 
 after_success:
   - include_cov=coverage.out bash <(curl -s https://codecov.io/bash)
