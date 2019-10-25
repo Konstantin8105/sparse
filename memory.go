@@ -7,6 +7,7 @@ var (
 	ints   = mms.IntsCache{}
 )
 
-func init() {
-	mms.Debug = false
-}
+// only for debugging
+// func init() {
+// 	mms.Debug = true
+// }

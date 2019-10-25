@@ -70,14 +70,14 @@ func (c *IntsCache) Get(size int) []int {
 		arr = arr[:size]
 	}
 
-	// if Debug {
-	if len(arr) < size {
-		panic(fmt.Errorf("not same sizes: %d != %d", len(arr), size))
+	if Debug {
+		if len(arr) < size {
+			panic(fmt.Errorf("not same sizes: %d != %d", len(arr), size))
+		}
+		if len(arr) != cap(arr) {
+			panic(fmt.Errorf("not valid capacity: %d != %d", len(arr), cap(arr)))
+		}
 	}
-	if len(arr) != cap(arr) {
-		panic(fmt.Errorf("not valid capacity: %d != %d", len(arr), cap(arr)))
-	}
-	// }
 
 	for i, size := 0, cap(arr); i < size; i++ {
 		// initialization of slice
@@ -119,8 +119,6 @@ func (c *IntsCache) Put(arr *[]int) {
 		return
 	}
 
-	*arr = (*arr)[:0]
-
 	if Debug {
 		// check if putting same arr
 		for i := range c.putarr {
@@ -135,11 +133,16 @@ func (c *IntsCache) Put(arr *[]int) {
 				called(),
 			))
 		}
+		// change value of array
+		for i := range *arr {
+			(*arr)[i] = -42 // Magic value for easy debug
+		}
+
+		// store array
 		c.putarr = append(c.putarr, debugIntsCache{
 			arr:  arr,
 			line: called(),
 		})
-		// return
 		temp := (make([]int, size))
 		arr = &temp
 	}

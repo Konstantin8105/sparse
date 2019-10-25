@@ -2553,20 +2553,12 @@ func cs_free(p interface{}) {
 		if v == nil || (v != nil && cap(v) == 0) {
 			return
 		}
-		// TODO : only for debugging
-		for i := range v {
-			v[i] = -12121212
-		}
 		floats.Put(&v)
 		// TODO (KI) : fmt.Fprintf(os.Stdout, "Type : %8d %T\n", cap(v), v)
 
 	case []int:
 		if v == nil || (v != nil && cap(v) == 0) {
 			return
-		}
-		// TODO : only for debugging
-		for i := range v {
-			v[i] = -12121212
 		}
 		ints.Put(&v)
 		// TODO (KI) : fmt.Fprintf(os.Stdout, "Type : %8d %T\n", cap(v), v)
