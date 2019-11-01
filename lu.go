@@ -52,7 +52,7 @@ func (lu *LU) Order(order Order) {
 // List `ignore` is list of ignore row and column in calculation.
 func (lu *LU) Factorize(A *Matrix, ignore ...int) error {
 	// check input data
-	et := errors.New("Function LU.Factorize: check input data")
+	et := errors.New("")
 	if A == nil {
 		_ = et.Add(fmt.Errorf("matrix A is nil"))
 	}
@@ -74,6 +74,7 @@ func (lu *LU) Factorize(A *Matrix, ignore ...int) error {
 	}
 
 	if et.IsError() {
+		et.Name = "Function LU.Factorize: check input data"
 		return et
 	}
 
@@ -189,7 +190,7 @@ func (lu *LU) Factorize(A *Matrix, ignore ...int) error {
 //
 func (lu *LU) Solve(b []float64) (x []float64, _ error) {
 	// check input data
-	et := errors.New("Function LU.Solve: check input data")
+	et := errors.New("")
 	if b == nil {
 		_ = et.Add(fmt.Errorf("vector b is nil"))
 	}
@@ -207,6 +208,7 @@ func (lu *LU) Solve(b []float64) (x []float64, _ error) {
 	}
 
 	if et.IsError() {
+		et.Name = "Function LU.Solve: check input data"
 		return nil, et
 	}
 

@@ -30,7 +30,7 @@ type Matrix struct { // struct cs_sparse
 
 func (A *Matrix) Copy() (*Matrix, error) {
 	// check input data
-	et := errors.New("Function Copy: check input data")
+	et := errors.New("")
 	if A == nil {
 		_ = et.Add(fmt.Errorf("matrix A is nil"))
 	}
@@ -39,6 +39,7 @@ func (A *Matrix) Copy() (*Matrix, error) {
 	}
 
 	if et.IsError() {
+		et.Name = "Function Copy: check input data"
 		return nil, et
 	}
 
@@ -109,7 +110,7 @@ type csd struct { // struct cs_dmperm_results
 // Name function in CSparse : cs_add.
 func Add(A *Matrix, B *Matrix, α float64, β float64) (*Matrix, error) {
 	// check input data
-	et := errors.New("Function Add: check input data")
+	et := errors.New("")
 	if A == nil {
 		_ = et.Add(fmt.Errorf("matrix A is nil"))
 	}
@@ -144,6 +145,7 @@ func Add(A *Matrix, B *Matrix, α float64, β float64) (*Matrix, error) {
 	}
 
 	if et.IsError() {
+		et.Name = "Function Add: check input data"
 		return nil, et
 	}
 
@@ -1089,7 +1091,7 @@ func cs_cholsol(order Order, A *Matrix, b []float64) (result bool) {
 // Name function in CSparse : cs_compress.
 func Compress(T *Triplet) (_ *Matrix, err error) {
 	// check input data
-	et := errors.New("Function Add: check input data")
+	et := errors.New("")
 	if T == nil {
 		_ = et.Add(fmt.Errorf("matrix T is nil"))
 	}
@@ -1098,6 +1100,7 @@ func Compress(T *Triplet) (_ *Matrix, err error) {
 	}
 
 	if et.IsError() {
+		et.Name = "Function Add: check input data"
 		return nil, et
 	}
 
@@ -1358,7 +1361,7 @@ func cs_counts(A *Matrix, parent []int, post []int, ata bool) []int {
 //
 func cs_cumsum(p []int, c []int) (int, error) {
 	// check input data
-	et := errors.New("Function cs_cumsum: check input data")
+	et := errors.New("")
 	if p == nil {
 		_ = et.Add(fmt.Errorf("Vector p is nil"))
 	}
@@ -1370,6 +1373,7 @@ func cs_cumsum(p []int, c []int) (int, error) {
 	}
 
 	if et.IsError() {
+		et.Name = "Function cs_cumsum: check input data"
 		return -1, et
 	}
 
@@ -1762,7 +1766,7 @@ func cs_droptol(A *Matrix, tol float64) (int, error) {
 // Name function in CSparse: cs_dupl
 func Dupl(A *Matrix) error {
 	// check input data
-	et := errors.New("Function Dupl: check input data")
+	et := errors.New("")
 	if A == nil {
 		_ = et.Add(fmt.Errorf("matrix A is nil"))
 	}
@@ -1771,6 +1775,7 @@ func Dupl(A *Matrix) error {
 	}
 
 	if et.IsError() {
+		et.Name = "Function Dupl: check input data"
 		return et
 	}
 
@@ -1836,8 +1841,7 @@ func Dupl(A *Matrix) error {
 // Name function in CSparse : cs_entry.
 func Entry(T *Triplet, i, j int, x float64) error {
 	// check input data
-	const etName string = "Function Entry: check input data"
-	et := new(errors.Tree)
+	et := errors.New("")
 	if T == nil {
 		_ = et.Add(fmt.Errorf("matrix T is nil"))
 	}
@@ -1864,7 +1868,7 @@ func Entry(T *Triplet, i, j int, x float64) error {
 	}
 
 	if et.IsError() {
-		et.Name = etName
+		et.Name = "Function Entry: check input data"
 		return et
 	}
 
@@ -2022,7 +2026,7 @@ func cs_etree(A *Matrix, ata bool) []int {
 // Name function of CSparse: cs_fkeep
 func Fkeep(A *Matrix, fkeep func(i int, j int, x float64) bool) (_ int, err error) {
 	// check input data
-	et := errors.New("Function Add: check input data")
+	et := errors.New("")
 	if A == nil {
 		_ = et.Add(fmt.Errorf("matrix A is nil"))
 	}
@@ -2034,6 +2038,7 @@ func Fkeep(A *Matrix, fkeep func(i int, j int, x float64) bool) (_ int, err erro
 	}
 
 	if et.IsError() {
+		et.Name = "Function Add: check input data"
 		return -1, et
 	}
 
@@ -2071,9 +2076,6 @@ func Fkeep(A *Matrix, fkeep func(i int, j int, x float64) bool) (_ int, err erro
 	return nz, nil
 }
 
-// etGaxpy error tree for function Gaxpy
-var etGaxpy = errors.New("Function Gaxpy: check input data")
-
 // Gaxpy - calculate by next formula.
 //
 // Matrix A is sparse matrix in CSC format.
@@ -2083,7 +2085,7 @@ var etGaxpy = errors.New("Function Gaxpy: check input data")
 // Name function in CSparse : cs_gaxpy.
 func Gaxpy(A *Matrix, x []float64, y []float64) error {
 	// check input data
-	etGaxpy.Reset() // reset errors
+	etGaxpy := errors.New("")
 	if A == nil {
 		_ = etGaxpy.Add(fmt.Errorf("matrix A is nil"))
 	}
@@ -2106,6 +2108,7 @@ func Gaxpy(A *Matrix, x []float64, y []float64) error {
 	}
 
 	if etGaxpy.IsError() {
+		etGaxpy.Name = "Function Gaxpy: check input data"
 		return etGaxpy
 	}
 
@@ -2513,7 +2516,8 @@ func cs_free(p interface{}) {
 		return
 	}
 
-	// TODO (KI): reused memory
+	// TODO (KI): remove "return" for reused memory or debugging
+	return
 
 	switch v := p.(type) {
 	case []float64:
@@ -2861,7 +2865,7 @@ func cs_maxtrans(A *Matrix, seed int) []int {
 // Name function in CSparse : cs_multiply.
 func Multiply(A *Matrix, B *Matrix) (*Matrix, error) {
 	// check input data
-	et := errors.New("Function Add: check input data")
+	et := errors.New("")
 	if A == nil {
 		_ = et.Add(fmt.Errorf("matrix A is nil"))
 	}
@@ -2881,6 +2885,7 @@ func Multiply(A *Matrix, B *Matrix) (*Matrix, error) {
 	}
 
 	if et.IsError() {
+		et.Name = "Function Add: check input data"
 		return nil, et
 	}
 
@@ -4114,7 +4119,7 @@ func Transpose(A *Matrix) (*Matrix, error) {
 // if values == true, then initialize vector x in Matrix
 func cs_transpose(A *Matrix, values bool) (*Matrix, error) {
 	// check input data
-	et := errors.New("Function Transpose: check input data")
+	et := errors.New("")
 	if A == nil {
 		_ = et.Add(fmt.Errorf("matrix A is nil"))
 	}
@@ -4123,6 +4128,7 @@ func cs_transpose(A *Matrix, values bool) (*Matrix, error) {
 	}
 
 	if et.IsError() {
+		et.Name = "Function Transpose: check input data"
 		return nil, et
 	}
 
@@ -4304,7 +4310,7 @@ const (
 // cs_spalloc - allocate a sparse matrix (triplet form or compressed-column form)
 func cs_spalloc(m, n, nzmax int, values bool, mf matrixFormat) (*Matrix, error) {
 	// check input data
-	et := errors.New("Function cs_spalloc: check input data")
+	et := errors.New("")
 	if m < 0 {
 		_ = et.Add(fmt.Errorf("Value m is less zero : %d", m))
 	}
@@ -4316,6 +4322,7 @@ func cs_spalloc(m, n, nzmax int, values bool, mf matrixFormat) (*Matrix, error) 
 	}
 
 	if et.IsError() {
+		et.Name = "Function cs_spalloc: check input data"
 		return nil, et
 	}
 
