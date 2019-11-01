@@ -1867,7 +1867,8 @@ func Dupl(A *Matrix) error {
 // Name function in CSparse : cs_entry.
 func Entry(T *Triplet, i, j int, x float64) error {
 	// check input data
-	et := errors.New("Function Entry: check input data")
+	const etName string = "Function Entry: check input data"
+	et := new(errors.Tree)
 	if T == nil {
 		_ = et.Add(fmt.Errorf("matrix T is nil"))
 	}
@@ -1894,6 +1895,7 @@ func Entry(T *Triplet, i, j int, x float64) error {
 	}
 
 	if et.IsError() {
+		et.Name = etName
 		return et
 	}
 
@@ -2550,11 +2552,19 @@ func cs_free(p interface{}) {
 		if v == nil || (v != nil && cap(v) == 0) {
 			return
 		}
+		// TODO : only for debugging
+		for i := range v {
+			v[i] = -12121212
+		}
 		// TODO (KI) : fmt.Fprintf(os.Stdout, "Type : %8d %T\n", cap(v), v)
 
 	case []int:
 		if v == nil || (v != nil && cap(v) == 0) {
 			return
+		}
+		// TODO : only for debugging
+		for i := range v {
+			v[i] = -12121212
 		}
 		// TODO (KI) : fmt.Fprintf(os.Stdout, "Type : %8d %T\n", cap(v), v)
 
@@ -3075,7 +3085,6 @@ func cs_post(parent []int, n int) []int {
 	}
 	// allocate result
 	post := make([]int, n)
-	defer cs_free(post)
 	// get workspace
 	w := make([]int, 3*n)
 	defer cs_free(w)
