@@ -1,6 +1,7 @@
 package sparse
 
 import (
+	"bytes"
 	"fmt"
 	"io"
 	"math"
@@ -3110,20 +3111,26 @@ func (A *Matrix) Print(brief bool) error {
 	// initialization
 	m, n, Ap, Ai, Ax, nzmax := A.m, A.n, A.p, A.i, A.x, A.nzmax
 
-	fmt.Fprintf(osStdout, "Sparse\n")
+	// print in buffer
+	var buf bytes.Buffer
+	defer func() {
+		fmt.Fprintf(osStdout, "%s", buf.String())
+	}()
 
-	fmt.Fprintf(osStdout, "%d-by-%d, nzmax: %d nnz: %d, 1-norm: %10e\n", m, n, nzmax, Ap[n], Norm(A))
+	fmt.Fprintf(&buf, "Sparse\n")
+
+	fmt.Fprintf(&buf, "%d-by-%d, nzmax: %d nnz: %d, 1-norm: %10e\n", m, n, nzmax, Ap[n], Norm(A))
 	for j := 0; j < n; j++ {
-		fmt.Fprintf(osStdout, "    col %d : locations %d to %d\n", j, Ap[j], Ap[j+1]-1)
+		fmt.Fprintf(&buf, "    col %d : locations %d to %d\n", j, Ap[j], Ap[j+1]-1)
 		for p := Ap[j]; p < Ap[j+1]; p++ {
-			fmt.Fprintf(osStdout, "      %d : %10e\n", Ai[p], func() float64 {
+			fmt.Fprintf(&buf, "      %d : %10e\n", Ai[p], func() float64 {
 				if Ax != nil {
 					return Ax[p]
 				}
 				return 1
 			}())
 			if brief && p > 20 {
-				fmt.Fprintf(osStdout, "  ...\n")
+				fmt.Fprintf(&buf, "  ...\n")
 				return nil
 			}
 		}
@@ -3138,17 +3145,23 @@ func (A *Triplet) Print(brief bool) error {
 
 	m, n, Ap, Ai, Ax, nzmax, nz := A.m, A.n, A.p, A.i, A.x, A.nzmax, A.nz
 
-	fmt.Fprintf(osStdout, "Sparse\n")
-	fmt.Fprintf(osStdout, "triplet: %d-by-%d, nzmax: %d nnz: %d\n", m, n, nzmax, nz)
+	// print in buffer
+	var buf bytes.Buffer
+	defer func() {
+		fmt.Fprintf(osStdout, "%s", buf.String())
+	}()
+
+	fmt.Fprintf(&buf, "Sparse\n")
+	fmt.Fprintf(&buf, "triplet: %d-by-%d, nzmax: %d nnz: %d\n", m, n, nzmax, nz)
 	for p := 0; p < nz; p++ {
-		fmt.Fprintf(osStdout, "    %d %d : %10e\n", Ai[p], Ap[p], func() float64 {
+		fmt.Fprintf(&buf, "    %d %d : %10e\n", Ai[p], Ap[p], func() float64 {
 			if Ax != nil {
 				return Ax[p]
 			}
 			return 1
 		}())
 		if brief && p > 20 {
-			fmt.Fprintf(osStdout, "  ...\n")
+			fmt.Fprintf(&buf, "  ...\n")
 			return nil
 		}
 	}
