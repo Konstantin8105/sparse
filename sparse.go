@@ -49,9 +49,28 @@ func (A *Matrix) Copy() (*Matrix, error) {
 	C.nzmax = A.nzmax
 	C.m = A.m
 	C.n = A.n
-	C.p = append([]int{}, A.p...)
-	C.i = append([]int{}, A.i...)
-	C.x = append([]float64{}, A.x...)
+	{
+		// C.p = append([]int{}, A.p...)
+		C.p = ints.Get(len(A.p))
+		for i := range A.p {
+			C.p[i] = A.p[i]
+		}
+	}
+	{
+		// C.i = append([]int{}, A.i...)
+		C.i = ints.Get(len(A.i))
+		for i := range A.i {
+			C.i[i] = A.i[i]
+		}
+	}
+	{
+		// C.x = append([]float64{}, A.x...)
+		C.x = floats.Get(len(A.x))
+		for i := range A.x {
+			C.x[i] = A.x[i]
+		}
+	}
+
 	C.nz = A.nz
 
 	return C, nil
@@ -165,7 +184,7 @@ func Add(A *Matrix, B *Matrix, α float64, β float64) (*Matrix, error) {
 	var x []float64
 	defer cs_free(x)
 	if values {
-		x = make([]float64, m)
+		x = floats.Get(m) // make([]float64, m)
 	}
 
 	// allocate result
@@ -960,7 +979,7 @@ func cs_chol(A *Matrix, S *css) *csn {
 	c := make([]int, 2*n)
 	// get double workspace
 	var (
-		x      = make([]float64, n)
+		x      = floats.Get(n) // make([]float64, n)
 		cp     = S.cp
 		pinv   = S.pinv
 		parent = S.parent
@@ -1069,7 +1088,7 @@ func cs_cholsol(order Order, A *Matrix, b []float64) (result bool) {
 	// numeric Cholesky factorization
 	N := cs_chol(A, S)
 	// get workspace
-	x := make([]float64, n)
+	x := floats.Get(n) // make([]float64, n)
 	ok := (S != nil && N != nil && x != nil)
 	if ok {
 		// x = P*b
@@ -2325,36 +2344,39 @@ func cs_ltsolve(L *Matrix, x []float64) bool {
 }
 
 // cs_lu - [L,U,pinv]=lu(A, [q lnz unz]). lnz and unz can be guess
-func cs_lu(A *Matrix, S *css, tol float64) *csn {
+func cs_lu(A *Matrix, S *css, tol float64) (_ *csn, errGlobal error) {
+	defer func() {
+		if errGlobal != nil {
+			errGlobal = fmt.Errorf("cs_lu: %v", errGlobal)
+		}
+	}()
 	var col int
 	if !(A != nil && A.nz == -1) || S == nil {
 		// check inputs
-		return nil
+		return nil, fmt.Errorf("Matrix A or S is nil")
 	}
 	n := A.n
 	q := S.q
 	lnz := S.lnz
 	unz := S.unz
 	// get double workspace
-	x := make([]float64, n)
+	x := floats.Get(n) // make([]float64, n)
 	// get csi workspace
 	xi := make([]int, 2*n)
 	// allocate result
 	N := new(csn)
 	if x == nil || xi == nil || N == nil {
-		return (cs_ndone(N, nil, xi, x, false))
+		return (cs_ndone(N, nil, xi, x, false)), fmt.Errorf("Cannot allocate memory for x, xi, N")
 	}
 	L, err := cs_spalloc(n, n, lnz, true, cscFormat)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, err.Error()) // TODO (KI) error hanling
-		return nil
+		return nil, err
 	}
 	N.L = L
 	// allocate result L
 	U, err := cs_spalloc(n, n, unz, true, cscFormat)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, err.Error()) // TODO (KI) error hanling
-		return nil
+		return nil, err
 	}
 	N.U = U
 	// allocate result U
@@ -2362,7 +2384,7 @@ func cs_lu(A *Matrix, S *css, tol float64) *csn {
 	N.pinv = pinv
 	// allocate result pinv
 	if L == nil || U == nil || pinv == nil {
-		return (cs_ndone(N, nil, xi, x, false))
+		return (cs_ndone(N, nil, xi, x, false)), fmt.Errorf("Cannot allocate memory for L, U, pinv")
 	}
 	Lp, Up := L.p, U.p
 
@@ -2393,7 +2415,7 @@ func cs_lu(A *Matrix, S *css, tol float64) *csn {
 		Up[k] = unz
 		if (lnz+n > L.nzmax && !cs_sprealloc(L, 2*L.nzmax+n)) ||
 			(unz+n > U.nzmax && !cs_sprealloc(U, 2*U.nzmax+n)) {
-			return cs_ndone(N, nil, xi, x, false)
+			return cs_ndone(N, nil, xi, x, false), fmt.Errorf("Cannot sprealloc memory for L, U")
 		}
 		Li, Lx, Ui, Ux := L.i, L.x, U.i, U.x
 
@@ -2403,7 +2425,10 @@ func cs_lu(A *Matrix, S *css, tol float64) *csn {
 		}
 
 		// x = L\A(:,col)
-		top := cs_spsolve(L, A, col, xi, x, pinv, true)
+		top, err := cs_spsolve(L, A, col, xi, x, pinv, true)
+		if err != nil {
+			return nil, err
+		}
 		// --- Find pivot ---------------------------------------------------
 		ipiv := -1
 		a := -1.0
@@ -2426,7 +2451,7 @@ func cs_lu(A *Matrix, S *css, tol float64) *csn {
 			}
 		}
 		if ipiv == -1 || a <= 0 {
-			return (cs_ndone(N, nil, xi, x, false))
+			return (cs_ndone(N, nil, xi, x, false)), fmt.Errorf("Problem with ipiv and a: (k %d) (top %v) (n %v) (pinv %v) (xi %v - len %d)\n", k, top, n, pinv, xi, len(xi))
 		}
 		if pinv[col] < 0 && math.Abs(x[col]) >= a*tol {
 			// tol=1 for  partial pivoting; tol<1 gives preference to diagonal
@@ -2475,22 +2500,30 @@ func cs_lu(A *Matrix, S *css, tol float64) *csn {
 	cs_sprealloc(L, 0)
 	cs_sprealloc(U, 0)
 	// success
-	return (cs_ndone(N, nil, xi, x, true))
+	return (cs_ndone(N, nil, xi, x, true)), nil
 }
 
 // cs_lusol - x=A\b where A is unsymmetric; b overwritten with solution
-func cs_lusol(order Order, A *Matrix, b []float64, tol float64) bool {
+func cs_lusol(order Order, A *Matrix, b []float64, tol float64) (err error) {
+	defer func() {
+		if err != nil {
+			err = fmt.Errorf("cs_lusol: %v", err)
+		}
+	}()
 	if !(A != nil && A.nz == -1) || b == nil {
 		// check inputs
-		return false
+		return fmt.Errorf("Memory is not allocated for A, b")
 	}
 	n := A.n
 	// ordering and symbolic analysis
 	S := cs_sqr(order, A, false)
 	// numeric LU factorization
-	N := cs_lu(A, S, tol)
+	N, err := cs_lu(A, S, tol)
+	if err != nil {
+		return err
+	}
 	// get workspace
-	x := make([]float64, n)
+	x := floats.Get(n) // make([]float64, n)
 	ok := (S != nil && N != nil && x != nil)
 	if ok {
 		// x = b(p)
@@ -2505,7 +2538,7 @@ func cs_lusol(order Order, A *Matrix, b []float64, tol float64) bool {
 	cs_free(x)
 	cs_free(S)
 	cs_free(N)
-	return ok
+	return nil
 }
 
 // cs_free - wrapper for free
@@ -2525,20 +2558,14 @@ func cs_free(p interface{}) {
 		if v == nil || (v != nil && cap(v) == 0) {
 			return
 		}
-		// TODO : only for debugging
-		for i := range v {
-			v[i] = -12121212
-		}
+		floats.Put(&v)
 		// TODO (KI) : fmt.Fprintf(os.Stdout, "Type : %8d %T\n", cap(v), v)
 
 	case []int:
 		if v == nil || (v != nil && cap(v) == 0) {
 			return
 		}
-		// TODO : only for debugging
-		for i := range v {
-			v[i] = -12121212
-		}
+		ints.Put(&v)
 		// TODO (KI) : fmt.Fprintf(os.Stdout, "Type : %8d %T\n", cap(v), v)
 
 	case LU:
@@ -2594,7 +2621,7 @@ func cs_realloc(p interface{}, n int, ok *bool) interface{} {
 		// }
 		// reallocate memory
 		if 2*n < len(v) || len(v) < n {
-			arr := make([]int, n)
+			arr := ints.Get(n) // make([]int, n)
 			copy(arr, v)
 			v, arr = arr, v
 			cs_free(arr)
@@ -2605,13 +2632,17 @@ func cs_realloc(p interface{}, n int, ok *bool) interface{} {
 	case []float64:
 		// reallocate memory
 		if 2*n < len(v) || len(v) < n {
-			arr := make([]float64, n)
+			arr := floats.Get(n) //  make([]float64, n)
 			copy(arr, v)
 			v, arr = arr, v
 			cs_free(arr)
 		}
 		*ok = true
 		return v
+
+		// 	default:
+		// 		// Possible nil
+		// 		panic(p)
 	}
 
 	return nil
@@ -2904,7 +2935,7 @@ func Multiply(A *Matrix, B *Matrix) (*Matrix, error) {
 	var x []float64
 	defer cs_free(x)
 	if values {
-		x = make([]float64, m)
+		x = floats.Get(m) // make([]float64, m)
 	}
 
 	// allocate result
@@ -3233,9 +3264,9 @@ func cs_qr(A *Matrix, S *css) *csn {
 	rnz = S.unz
 	leftmost = S.leftmost
 	// get csi workspace
-	w = make([]int, m2+n) // cs_malloc(m2+n, uint(0)).([]int)
+	w = ints.Get(m2 + n) // make([]int, m2+n) // cs_malloc(m2+n, uint(0)).([]int)
 	// get double workspace
-	x = make([]float64, m2) // cs_malloc(int(m2), uint(8)).([]float64)
+	x = floats.Get(m2) // make([]float64, m2) // cs_malloc(int(m2), uint(8)).([]float64)
 	// allocate result
 	N = new(csn) // cs_calloc(1, uint(32)).([]csn)
 	if w == nil || x == nil || N == nil {
@@ -3263,7 +3294,7 @@ func cs_qr(A *Matrix, S *css) *csn {
 	}
 	// allocate result R
 	N.U = R
-	Beta = make([]float64, n) // cs_malloc(n, uint(8)).([]float64)
+	Beta = floats.Get(n) // make([]float64, n) // cs_malloc(n, uint(8)).([]float64)
 	// allocate result Beta
 	N.B = Beta
 	if R == nil || V == nil || Beta == nil {
@@ -3416,7 +3447,7 @@ func cs_qrsol(order Order, A *Matrix, b []float64) bool {
 		N = cs_qr(A, S)
 		// get workspace
 		if S != nil {
-			x = make([]float64, S.m2)
+			x = floats.Get(S.m2) // make([]float64, S.m2)
 		} else {
 			x = make([]float64, 1)
 		}
@@ -3449,7 +3480,7 @@ func cs_qrsol(order Order, A *Matrix, b []float64) bool {
 		N = cs_qr(AT, S)
 		// get workspace
 		if S != nil {
-			x = make([]float64, S.m2)
+			x = floats.Get(S.m2) // make([]float64, S.m2)
 		} else {
 			x = make([]float64, 1)
 		}
@@ -3706,9 +3737,15 @@ func cs_schol(order Order, A *Matrix) (result *css) {
 }
 
 // cs_spsolve - solve Gx=b(:,k), where G is either upper (lo=0) or lower (lo=1) triangular
-func cs_spsolve(G *Matrix, B *Matrix, k int, xi []int, x []float64, pinv []int, lo bool) int {
+func cs_spsolve(G *Matrix, B *Matrix, k int, xi []int, x []float64, pinv []int, lo bool) (
+	_ int, err error) {
+	defer func() {
+		if err != nil {
+			err = fmt.Errorf("cs_spsolve: %v", err)
+		}
+	}()
 	if !(G != nil && G.nz == -1) || !(B != nil && B.nz == -1) || xi == nil || x == nil {
-		return -1
+		return -1, fmt.Errorf("Memory is not allocated")
 	}
 
 	// initialization
@@ -3762,7 +3799,7 @@ func cs_spsolve(G *Matrix, B *Matrix, k int, xi []int, x []float64, pinv []int, 
 		}
 	}
 	// return top of stack
-	return top
+	return top, nil
 }
 
 // cs_vcount - compute nnz(V) = S->lnz, S->pinv, S->leftmost, S->m2 from A and S->parent
@@ -4352,16 +4389,16 @@ func cs_spalloc(m, n, nzmax int, values bool, mf matrixFormat) (*Matrix, error) 
 	// allocate triplet or comp.col
 	switch mf {
 	case tripletFormat:
-		A.p = make([]int, nzmax)
+		A.p = ints.Get(nzmax) // make([]int, nzmax)
 		A.nz = 0
 	case cscFormat:
-		A.p = make([]int, n+1)
+		A.p = ints.Get(n + 1) // make([]int, n+1)
 		A.nz = -1
 	}
-	A.i = make([]int, nzmax)
+	A.i = ints.Get(nzmax) // make([]int, nzmax)
 	A.x = nil
 	if values {
-		A.x = make([]float64, nzmax)
+		A.x = floats.Get(nzmax) // make([]float64, nzmax)
 	}
 	return A, nil
 }

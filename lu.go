@@ -160,7 +160,11 @@ func (lu *LU) Factorize(A *Matrix, ignore ...int) error {
 		return fmt.Errorf("matrix S in LU decomposition is nil")
 	}
 	// numeric LU factorization
-	lu.n = cs_lu(C, lu.s, tol)
+	var err error
+	lu.n, err = cs_lu(C, lu.s, tol)
+	if err != nil {
+		return err
+	}
 	if lu.n == nil {
 		return fmt.Errorf("matrix N in LU decomposition is nil")
 	}
