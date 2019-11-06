@@ -98,7 +98,8 @@ func (lu *LU) Factorize(A *Matrix, ignore ...int) error {
 	if len(ignore) == 0 {
 		C = A
 	} else {
-		C, err := A.Copy()
+		var err error
+		C, err = A.Copy()
 		if err != nil {
 			return err
 		}
