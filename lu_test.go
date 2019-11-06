@@ -547,7 +547,7 @@ func TestLU(t *testing.T) {
 		}
 		A.Print(&buf2, false)
 		if buf1.String() != buf2.String() {
-			t.Errorf("Matrix A is changed")
+			t.Fatalf("Matrix A is changed")
 		}
 	})
 
