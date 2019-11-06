@@ -3,6 +3,7 @@ package sparse
 import (
 	"bytes"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -44,23 +45,18 @@ func TestDemo2(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
-			old := osStdout
-			osStdout = tmpfile
-			defer func() {
-				osStdout = old
-			}()
 
 			start := time.Now() // start timer
 
 			var stdin bytes.Buffer
 			stdin.Write(b)
-			prob := get_problem(&stdin, 1e-14, true)
+			prob := get_problem(&stdin, 1e-14, true, tmpfile)
 			// print_problem(prob)
-			result := demo2(prob, true)
+			result := demo2(prob, true, tmpfile)
 			if result {
-				fmt.Fprintf(osStdout, "Result demo2 : 1\n")
+				fmt.Fprintf(tmpfile, "Result demo2 : 1\n")
 			} else {
-				fmt.Fprintf(osStdout, "Result demo2 : 0\n")
+				fmt.Fprintf(tmpfile, "Result demo2 : 0\n")
 			}
 
 			end := time.Now() // end timer
@@ -90,7 +86,7 @@ func TestDemo2(t *testing.T) {
 }
 
 // demo2 - solve a linear system using Cholesky, LU, and QR, with various orderings
-func demo2(Prob *problem, output bool) bool {
+func demo2(Prob *problem, output bool, tmpfile io.Writer) bool {
 	var t float64
 	var tol float64
 	var ok bool
@@ -116,7 +112,7 @@ func demo2(Prob *problem, output bool) bool {
 	// randomized dmperm analysis
 	D = cs_dmperm(C, 1)
 	if D == nil {
-		fmt.Fprintf(osStdout, "D is nil\n")
+		fmt.Fprintf(tmpfile, "D is nil\n")
 		return false
 	}
 
@@ -135,23 +131,23 @@ func demo2(Prob *problem, output bool) bool {
 	}
 
 	if output {
-		fmt.Fprintf(osStdout, "blocks: %d singletons: %d structural rank: %d\n", nb, ns, sprank)
+		fmt.Fprintf(tmpfile, "blocks: %d singletons: %d structural rank: %d\n", nb, ns, sprank)
 	}
 	cs_free(D)
 
 	// natural and amd(A'*A)
 	for order = 0; order <= 3; order += 3 {
 		if output {
-			fmt.Fprintf(osStdout, "Order : %d\n", order)
-			fmt.Fprintf(osStdout, "M is : %d\n", m)
+			fmt.Fprintf(tmpfile, "Order : %d\n", order)
+			fmt.Fprintf(tmpfile, "M is : %d\n", m)
 		}
 		// if order != 0 && m > 1000 {
 		// 	continue
 		// }
 		if output {
-			fmt.Fprintf(osStdout, "Start order : %d\n", order)
-			fmt.Fprintf(osStdout, "QR   ")
-			print_order(order, output)
+			fmt.Fprintf(tmpfile, "Start order : %d\n", order)
+			fmt.Fprintf(tmpfile, "QR   ")
+			print_order(order, output, tmpfile)
 		}
 		// compute right-hand side
 		rhs(x, b, m)
@@ -159,19 +155,19 @@ func demo2(Prob *problem, output bool) bool {
 		// min norm(Ax-b) with QR
 		ok = cs_qrsol(Order(order), C, x)
 		if output {
-			fmt.Fprintf(osStdout, "time: %8.2f ", toc(t))
+			fmt.Fprintf(tmpfile, "time: %8.2f ", toc(t))
 			// print residual
-			print_resid(ok, C, x, b, resid)
+			print_resid(ok, C, x, b, resid, tmpfile)
 			if ok {
 				for r := 0; r < m; r++ {
-					fmt.Fprintf(osStdout, "x[%d] = %10e\n", r, x[r])
+					fmt.Fprintf(tmpfile, "x[%d] = %10e\n", r, x[r])
 				}
 			}
 		}
 	}
 
 	if output {
-		fmt.Fprintf(osStdout, "m,n,sprank : %d:%d:%d\n", m, n, sprank)
+		fmt.Fprintf(tmpfile, "m,n,sprank : %d:%d:%d\n", m, n, sprank)
 	}
 
 	if m != n || sprank < n {
@@ -182,16 +178,16 @@ func demo2(Prob *problem, output bool) bool {
 	// try all orderings
 	for order = 0; order <= 3; order++ {
 		if output {
-			fmt.Fprintf(osStdout, "Order : %d\n", order)
-			fmt.Fprintf(osStdout, "M is : %d\n", m)
+			fmt.Fprintf(tmpfile, "Order : %d\n", order)
+			fmt.Fprintf(tmpfile, "M is : %d\n", m)
 		}
 		// if order != 0 && m > 1000 {
 		// 	continue
 		// }
 		if output {
-			fmt.Fprintf(osStdout, "Start order : %d\n", order)
-			fmt.Fprintf(osStdout, "LU   ")
-			print_order(order, output)
+			fmt.Fprintf(tmpfile, "Start order : %d\n", order)
+			fmt.Fprintf(tmpfile, "LU   ")
+			print_order(order, output, tmpfile)
 		}
 		// compute right-hand side
 		rhs(x, b, m)
@@ -199,19 +195,19 @@ func demo2(Prob *problem, output bool) bool {
 		// solve Ax=b with LU
 		ok = cs_lusol(Order(order), C, x, tol)
 		if output {
-			fmt.Fprintf(osStdout, "time: %8.2f ", toc(t))
+			fmt.Fprintf(tmpfile, "time: %8.2f ", toc(t))
 			// print residual
-			print_resid(ok, C, x, b, resid)
+			print_resid(ok, C, x, b, resid, tmpfile)
 			if ok {
 				for r := 0; r < m; r++ {
-					fmt.Fprintf(osStdout, "x[%d] = %10e\n", r, x[r])
+					fmt.Fprintf(tmpfile, "x[%d] = %10e\n", r, x[r])
 				}
 			}
 		}
 	}
 
 	if output {
-		fmt.Fprintf(osStdout, "Problem sym is : %d\n", Prob.sym)
+		fmt.Fprintf(tmpfile, "Problem sym is : %d\n", Prob.sym)
 	}
 
 	if Prob.sym == 0 {
@@ -221,16 +217,16 @@ func demo2(Prob *problem, output bool) bool {
 	// natural and amd(A+A')
 	for order = 0; order <= 1; order++ {
 		if output {
-			fmt.Fprintf(osStdout, "Order : %d\n", order)
-			fmt.Fprintf(osStdout, "M is : %d\n", m)
+			fmt.Fprintf(tmpfile, "Order : %d\n", order)
+			fmt.Fprintf(tmpfile, "M is : %d\n", m)
 		}
 		// if order != 0 && m > 1000 {
 		// 	continue
 		// }
 		if output {
-			fmt.Fprintf(osStdout, "Start order : %d\n", order)
-			fmt.Fprintf(osStdout, "Chol ")
-			print_order(order, output)
+			fmt.Fprintf(tmpfile, "Start order : %d\n", order)
+			fmt.Fprintf(tmpfile, "Chol ")
+			print_order(order, output, tmpfile)
 		}
 		// compute right-hand side
 		rhs(x, b, m)
@@ -238,12 +234,12 @@ func demo2(Prob *problem, output bool) bool {
 		// solve Ax=b with Cholesky
 		ok = cs_cholsol(Order(order), C, x)
 		if output {
-			fmt.Fprintf(osStdout, "time: %8.2f ", toc(t))
+			fmt.Fprintf(tmpfile, "time: %8.2f ", toc(t))
 			// print residual
-			print_resid(ok, C, x, b, resid)
+			print_resid(ok, C, x, b, resid, tmpfile)
 			if ok {
 				for r := 0; r < m; r++ {
-					fmt.Fprintf(osStdout, "x[%d] = %10e\n", r, x[r])
+					fmt.Fprintf(tmpfile, "x[%d] = %10e\n", r, x[r])
 				}
 			}
 		}

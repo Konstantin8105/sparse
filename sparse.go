@@ -13,8 +13,6 @@ import (
 	"math/rand"
 )
 
-var osStdout *os.File = os.Stdout
-
 // Matrix - sparse matrix.
 // Matrix in compressed-column or triplet fotmat.
 //
@@ -2586,14 +2584,17 @@ func cs_free(p interface{}) {
 
 // cs_realloc - wrapper for realloc
 func cs_realloc(p interface{}, n int, ok *bool) interface{} {
+
+	realloc := func(length, n int) bool {
+		// reallocation critetia
+		return 2*n < length || // slice is too big
+			length < n // slice is too small
+	}
+
 	switch v := p.(type) {
 	case []int:
-		// TODO (KI) : only for memory analyzing
-		// if 2*n < len(v) {
-		// 	fmt.Fprintf(os.Stdout, "realloc: %6d %6d\n", n, len(v))
-		// }
 		// reallocate memory
-		if 2*n < len(v) || len(v) < n {
+		if realloc(len(v), n) {
 			arr := make([]int, n)
 			copy(arr, v)
 			v, arr = arr, v
@@ -2604,7 +2605,7 @@ func cs_realloc(p interface{}, n int, ok *bool) interface{} {
 
 	case []float64:
 		// reallocate memory
-		if 2*n < len(v) || len(v) < n {
+		if realloc(len(v), n) {
 			arr := make([]float64, n)
 			copy(arr, v)
 			v, arr = arr, v
@@ -2968,13 +2969,9 @@ func Norm(A *Matrix) float64 {
 		for p := Ap[j]; p < Ap[j+1]; p++ {
 			s += math.Abs(Ax[p])
 		}
-
-		norm = func() float64 {
-			if norm > s {
-				return (norm)
-			}
-			return s
-		}()
+		if norm < s {
+			norm = s
+		}
 	}
 	return norm
 }
@@ -3099,8 +3096,10 @@ func cs_post(parent []int, n int) []int {
 
 // Print - print a sparse matrix.
 //
+//	if brief is true, then print shortly
+//
 // Name function in CSparse : cs_print.
-func (A *Matrix) Print(brief bool) error {
+func (A *Matrix) Print(out io.Writer, brief bool) error {
 	if A == nil {
 		return fmt.Errorf("Matrix is nil")
 	}
@@ -3114,7 +3113,9 @@ func (A *Matrix) Print(brief bool) error {
 	// print in buffer
 	var buf bytes.Buffer
 	defer func() {
-		fmt.Fprintf(osStdout, "%s", buf.String())
+		if out != nil {
+			fmt.Fprintf(out, "%s", buf.String())
+		}
 	}()
 
 	fmt.Fprintf(&buf, "Sparse\n")
@@ -3138,7 +3139,10 @@ func (A *Matrix) Print(brief bool) error {
 	return nil
 }
 
-func (A *Triplet) Print(brief bool) error {
+// Print triplets of matrix
+//
+//	if brief is true, then print shortly
+func (A *Triplet) Print(out io.Writer, brief bool) error {
 	if A == nil {
 		return fmt.Errorf("Matrix is nil")
 	}
@@ -3148,7 +3152,9 @@ func (A *Triplet) Print(brief bool) error {
 	// print in buffer
 	var buf bytes.Buffer
 	defer func() {
-		fmt.Fprintf(osStdout, "%s", buf.String())
+		if out != nil {
+			fmt.Fprintf(out, "%s", buf.String())
+		}
 	}()
 
 	fmt.Fprintf(&buf, "Sparse\n")
@@ -4400,24 +4406,6 @@ func cs_sprealloc(A *Matrix, nzmax int) (result bool) {
 	return ok
 }
 
-// // cs_spfree - free a sparse matrix
-// func cs_spfree(A *Cs) *Cs {
-// 	// free the cs struct and return NULL
-// 	return nil
-// }
-//
-// // cs_nfree - free a numeric factorization
-// func cs_nfree(N *csn) *csn {
-// 	// free the csn struct and return NULL
-// 	return nil
-// }
-//
-// // cs_sfree - free a symbolic factorization
-// func cs_sfree(S *css) *css {
-// 	// free the css struct and return NULL
-// 	return nil
-// }
-
 // cs_dalloc - allocate a cs_dmperm or cs_scc result
 func cs_dalloc(m, n int) *csd {
 	// if m < 1 || n < 1 { // TODO (KI) error handling
@@ -4432,12 +4420,6 @@ func cs_dalloc(m, n int) *csd {
 
 	return D
 }
-
-// cs_dfree - free a cs_dmperm or cs_scc result
-// func cs_dfree(D *csd) *csd {
-// 	// free the csd struct and return NULL
-// 	return nil
-// }
 
 // cs_done - free workspace and return a sparse matrix result
 func cs_done(C *Matrix, w []int, x []float64, ok bool) *Matrix {
