@@ -535,6 +535,20 @@ func TestLU(t *testing.T) {
 		if math.Abs(x[1]-2) > 1e-8 {
 			t.Fatalf("x1 = %e", x[1])
 		}
+
+		// check matrix is not changed
+		var buf1, buf2 bytes.Buffer
+		{
+			A2, err := sparse.Compress(T)
+			if err != nil {
+				panic(err)
+			}
+			A2.Print(&buf1, false)
+		}
+		A.Print(&buf2, false)
+		if buf1.String() != buf2.String() {
+			t.Errorf("Matrix A is changed")
+		}
 	})
 
 	t.Run("Add-Ignore-Middle", func(t *testing.T) {
