@@ -91,11 +91,21 @@ func (lu *LU) Factorize(A *Matrix, ignore ...int) error {
 		cs_free(list)
 	}
 
-	// coping matrix A without ignored rows and columns
-	C, _ := A.Copy()
-	defer cs_free(C)
-	if len(ignore) > 0 {
-		_, err := Fkeep(C, func(i, j int, x float64) bool {
+	// preparing matrix for decomposition
+	var C *Matrix
+	// if matrix A have diagonal element for all ignored columns, rows,
+	// then no need to create a copy of matrix A
+	if len(ignore) == 0 {
+		C = A
+	} else {
+		var err error
+		C, err = A.Copy()
+		if err != nil {
+			return err
+		}
+		defer cs_free(C)
+
+		_, err = Fkeep(C, func(i, j int, x float64) bool {
 			var found bool
 			for k := range ignore {
 				if i == ignore[k] || j == ignore[k] {

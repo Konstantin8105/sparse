@@ -17,19 +17,19 @@ go test -v -cpuprofile cpu.prof -memprofile mem.prof -coverprofile=coverage.out 
 goos: linux
 goarch: amd64
 pkg: github.com/Konstantin8105/sparse
-BenchmarkLU/Sparse:__30:__300-4         	   32088	     37297 ns/op	   57120 B/op	      33 allocs/op
-BenchmarkLU/Dense_:__30:__300-4         	   39190	     30263 ns/op	    9241 B/op	      11 allocs/op
-BenchmarkLU/Sparse:_100:_1070-4         	    7592	    135961 ns/op	  221330 B/op	      33 allocs/op
-BenchmarkLU/Dense_:_100:_1070-4         	    5162	    235984 ns/op	   85143 B/op	      11 allocs/op
-BenchmarkLU/Sparse:_300:_3270-4         	    2850	    377977 ns/op	  623773 B/op	      33 allocs/op
-BenchmarkLU/Dense_:_300:_3270-4         	     519	   2316125 ns/op	  738158 B/op	      20 allocs/op
-BenchmarkLU/Sparse:1000:10970-4         	    1010	   1146271 ns/op	 1983396 B/op	      33 allocs/op
-BenchmarkLU/Dense_:1000:10970-4         	      14	  78205064 ns/op	 8066610 B/op	      48 allocs/op
-BenchmarkLU/Sparse:3000:32970-4         	     345	   3620626 ns/op	 5948341 B/op	      33 allocs/op
-BenchmarkLU/Dense_:3000:32970-4         	       2	 818218153 ns/op	72215020 B/op	     123 allocs/op
+BenchmarkLU/Sparse:__30:__300-4         	   37153	     30785 ns/op	   51328 B/op	      28 allocs/op
+BenchmarkLU/Dense_:__30:__300-4         	   41449	     29516 ns/op	    9236 B/op	      11 allocs/op
+BenchmarkLU/Sparse:_100:_1070-4         	    9572	    108839 ns/op	  201328 B/op	      28 allocs/op
+BenchmarkLU/Dense_:_100:_1070-4         	    4323	    233880 ns/op	   85005 B/op	      11 allocs/op
+BenchmarkLU/Sparse:_300:_3270-4         	    3404	    324523 ns/op	  566384 B/op	      28 allocs/op
+BenchmarkLU/Dense_:_300:_3270-4         	     476	   2494250 ns/op	  739173 B/op	      20 allocs/op
+BenchmarkLU/Sparse:1000:10970-4         	    1029	   1065713 ns/op	 1794812 B/op	      28 allocs/op
+BenchmarkLU/Dense_:1000:10970-4         	      18	  63434980 ns/op	 8061283 B/op	      47 allocs/op
+BenchmarkLU/Sparse:3000:32970-4         	     378	   3206861 ns/op	 5382921 B/op	      28 allocs/op
+BenchmarkLU/Dense_:3000:32970-4         	       2	 802618764 ns/op	72295580 B/op	     111 allocs/op
 ```
 
-Using sparse algorithm is effective in test case for square matrixes with size more 100.
+Using sparse algorithm is effective in test case for square matrixes with size more 50.
 
 ### Example of comparing CSparse and CXSparse
 

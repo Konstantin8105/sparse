@@ -33,14 +33,14 @@ func ExampleLU() {
 			panic(errs[i])
 		}
 	}
-	T.Print(false)
+	T.Print(os.Stdout, false)
 
 	// compress
 	A, err := sparse.Compress(T)
 	if err != nil {
 		panic(err)
 	}
-	A.Print(false)
+	A.Print(os.Stdout, false)
 
 	// singinal check
 	min, max := math.MaxFloat64, 0.0
@@ -78,10 +78,33 @@ func ExampleLU() {
 	if err != nil {
 		panic(err)
 	}
-	fmt.Fprintf(os.Stdout, "%v", x)
+	A.Print(os.Stdout, false)
+	fmt.Fprintf(os.Stdout, "Result = %v", x)
 
 	// Output:
-	// [1 2]
+	// Sparse
+	// triplet: 2-by-2, nzmax: 4 nnz: 4
+	//     0 0 : 1.000000e+00
+	//     0 1 : 5.000000e+00
+	//     1 0 : 2.000000e+00
+	//     1 1 : 3.000000e+00
+	// Sparse
+	// 2-by-2, nzmax: 4 nnz: 4, 1-norm: 8.000000e+00
+	//     col 0 : locations 0 to 1
+	//       0 : 1.000000e+00
+	//       1 : 2.000000e+00
+	//     col 1 : locations 2 to 3
+	//       0 : 5.000000e+00
+	//       1 : 3.000000e+00
+	// Sparse
+	// 2-by-2, nzmax: 4 nnz: 4, 1-norm: 8.000000e+00
+	//     col 0 : locations 0 to 1
+	//       0 : 1.000000e+00
+	//       1 : 2.000000e+00
+	//     col 1 : locations 2 to 3
+	//       0 : 5.000000e+00
+	//       1 : 3.000000e+00
+	// Result = [1 2]
 }
 
 func BenchmarkLU(b *testing.B) {
@@ -511,6 +534,20 @@ func TestLU(t *testing.T) {
 		}
 		if math.Abs(x[1]-2) > 1e-8 {
 			t.Fatalf("x1 = %e", x[1])
+		}
+
+		// check matrix is not changed
+		var buf1, buf2 bytes.Buffer
+		{
+			A2, err := sparse.Compress(T)
+			if err != nil {
+				panic(err)
+			}
+			A2.Print(&buf1, false)
+		}
+		A.Print(&buf2, false)
+		if buf1.String() != buf2.String() {
+			t.Fatalf("Matrix A is changed")
 		}
 	})
 

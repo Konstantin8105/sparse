@@ -21,22 +21,22 @@ type problem struct {
 	resid []float64
 }
 
-func print_problem(P *problem) {
-	fmt.Fprintf(osStdout, "Matrix A:\n")
-	P.A.Print(false)
-	fmt.Fprintf(osStdout, "Matrix C:\n")
-	P.C.Print(false)
-	fmt.Fprintf(osStdout, "sym = %v\n", P.sym)
+func print_problem(P *problem, tmpfile io.Writer) {
+	fmt.Fprintf(tmpfile, "Matrix A:\n")
+	P.A.Print(tmpfile, false)
+	fmt.Fprintf(tmpfile, "Matrix C:\n")
+	P.C.Print(tmpfile, false)
+	fmt.Fprintf(tmpfile, "sym = %v\n", P.sym)
 
-	fmt.Fprintf(osStdout, "Vector x\n")
+	fmt.Fprintf(tmpfile, "Vector x\n")
 	for i := 0; i < P.A.n; i++ {
-		fmt.Fprintf(osStdout, "x[%d] = %f\n", i, P.x[i])
+		fmt.Fprintf(tmpfile, "x[%d] = %f\n", i, P.x[i])
 	}
 	for i := 0; i < P.A.n; i++ {
-		fmt.Fprintf(osStdout, "b[%d] = %f\n", i, P.b[i])
+		fmt.Fprintf(tmpfile, "b[%d] = %f\n", i, P.b[i])
 	}
 	for i := 0; i < P.A.n; i++ {
-		fmt.Fprintf(osStdout, "resid[%d] = %f\n", i, P.resid[i])
+		fmt.Fprintf(tmpfile, "resid[%d] = %f\n", i, P.resid[i])
 	}
 }
 
@@ -86,9 +86,9 @@ func make_sym(A *Matrix) *Matrix {
 }
 
 // print_resid - compute residual, norm(A*x-b,inf) / (norm(A,1)*norm(x,inf) + norm(b,inf))
-func print_resid(ok bool, A *Matrix, x []float64, b []float64, resid []float64) {
+func print_resid(ok bool, A *Matrix, x []float64, b []float64, resid []float64, tmpfile io.Writer) {
 	if !ok {
-		fmt.Fprintf(osStdout, "    (failed)\n")
+		fmt.Fprintf(tmpfile, "    (failed)\n")
 		return
 	}
 	m := A.m
@@ -101,30 +101,30 @@ func print_resid(ok bool, A *Matrix, x []float64, b []float64, resid []float64) 
 
 	// resid = resid + A*x
 	Gaxpy(A, x, resid)
-	// fmt.Fprintf(osStdout,"resid: %8.2e\n", norm(resid, m)/func() float64 {
+	// fmt.Fprintf(tmpfile,"resid: %8.2e\n", norm(resid, m)/func() float64 {
 	// 	if n == 0 {
 	// 		return 1
 	// 	}
 	// 	return cs_norm(A)*norm(x, n) + norm(b, m)
 	// }())
 	_ = n
-	fmt.Fprintf(osStdout, "\n")
+	fmt.Fprintf(tmpfile, "\n")
 }
 
 // print_order -
-func print_order(order int, output bool) {
+func print_order(order int, output bool, tmpfile io.Writer) {
 	if !output {
 		return
 	}
 	switch order {
 	case 0:
-		fmt.Fprintf(osStdout, "natural    ")
+		fmt.Fprintf(tmpfile, "natural    ")
 	case 1:
-		fmt.Fprintf(osStdout, "amd(A+A')  ")
+		fmt.Fprintf(tmpfile, "amd(A+A')  ")
 	case 2:
-		fmt.Fprintf(osStdout, "amd(S'*S)  ")
+		fmt.Fprintf(tmpfile, "amd(S'*S)  ")
 	case 3:
-		fmt.Fprintf(osStdout, "amd(A'*A)  ")
+		fmt.Fprintf(tmpfile, "amd(A'*A)  ")
 	}
 }
 
@@ -138,7 +138,7 @@ func cs_dropzeros(A *Matrix) (int, error) {
 }
 
 // get_problem - read a problem from a file; use %g for integers to avoid csi conflicts */
-func get_problem(f io.Reader, tol float64, output bool) *problem {
+func get_problem(f io.Reader, tol float64, output bool, tmpfile io.Writer) *problem {
 	var nz1 int
 	var nz2 int
 	Prob := new(problem)
@@ -177,15 +177,15 @@ func get_problem(f io.Reader, tol float64, output bool) *problem {
 	nz2 = A.p[n]
 
 	if output {
-		fmt.Fprintf(osStdout, "n   = %d\n", n)
-		fmt.Fprintf(osStdout, "nz1 = %d\n", nz1)
-		fmt.Fprintf(osStdout, "nz2 = %d\n", nz2)
-		fmt.Fprintf(osStdout, "A->p[%d] = %d\n", n, A.p[n])
+		fmt.Fprintf(tmpfile, "n   = %d\n", n)
+		fmt.Fprintf(tmpfile, "nz1 = %d\n", nz1)
+		fmt.Fprintf(tmpfile, "nz2 = %d\n", nz2)
+		fmt.Fprintf(tmpfile, "A->p[%d] = %d\n", n, A.p[n])
 
-		fmt.Fprintf(osStdout, "A before drop\n")
-		A.Print(false)
+		fmt.Fprintf(tmpfile, "A before drop\n")
+		A.Print(tmpfile, false)
 
-		fmt.Fprintf(osStdout, "tol = %.5e\n", tol)
+		fmt.Fprintf(tmpfile, "tol = %.5e\n", tol)
 	}
 	if tol > 0 {
 		// drop tiny entries (just to test) */
@@ -194,13 +194,13 @@ func get_problem(f io.Reader, tol float64, output bool) *problem {
 			panic(err)
 		}
 		if output {
-			fmt.Fprintf(osStdout, "droptol = %d\n", ok)
+			fmt.Fprintf(tmpfile, "droptol = %d\n", ok)
 		}
 	}
 
 	if output {
-		fmt.Fprintf(osStdout, "A before make_sym\n")
-		A.Print(false)
+		fmt.Fprintf(tmpfile, "A before make_sym\n")
+		A.Print(tmpfile, false)
 	}
 
 	// C = A + triu(A,1)', or C=A */
@@ -215,7 +215,7 @@ func get_problem(f io.Reader, tol float64, output bool) *problem {
 		return nil
 	}
 	if output {
-		fmt.Fprintf(osStdout, "\n--- Matrix: %g-by-%g, nnz: %g (sym: %g: nnz %g), norm: %8.2e\n",
+		fmt.Fprintf(tmpfile, "\n--- Matrix: %g-by-%g, nnz: %g (sym: %g: nnz %g), norm: %8.2e\n",
 			float64((m)),
 			float64((n)),
 			float64((A.p[n])),
@@ -229,15 +229,15 @@ func get_problem(f io.Reader, tol float64, output bool) *problem {
 			0.0)
 		// cs_norm(C))
 		if nz1 != nz2 {
-			fmt.Fprintf(osStdout, "zero entries dropped: %g\n", float64(nz1-nz2))
+			fmt.Fprintf(tmpfile, "zero entries dropped: %g\n", float64(nz1-nz2))
 		}
 
-		A.Print(false)
+		A.Print(tmpfile, false)
 
-		fmt.Fprintf(osStdout, "nz2 = %d\n", nz2)
-		fmt.Fprintf(osStdout, "A->p[%d] = %d\n", n, A.p[n])
+		fmt.Fprintf(tmpfile, "nz2 = %d\n", nz2)
+		fmt.Fprintf(tmpfile, "A->p[%d] = %d\n", n, A.p[n])
 		if nz2 != A.p[n] {
-			fmt.Fprintf(osStdout, "tiny entries dropped: %g\n", float64((int32(nz2 - A.p[n]))))
+			fmt.Fprintf(tmpfile, "tiny entries dropped: %g\n", float64((int32(nz2 - A.p[n]))))
 		}
 	}
 	Prob.b = make([]float64, mn)

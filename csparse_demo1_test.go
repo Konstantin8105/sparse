@@ -37,11 +37,6 @@ func TestDemo1(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
-			old := osStdout
-			osStdout = tmpfile
-			defer func() {
-				osStdout = old
-			}()
 
 			start := time.Now() // start timer
 
@@ -99,7 +94,7 @@ func TestDemo1(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
-			D.Print(false)
+			D.Print(tmpfile, false)
 
 			end := time.Now() // end timer
 

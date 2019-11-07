@@ -3,6 +3,7 @@ package sparse
 import (
 	"bytes"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -46,18 +47,13 @@ func TestDemo3(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
-			old := osStdout
-			osStdout = tmpfile
-			defer func() {
-				osStdout = old
-			}()
 
 			var stdin bytes.Buffer
 			stdin.Write(b)
-			prob := get_problem(&stdin, 1e-14, true)
+			prob := get_problem(&stdin, 1e-14, true, tmpfile)
 			// print_problem(prob)
-			result := demo3(prob, true)
-			fmt.Fprintf(osStdout, "Result demo3 : %d\n", result)
+			result := demo3(prob, true, tmpfile)
+			fmt.Fprintf(tmpfile, "Result demo3 : %d\n", result)
 
 			end := time.Now() // end timer
 
@@ -86,7 +82,7 @@ func TestDemo3(t *testing.T) {
 }
 
 // Cholesky update/downdate
-func demo3(Prob *problem, output bool) int {
+func demo3(Prob *problem, output bool, tmpfile io.Writer) int {
 	var A *Matrix
 	var C *Matrix
 	var W *Matrix
@@ -129,21 +125,21 @@ func demo3(Prob *problem, output bool) int {
 	// compute right-hand side
 	rhs(x, b, int(n))
 	if output {
-		fmt.Fprintf(osStdout, "\nchol then update/downdate ")
-		print_order(1, output)
+		fmt.Fprintf(tmpfile, "\nchol then update/downdate ")
+		print_order(1, output, tmpfile)
 	}
 	y = make([]float64, n)
 	t = tic()
 	// symbolic Chol, amd(A+A')
 	S = cs_schol(1, C)
 	if output {
-		fmt.Fprintf(osStdout, "\nsymbolic chol time %8.2f\n", toc(t))
+		fmt.Fprintf(tmpfile, "\nsymbolic chol time %8.2f\n", toc(t))
 	}
 	t = tic()
 	// numeric Cholesky
 	N = cs_chol(C, S)
 	if output {
-		fmt.Fprintf(osStdout, "numeric  chol time %8.2f\n", toc(t))
+		fmt.Fprintf(tmpfile, "numeric  chol time %8.2f\n", toc(t))
 	}
 	if S == nil || N == nil || y == nil {
 		return 1 //done3(0, S, N, y, W, E, p)
@@ -158,10 +154,10 @@ func demo3(Prob *problem, output bool) int {
 	// x = P'*y
 	cs_pvec(S.pinv, y, x, int(n))
 	if output {
-		fmt.Fprintf(osStdout, "solve    chol time %8.2f\n", toc(t))
-		fmt.Fprintf(osStdout, "original: ")
+		fmt.Fprintf(tmpfile, "solve    chol time %8.2f\n", toc(t))
+		fmt.Fprintf(tmpfile, "original: ")
 		// print residual
-		print_resid(true, C, x, b, resid)
+		print_resid(true, C, x, b, resid, tmpfile)
 	}
 	// construct W
 	k = n / 2
@@ -195,7 +191,7 @@ func demo3(Prob *problem, output bool) int {
 	ok = cs_updown(N.L, int(+1), W, S.parent)
 	t1 = toc(t)
 	if output {
-		fmt.Fprintf(osStdout, "update:   time: %8.2f\n", t1)
+		fmt.Fprintf(tmpfile, "update:   time: %8.2f\n", t1)
 	}
 	if ok == 0 { // check
 		return 0 // int((done3(0, S, N, y, W, E, p)))
@@ -232,9 +228,9 @@ func demo3(Prob *problem, output bool) int {
 		return 0 // int((done3(0, S, N, y, W, E, p)))
 	}
 	if output {
-		fmt.Fprintf(osStdout, "update:   time: %8.2f (incl solve) ", t1+t)
+		fmt.Fprintf(tmpfile, "update:   time: %8.2f (incl solve) ", t1+t)
 		// print residual
-		print_resid(true, E, x, b, resid)
+		print_resid(true, E, x, b, resid, tmpfile)
 	}
 	// clear N
 	cs_free(N)
@@ -242,7 +238,7 @@ func demo3(Prob *problem, output bool) int {
 	// numeric Cholesky
 	N = cs_chol(E, S)
 	if output {
-		E.Print(false)
+		E.Print(tmpfile, false)
 	}
 	if N == nil {
 		return 0 //int((done3(0, S, N, y, W, E, p)))
@@ -257,9 +253,9 @@ func demo3(Prob *problem, output bool) int {
 	cs_pvec(S.pinv, y, x, int(n))
 	t = toc(t)
 	if output {
-		fmt.Fprintf(osStdout, "rechol:   time: %8.2f (incl solve) ", t)
+		fmt.Fprintf(tmpfile, "rechol:   time: %8.2f (incl solve) ", t)
 		// print residual
-		print_resid(true, E, x, b, resid)
+		print_resid(true, E, x, b, resid, tmpfile)
 	}
 	t = tic()
 	// downdate: L*L'-W*W'
@@ -269,7 +265,7 @@ func demo3(Prob *problem, output bool) int {
 		return 0 // int((done3(0, S, N, y, W, E, p)))
 	}
 	if output {
-		fmt.Fprintf(osStdout, "downdate: time: %8.2f\n", t1)
+		fmt.Fprintf(tmpfile, "downdate: time: %8.2f\n", t1)
 	}
 	t = tic()
 	// y = P*b
@@ -282,9 +278,9 @@ func demo3(Prob *problem, output bool) int {
 	cs_pvec(S.pinv, y, x, int(n))
 	t = toc(t)
 	if output {
-		fmt.Fprintf(osStdout, "downdate: time: %8.2f (incl solve) ", t1+t)
+		fmt.Fprintf(tmpfile, "downdate: time: %8.2f (incl solve) ", t1+t)
 		// print residual
-		print_resid(true, C, x, b, resid)
+		print_resid(true, C, x, b, resid, tmpfile)
 	}
 	return 1 // int((done3(1, S, N, y, W, E, p)))
 }

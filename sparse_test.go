@@ -3,6 +3,7 @@ package sparse
 import (
 	"bytes"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"math"
 	"os"
@@ -138,18 +139,13 @@ func Benchmark(b *testing.B) {
 				if err != nil {
 					b.Fatal(err)
 				}
-				old := osStdout
-				osStdout = tmpfile
-				defer func() {
-					osStdout = old
-				}()
 
 				var stdin bytes.Buffer
 				stdin.Write(o)
-				prob := get_problem(&stdin, 1e-14, false)
+				prob := get_problem(&stdin, 1e-14, false, tmpfile)
 				b.ResetTimer()
 				for i := 0; i < b.N; i++ {
-					_ = demo2(prob, false)
+					_ = demo2(prob, false, tmpfile)
 				}
 			})
 		})
@@ -641,11 +637,11 @@ func TestNilCheck(t *testing.T) {
 		t.Errorf("cs_post: not nil")
 	}
 	a := new(Matrix)
-	if err := a.Print(false); err == nil {
+	if err := a.Print(nil, false); err == nil {
 		t.Errorf("cs_print: not nil")
 	}
 	b := new(Matrix)
-	if err := b.Print(false); err == nil {
+	if err := b.Print(nil, false); err == nil {
 		t.Errorf("cs_print: not nil")
 	}
 	if r := cs_pvec(nil, nil, nil, -1); r == true {
@@ -782,11 +778,6 @@ func TestCsCompress(t *testing.T) {
 		if err != nil {
 			panic(err)
 		}
-		old := osStdout
-		osStdout = tmpfile
-		defer func() {
-			osStdout = old
-		}()
 
 		// sort
 		var ss []string
@@ -798,7 +789,7 @@ func TestCsCompress(t *testing.T) {
 
 		// print
 		for i := range ss {
-			fmt.Fprintf(osStdout, ss[i]+"\n")
+			fmt.Fprintf(tmpfile, ss[i]+"\n")
 		}
 
 		filename := tmpfile.Name()
@@ -908,7 +899,7 @@ func TestCodeStyle(t *testing.T) {
 	codestyle.All(t)
 }
 
-func snapshot(filename string, t *testing.T, f func()) {
+func snapshot(filename string, t *testing.T, f func(tmpfile io.Writer)) {
 	b, err := ioutil.ReadFile(filename)
 	if err != nil {
 		t.Fatal(err)
@@ -918,13 +909,8 @@ func snapshot(filename string, t *testing.T, f func()) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	old := osStdout
-	osStdout = tmpfile
-	defer func() {
-		osStdout = old
-	}()
 
-	f()
+	f(tmpfile)
 
 	file := tmpfile.Name()
 	defer func() { _ = os.Remove(file) }()
@@ -945,7 +931,7 @@ func snapshot(filename string, t *testing.T, f func()) {
 }
 
 func TestGaxpy(t *testing.T) {
-	snapshot("./testdata/.snapshot.gaxpy", t, func() {
+	snapshot("./testdata/.snapshot.gaxpy", t, func(out io.Writer) {
 		var s bytes.Buffer
 		s.WriteString("0 0 1\n1 0 3\n2 0 5\n0 1 2\n1 1 4\n2 1 6")
 		T, err := Load(&s)
@@ -959,7 +945,7 @@ func TestGaxpy(t *testing.T) {
 		x := []float64{7, 8}
 		y := []float64{9, 10, 11}
 		err = Gaxpy(A, x, y)
-		fmt.Fprintf(osStdout, "%v\n", y)
+		fmt.Fprintf(out, "%v\n", y)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -996,7 +982,7 @@ func ExampleGaxpy() {
 }
 
 func TestAdd(t *testing.T) {
-	snapshot("./testdata/.snapshot.add", t, func() {
+	snapshot("./testdata/.snapshot.add", t, func(out io.Writer) {
 		var stdin bytes.Buffer
 		stdin.WriteString("0 0 1\n0 1 2\n1 0 3\n1 1 4")
 		T, err := Load(&stdin)
@@ -1015,7 +1001,7 @@ func TestAdd(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		R.Print(false)
+		R.Print(out, false)
 	})
 }
 
@@ -1038,8 +1024,7 @@ func ExampleAdd() {
 	if err != nil {
 		panic(err)
 	}
-	osStdout = os.Stdout // for output in standart stdout
-	R.Print(false)
+	R.Print(os.Stdout, false)
 
 	// Output:
 	// Sparse
@@ -1085,7 +1070,7 @@ func TestCumsum(t *testing.T) {
 }
 
 func TestDupl(t *testing.T) {
-	snapshot("./testdata/.snapshot.dupl", t, func() {
+	snapshot("./testdata/.snapshot.dupl", t, func(out io.Writer) {
 		var stdin bytes.Buffer
 		stdin.WriteString("0 0 1\n0 1 2\n1 0 3\n1 1 4\n 0 0 1\n 1 0 10")
 		T, err := Load(&stdin)
@@ -1096,15 +1081,15 @@ func TestDupl(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		A.Print(false)
+		A.Print(out, false)
 		err = Dupl(A)
 		if err != nil {
 			t.Fatal(err)
 		}
-		A.Print(false)
+		A.Print(out, false)
 	})
 	// invert data
-	snapshot("./testdata/.snapshot.dupl.invert", t, func() {
+	snapshot("./testdata/.snapshot.dupl.invert", t, func(out io.Writer) {
 		var stdin bytes.Buffer
 		stdin.WriteString(" 1 0 10\n 0 0 1\n 1 1 4\n 1 0 3\n 0 1 2\n 0 0 1 ")
 		T, err := Load(&stdin)
@@ -1115,12 +1100,12 @@ func TestDupl(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		A.Print(false)
+		A.Print(out, false)
 		err = Dupl(A)
 		if err != nil {
 			t.Fatal(err)
 		}
-		A.Print(false)
+		A.Print(out, false)
 	})
 }
 
@@ -1135,15 +1120,14 @@ func ExampleDupl() {
 	if err != nil {
 		panic(err)
 	}
-	osStdout = os.Stdout // for output in standart stdout
 	fmt.Fprintln(os.Stdout, "Before:")
-	A.Print(false)
+	A.Print(os.Stdout, false)
 	err = Dupl(A)
 	if err != nil {
 		panic(err)
 	}
 	fmt.Fprintln(os.Stdout, "After:")
-	A.Print(false)
+	A.Print(os.Stdout, false)
 
 	// Output:
 	// Before:
@@ -1179,13 +1163,12 @@ func ExamplePrint() {
 			panic(err)
 		}
 	}
-	osStdout = os.Stdout // for output in standart stdout
 
 	fmt.Fprintln(os.Stdout, "Full print of triplets:")
-	T.Print(false)
+	T.Print(os.Stdout, false)
 
 	fmt.Fprintln(os.Stdout, "Short print of triplets:")
-	T.Print(true)
+	T.Print(os.Stdout, true)
 
 	A, err := Compress(T)
 	if err != nil {
@@ -1193,10 +1176,10 @@ func ExamplePrint() {
 	}
 
 	fmt.Fprintln(os.Stdout, "Full print of CSC matrix:")
-	A.Print(false)
+	A.Print(os.Stdout, false)
 
 	fmt.Fprintln(os.Stdout, "Short print of CSC matrix:")
-	A.Print(true)
+	A.Print(os.Stdout, true)
 
 	// Output:
 	// Full print of triplets:
@@ -1367,7 +1350,6 @@ func ExampleMultiply() {
 	if err != nil {
 		panic(err)
 	}
-	osStdout = os.Stdout // for output in standart stdout
 	AT, err := Transpose(A)
 	if err != nil {
 		panic(err)
@@ -1376,7 +1358,7 @@ func ExampleMultiply() {
 	if err != nil {
 		panic(err)
 	}
-	M.Print(false)
+	M.Print(os.Stdout, false)
 
 	// Output:
 	// Sparse
