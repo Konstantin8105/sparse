@@ -190,13 +190,7 @@ func (lu *LU) Factorize(A *Matrix, ignore ...int) error {
 //	A * x = b
 //
 // Output vector `x` have same length of vector `b`.
-// Length of vector `b` have 2 acceptable cases:
-//
-// 1) if length of vector b is matrix rows length factorized matrix A
-// then for ignored rows added values `0.0`.
-//
-// 2) length of vector b is matrix rows length factorized matrix A
-// minus length of ignore list.
+// Length of vector `b` must be as A size. Value `b` for ignored rows is `0.0`.
 //
 func (lu *LU) Solve(b []float64) (x []float64, _ error) {
 	// check input data
@@ -211,7 +205,7 @@ func (lu *LU) Solve(b []float64) (x []float64, _ error) {
 		_ = et.Add(fmt.Errorf("matrix N in LU decomposition is nil"))
 	}
 	if lu.n != nil {
-		if !(len(b) == lu.n.L.m || len(b) == lu.n.L.m+len(lu.ignore)) {
+		if !(len(b) == lu.n.L.m+len(lu.ignore)) {
 			_ = et.Add(fmt.Errorf("not acceptable length of vector `b` = %d : [%d ... %d]",
 				len(b), lu.n.L.m, lu.n.L.m+len(lu.ignore)))
 		}

@@ -469,18 +469,18 @@ func TestLU(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		b := []float64{11, 8}
+		b := []float64{0, 11, 8}
 
 		x, err := lu.Solve(b)
 		if err != nil {
 			t.Fatal(err)
 		}
 
-		if math.Abs(x[0]-1) > 1e-8 {
-			t.Fatalf("x0 = %e", x[0])
-		}
-		if math.Abs(x[1]-2) > 1e-8 {
+		if math.Abs(x[1]-1) > 1e-8 {
 			t.Fatalf("x1 = %e", x[1])
+		}
+		if math.Abs(x[2]-2) > 1e-8 {
+			t.Fatalf("x2 = %e", x[2])
 		}
 	})
 
@@ -522,18 +522,18 @@ func TestLU(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		b := []float64{11, 8}
+		b := []float64{0, 11, 8, 0}
 
 		x, err := lu.Solve(b)
 		if err != nil {
 			t.Fatal(err)
 		}
 
-		if math.Abs(x[0]-1) > 1e-8 {
-			t.Fatalf("x0 = %e", x[0])
-		}
-		if math.Abs(x[1]-2) > 1e-8 {
+		if math.Abs(x[1]-1) > 1e-8 {
 			t.Fatalf("x1 = %e", x[1])
+		}
+		if math.Abs(x[2]-2) > 1e-8 {
+			t.Fatalf("x2 = %e", x[2])
 		}
 
 		// check matrix is not changed
@@ -584,7 +584,7 @@ func TestLU(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		b := []float64{11, 8}
+		b := []float64{11, 0, 8}
 
 		x, err := lu.Solve(b)
 		if err != nil {
@@ -594,8 +594,8 @@ func TestLU(t *testing.T) {
 		if math.Abs(x[0]-1) > 1e-8 {
 			t.Fatalf("x0 = %e", x[0])
 		}
-		if math.Abs(x[1]-2) > 1e-8 {
-			t.Fatalf("x1 = %e", x[1])
+		if math.Abs(x[2]-2) > 1e-8 {
+			t.Fatalf("x2 = %e", x[2])
 		}
 	})
 
@@ -632,7 +632,7 @@ func TestLU(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		b := []float64{11, 8}
+		b := []float64{11, 8, 0}
 
 		x, err := lu.Solve(b)
 		if err != nil {
