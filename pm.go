@@ -6,6 +6,7 @@ import (
 	"math/rand"
 	"runtime/debug"
 	"sort"
+	"time"
 
 	"github.com/Konstantin8105/errors"
 )
@@ -20,23 +21,17 @@ type PmConfig struct {
 	Tolerance float64
 }
 
-// PM power method for approximating eigenvalues.
-type PM struct {
+// Pm power method for approximating eigenvalues.
+type Pm struct {
 	a      *Matrix
 	ignore []int
 	config PmConfig
 
-	// result of calculation
-	E []*Eigen
-}
+		// eigenvalue result of calculation
+		𝜦 float64
 
-// Eigen result
-type Eigen struct {
-	// eigenvalue
-	𝜦 float64
-
-	// eigenvector
-	𝑿 []float64
+		// eigenvector result of calculation
+		𝑿 []float64
 }
 
 // zeroize - set 0.0 in each element of slice
@@ -107,7 +102,7 @@ func oneMax(x []float64) {
 //	1. Sepandar D. Kamvar, Taher H. Haveliwala, Christopher D. Manning, Gene H. Golub
 //	"Extrapolation Methods for Accelerating PageRank Computations"
 //
-func (pm *PM) Factorize(A *Matrix, config *PmConfig, ignore ...int) (err error) {
+func (pm *Pm) Factorize(A *Matrix, config *PmConfig, ignore ...int) (err error) {
 	// check input data
 	et := errors.New("Function LU.Factorize: check input data")
 	if A == nil {
@@ -245,39 +240,14 @@ func (pm *PM) Factorize(A *Matrix, config *PmConfig, ignore ...int) (err error) 
 // TODO (KI) : xo = [1 2 3]T
 // TODO (KI) : xo = [0 1 -1]T
 
-// Next calculate next `amount` eigenvalues
-func (pm *PM) Next(amount int) (err error) {
-	switch {
-	case amount < 0:
-		return fmt.Errorf("Not valid amount: %d < 0", amount)
-	case amount == 0:
-		return nil
-	case amount > 1:
-		for i := 0; i < amount; i++ {
-			if err = pm.Next(1); err != nil {
-				return
-			}
-		}
-		return nil
-	}
-
+// Eigen calculate eigenvalue
+func (pm *Pm) Eigen() (err error) { 
 	// panic free. replace to stacktrace
 	defer func() {
 		if r := recover(); r != nil {
 			err = fmt.Errorf("stacktrace from panic: %s\n", debug.Stack())
 		}
 	}()
-
-	// Now `amount = 1`
-	// defer func() {
-	// 	if err == nil {
-	// 		// TODO (KI): check that
-	// 		if math.Abs(pm.E[len(pm.E)-1].𝜦) > math.Abs(pm.E[len(pm.E)-2].𝜦) {
-	// 			err = fmt.Errorf("Any next eigenvalue must be less by absolute value:"+
-	// 				"[%.3e,%.3e]", pm.E[len(pm.E)-1].𝜦, pm.E[len(pm.E)-2].𝜦)
-	// 		}
-	// 	}
-	// }()
 
 	// workspace
 	var (
@@ -287,16 +257,12 @@ func (pm *PM) Next(amount int) (err error) {
 	x = x[:pm.a.m]
 	xNext = xNext[:pm.a.m]
 
-	// initial values
-	// if len(pm.E) > 0 {
-	// 	// suppose any next eigenvector is like last
-	// 	copy(x, pm.E[len(pm.E)-1].𝑿)
-	// 	// TODO (KI) : coping without ignore list
-	// } else {
+	rand.Seed(time.Now().UnixNano())
+
 	for i := range x {
 		x[i] = rand.Float64() - 0.5
 	}
-	// }
+
 	dlast := 1.0
 	oneMax(x)
 
@@ -312,68 +278,31 @@ func (pm *PM) Next(amount int) (err error) {
 		// where j = 0 ... k-1
 		oneMax(x)
 		zeroize(xNext)
-		// fmt.Println("x = ", x)
-		// fmt.Println("X--- ", x)
-		// part 1
-		// if err = Gaxpy(pm.a, x, xNext); err != nil {
-		// 	return
-		// }
 		_, _ = Fkeep(pm.a, func(i, j int, val float64) bool {
 			xNext[i] += val * x[j]
 			return true
 		})
-		// part 2
-		for i := range pm.E {
-			// value pm.E.X without ignore elements
-			EX := make([]float64, pm.a.m)
-			if len(pm.ignore) == 0 { // ignore list is empty
-				copy(EX, pm.E[i].𝑿)
-			} else {
-				// TODO (KI)
-				// panic("TODO")
-			}
-			for row := 0; row < pm.a.m; row++ {
-				for col := 0; col < pm.a.m; col++ {
-					xNext[row] -= pm.E[i].𝜦 * EX[row] * EX[col] * x[col]
-				}
-			}
 
-			// debug
-			// fmt.Println("------------")
-			// T := make([]float64, pm.a.m*pm.a.m)
-			// for row := 0; row < pm.a.m; row++ {
-			// 	for col := 0; col < pm.a.m; col++ {
-			// 		T[row*pm.a.m+col] -= pm.E[i].𝜦 * EX[row] * EX[col]
-			// 	}
-			// }
-			// _, _ = Fkeep(pm.a, func(i, j int, x float64) bool {
-			// 	T[i*pm.a.m+j] += x
-			// 	fmt.Println("A[", i, ",", j, "]=", x)
-			// 	return true
-			// })
-			//
-			// fmt.Println("L  = ", pm.E[i].𝜦)
-			// fmt.Println("EX = ", EX)
-			// for row := 0; row < pm.a.m; row++ {
-			// 	for col := 0; col < pm.a.m; col++ {
-			// 		fmt.Printf("%.4e ", T[row*pm.a.m+col])
-			// 	}
-			// 	fmt.Println("")
-			// }
-			// fmt.Println("------------")
-
+		// value pm.E.X without ignore elements
+		EX := make([]float64, pm.a.m)
+		if len(pm.ignore) == 0 { // ignore list is empty
+			copy(EX, pm.𝑿)
+		} else {
+			// TODO (KI)
+			// panic("TODO")
+		}
+		for row := 0; row < pm.a.m; row++ {
+			for col := 0; col < pm.a.m; col++ {
+				xNext[row] -= pm.𝜦 * EX[row] * EX[col] * x[col]
+			}
 		}
 
-		// fmt.Println("--> x ", xNext)
 		// post work
 		x, xNext = xNext, x
 	}
 
 	// calculation
 	for {
-
-		// fmt.Println("iter ", iter)
-
 		// main iteration function
 		oneMax(x)
 		iteration()
@@ -412,13 +341,7 @@ func (pm *PM) Next(amount int) (err error) {
 	// calculation of Ax is ignore and takes value x(k-1)
 
 	// up : Ax · x
-	// zeroize(xNext)
-	// if err = Gaxpy(pm.a, x, xNext); err != nil {
-	// 	return
-	// }
 	iteration()
-
-	// fmt.Println(">>>>>>>>>>>>>>. ", x, xNext)
 
 	var up float64
 	for i := range x {
@@ -438,7 +361,6 @@ func (pm *PM) Next(amount int) (err error) {
 
 	// calculation eigenvalue
 	𝛌 := up / down
-	// fmt.Println("--> ", 𝛌)
 
 	// change workspace with length of ignore list
 	x = append(x, make([]float64, len(pm.ignore))...)
@@ -469,13 +391,8 @@ func (pm *PM) Next(amount int) (err error) {
 
 	oneMax(x)
 
-	pm.E = append(pm.E, &Eigen{
-		// eigenvalue
-		𝜦: 𝛌,
-
-		// eigenvector
-		𝑿: x,
-	})
+	pm.𝜦 = 𝛌 // eigenvalue
+	pm.𝑿 = x // eigenvector
 
 	return
 }
