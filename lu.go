@@ -268,6 +268,7 @@ func (lu *LU) Solve(b []float64) (x []float64, _ error) {
 			counter++
 		}
 		b = b[:counter]
+
 	}
 
 	// x = b(p)
