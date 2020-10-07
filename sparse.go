@@ -27,6 +27,10 @@ type Matrix struct { // struct cs_sparse
 	nz    int       // # of entries in triplet matrix, -1 for compressed-col
 }
 
+func (A *Matrix) IsTriplet() bool {
+	return A.nz != -1
+}
+
 func (A *Matrix) Copy() (*Matrix, error) {
 	// check input data
 	et := errors.New("")
