@@ -2086,33 +2086,41 @@ func Fkeep(A *Matrix, fkeep func(i int, j int, x float64) bool) (_ int, err erro
 //	y = A*x+y
 //
 // Name function in CSparse : cs_gaxpy.
-func Gaxpy(A *Matrix, x []float64, y []float64) error {
+func Gaxpy(A *Matrix, x []float64, y []float64, errorIgnore ...bool) error {
+	ignoreErrorChecking := func() bool {
+		if len(errorIgnore) == 0 {
+			return false
+		}
+		return errorIgnore[0]
+	}()
 	// check input data
-	etGaxpy := errors.New("")
-	if A == nil {
-		_ = etGaxpy.Add(fmt.Errorf("matrix A is nil"))
-	}
-	if A != nil && A.nz != -1 {
-		_ = etGaxpy.Add(fmt.Errorf("matrix A is not CSC(Compressed Sparse Column) format"))
-	}
-	if x == nil {
-		_ = etGaxpy.Add(fmt.Errorf("Vector x is nil"))
-	}
-	if y == nil {
-		_ = etGaxpy.Add(fmt.Errorf("Vector y is nil"))
-	}
-	if A != nil {
-		if x != nil && A.n != len(x) {
-			_ = etGaxpy.Add(fmt.Errorf("Amount of columns in matrix is not equal length of vector x: %d != %d", A.n, len(x)))
+	if !ignoreErrorChecking{
+		etGaxpy := errors.New("")
+		if A == nil {
+			_ = etGaxpy.Add(fmt.Errorf("matrix A is nil"))
 		}
-		if y != nil && A.m != len(y) {
-			_ = etGaxpy.Add(fmt.Errorf("Amount of rows in matrix is not equal length of vector y: %d != %d", A.m, len(y)))
+		if A != nil && A.nz != -1 {
+			_ = etGaxpy.Add(fmt.Errorf("matrix A is not CSC(Compressed Sparse Column) format"))
 		}
-	}
+		if x == nil {
+			_ = etGaxpy.Add(fmt.Errorf("Vector x is nil"))
+		}
+		if y == nil {
+			_ = etGaxpy.Add(fmt.Errorf("Vector y is nil"))
+		}
+		if A != nil {
+			if x != nil && A.n != len(x) {
+				_ = etGaxpy.Add(fmt.Errorf("Amount of columns in matrix is not equal length of vector x: %d != %d", A.n, len(x)))
+			}
+			if y != nil && A.m != len(y) {
+				_ = etGaxpy.Add(fmt.Errorf("Amount of rows in matrix is not equal length of vector y: %d != %d", A.m, len(y)))
+			}
+		}
 
-	if etGaxpy.IsError() {
-		etGaxpy.Name = "Function Gaxpy: check input data"
-		return etGaxpy
+		if etGaxpy.IsError() {
+			etGaxpy.Name = "Function Gaxpy: check input data"
+			return etGaxpy
+		}
 	}
 
 	// initialization
