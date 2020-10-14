@@ -44,8 +44,9 @@ meld  /tmp/CXSparse/ ./CSparse/
 ### How updating package
 
 * Check new version of `CSparse` is exist on [page](http://faculty.cse.tamu.edu/davis/SuiteSparse/).
+* Chack new version of `jburkardt-c` is exist on [page](https://github.com/johannesgerer/jburkardt-c).
 * Download new version.
-* Compare file-by-file with file in folder `CSparse` of that package.
+* Compare file-by-file with file in folder `CSparse`,`jburkardt-c` of that package.
 * Inject changes into Go files of package.
 
 > Note:
@@ -75,4 +76,3 @@ go tool cover -html=coverage.out
 ### Questions for CSparse
 
 * Variables `css.lnz` and `css.unz` is not float type `double`, better to use integer type like `int`.
-* 

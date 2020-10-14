@@ -21,6 +21,7 @@ CSparse/Lib/*.a
 # testdata application
 testdata/csparse_test
 testdata/*.go
+Eispack/eispack
 
 # profiling files
 *.prof
