@@ -2335,11 +2335,11 @@ func cs_ltsolve(L *Matrix, x []float64) bool {
 }
 
 // cs_lu - [L,U,pinv]=lu(A, [q lnz unz]). lnz and unz can be guess
-func cs_lu(A *Matrix, S *css, tol float64) *csn {
+func cs_lu(A *Matrix, S *css, tol float64) (_ *csn, _ error) {
 	var col int
 	if !(A != nil && A.nz == -1) || S == nil {
 		// check inputs
-		return nil
+		return nil, ErrInputData
 	}
 	n := A.n
 	q := S.q
@@ -2352,19 +2352,17 @@ func cs_lu(A *Matrix, S *css, tol float64) *csn {
 	// allocate result
 	N := new(csn)
 	if x == nil || xi == nil || N == nil {
-		return (cs_ndone(N, nil, xi, x, false))
+		return (cs_ndone(N, nil, xi, x, false)), ErrInitialization
 	}
 	L, err := cs_spalloc(n, n, lnz, true, cscFormat)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, err.Error()) // TODO (KI) error hanling
-		return nil
+		return nil, ErrAllocation.wrap(err)
 	}
 	N.L = L
 	// allocate result L
 	U, err := cs_spalloc(n, n, unz, true, cscFormat)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, err.Error()) // TODO (KI) error hanling
-		return nil
+		return nil, ErrAllocation.wrap(err)
 	}
 	N.U = U
 	// allocate result U
@@ -2372,7 +2370,7 @@ func cs_lu(A *Matrix, S *css, tol float64) *csn {
 	N.pinv = pinv
 	// allocate result pinv
 	if L == nil || U == nil || pinv == nil {
-		return (cs_ndone(N, nil, xi, x, false))
+		return (cs_ndone(N, nil, xi, x, false)), ErrInitialization
 	}
 	Lp, Up := L.p, U.p
 
@@ -2403,7 +2401,7 @@ func cs_lu(A *Matrix, S *css, tol float64) *csn {
 		Up[k] = unz
 		if (lnz+n > L.nzmax && !cs_sprealloc(L, 2*L.nzmax+n)) ||
 			(unz+n > U.nzmax && !cs_sprealloc(U, 2*U.nzmax+n)) {
-			return cs_ndone(N, nil, xi, x, false)
+			return cs_ndone(N, nil, xi, x, false), ErrReallocation
 		}
 		Li, Lx, Ui, Ux := L.i, L.x, U.i, U.x
 
@@ -2436,7 +2434,7 @@ func cs_lu(A *Matrix, S *css, tol float64) *csn {
 			}
 		}
 		if ipiv == -1 || a <= 0 {
-			return (cs_ndone(N, nil, xi, x, false))
+			return (cs_ndone(N, nil, xi, x, false)), ErrCriteria
 		}
 		if pinv[col] < 0 && math.Abs(x[col]) >= a*tol {
 			// tol=1 for  partial pivoting; tol<1 gives preference to diagonal
@@ -2485,22 +2483,34 @@ func cs_lu(A *Matrix, S *css, tol float64) *csn {
 	cs_sprealloc(L, 0)
 	cs_sprealloc(U, 0)
 	// success
-	return (cs_ndone(N, nil, xi, x, true))
+	return (cs_ndone(N, nil, xi, x, true)), nil
 }
 
 // cs_lusol - x=A\b where A is unsymmetric; b overwritten with solution
-func cs_lusol(order Order, A *Matrix, b []float64, tol float64) bool {
+func cs_lusol(order Order, A *Matrix, b []float64, tol float64) error {
 	if !(A != nil && A.nz == -1) || b == nil {
 		// check inputs
-		return false
+		return ErrInputData
 	}
 	n := A.n
 	// ordering and symbolic analysis
 	S := cs_sqr(order, A, false)
+	defer func() {
+		cs_free(S)
+	}()
 	// numeric LU factorization
-	N := cs_lu(A, S, tol)
+	N, err := cs_lu(A, S, tol)
+	defer func() {
+		cs_free(N)
+	}()
+	if err != nil {
+		return err
+	}
 	// get workspace
 	x := make([]float64, n)
+	defer func() {
+		cs_free(x)
+	}()
 	ok := (S != nil && N != nil && x != nil)
 	if ok {
 		// x = b(p)
@@ -2511,11 +2521,14 @@ func cs_lusol(order Order, A *Matrix, b []float64, tol float64) bool {
 		cs_usolve(N.U, x)
 		// b(q) = x
 		cs_ipvec(S.q, x, b, n)
+
+		return nil
 	}
-	cs_free(x)
-	cs_free(S)
-	cs_free(N)
-	return ok
+	return ErrCriteria
+// 	cs_free(x)
+// 	cs_free(S)
+// 	cs_free(N)
+// 	return ok
 }
 
 // cs_free - wrapper for free
