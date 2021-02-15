@@ -21,7 +21,7 @@ type wrapError struct {
 
 func (err wrapError) Error() string {
 	if err.err != nil {
-		return fmt.Sprintf("%s: %v", err.msg, err.err)
+		return fmt.Sprintf("%s: %w", err.msg, err.err)
 	}
 	return err.msg
 }
