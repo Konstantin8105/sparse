@@ -2487,7 +2487,12 @@ func cs_lu(A *Matrix, S *css, tol float64) (_ *csn, _ error) {
 }
 
 // cs_lusol - x=A\b where A is unsymmetric; b overwritten with solution
-func cs_lusol(order Order, A *Matrix, b []float64, tol float64) error {
+func cs_lusol(order Order, A *Matrix, b []float64, tol float64) (err error) {
+	defer func() {
+		if err != nil {
+			err = ErrLusol.wrap(err)
+		}
+	}()
 	if !(A != nil && A.nz == -1) || b == nil {
 		// check inputs
 		return ErrInputData

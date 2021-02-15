@@ -12,6 +12,8 @@ var (
 	ErrAllocation     = wrapError{msg: "allocation"}
 	ErrReallocation   = wrapError{msg: "realloc"}
 	ErrCriteria       = wrapError{msg: "criteria"}
+
+	ErrLusol = wrapError{msg:"cs_lusol"}
 )
 
 type wrapError struct {
