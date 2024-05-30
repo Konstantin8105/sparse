@@ -1,9 +1,9 @@
 # sparse
 
-[![codecov](https://codecov.io/gh/Konstantin8105/sparse/branch/master/graph/badge.svg)](https://codecov.io/gh/Konstantin8105/sparse)
-[![Build Status](https://travis-ci.org/Konstantin8105/sparse.svg?branch=master)](https://travis-ci.org/Konstantin8105/sparse)
 [![Go Report Card](https://goreportcard.com/badge/github.com/Konstantin8105/sparse)](https://goreportcard.com/report/github.com/Konstantin8105/sparse)
+[![codecov](https://codecov.io/gh/Konstantin8105/sparse/branch/master/graph/badge.svg)](https://codecov.io/gh/Konstantin8105/sparse)
 [![GitHub license](https://img.shields.io/badge/license-LGPL%20v2.1-blue.svg)](https://github.com/Konstantin8105/sparse/blob/master/LICENSE)
+[![Go](https://github.com/Konstantin8105/sparse/actions/workflows/codecov.yml/badge.svg?branch=master)](https://github.com/Konstantin8105/sparse/actions/workflows/codecov.yml)
 [![GoDoc](https://godoc.org/github.com/Konstantin8105/sparse?status.svg)](https://godoc.org/github.com/Konstantin8105/sparse)
 
 **This package based on program CSparse from [SuiteSparse 5.4.0](http://faculty.cse.tamu.edu/davis/SuiteSparse/)**
